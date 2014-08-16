@@ -1,0 +1,65 @@
+\documentclass[twocolumn]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[ngerman]{babel}
+\usepackage{cite}
+%\usepackage[sort,authoryear]{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{breakurl}
+\usepackage{todonotes}
+\usepackage{framed}
+\usepackage{caption}
+
+\title{Projekt 1\\I$^2$E - Immersive Interactive Environments}
+\author{Iwer Petersen}
+\makeindex
+
+\graphicspath{ {./images/} }
+\def \defaultImageWidth {0.4}
+
+% Custom command for including the source of a media file.
+% The first parameter is the source of the media file.
+\newcommand{\customSource}[1]
+{
+	\hspace*{15pt}\hbox{\tiny Quelle:\thinspace{\tiny\itshape #1}}
+}
+
+% Custom command for including page filling images.
+% First parameter is the image files path (including its extension).
+% The second parameter is the description of the image.
+% The third parameter is the source of the image.
+\newcommand{\customImage}[3] 
+{
+	\begin{figure}[h!]
+		\begin{center}		
+			\includegraphics[width=\defaultImageWidth\textwidth, keepaspectratio]{#1}
+			\caption{#2}
+			\customSource{#3}
+		\end{center}
+	\end{figure}
+}
+
+\begin{document}
+	\onecolumn
+	\maketitle
+	\newpage
+	
+	\tableofcontents
+	\newpage
+	
+	\twocolumn
+	
+	\input{./sections/introduction}
+	\input{./sections/requirements}
+	\input{./sections/reconstruction}
+	\input{./sections/networkMiddleware}
+	\input{./sections/conclusion}
+	
+	\onecolumn
+	\newpage	
+	\bibliography{Master-AW2}{}
+	\bibliographystyle{IEEEtran}
+\end{document}

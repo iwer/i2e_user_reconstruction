@@ -1,30 +1,37 @@
 \section{Spezifikation}
 
 \subsection{Kurzbeschreibung}
-
+Eine mixed reality Anwendung zur verteilten kollaborativen Konstruktion von virtuellen Objekten. Benutzer des Systems sollen als virtueller Avatar in der Anwendung erscheinen, um von verteilten Benutzern visuell wahrgenommen werden zu können.\\
+Hierfür wird der Benutzer mittels visuellen Sensoren gescannt, um aus den erhaltenen Scandaten ein 3D Oberflächenmodell des Benutzers, zu möglichst interaktiven Frameraten zu berechnen. Damit ein möglichst vollständiges Modell des Benutzers entstehen kann, werden mehrere Sensoren verwendet.
 
 \subsection{Anforderungen}
 
 \begin{enumerate}
-	\item
+	\item Das System unterstützt verschiedene Sensoren über ein gemeinsames Interface.
+	\item Das System erfasst simultan 3D Informationen aus $N$ Sensoren.
+	\item Das System bietet Methoden um die 3D Informationen in ein gemeinsames Koordinatensystem zu transformieren.
+	\item Das System extrahiert Personen aus den 3D Informationen.
+	\item Das System bereinigt und fusioniert die Sensordaten und produziert ein geschlossenes 3D-Polygongitter
+	\item Die Verarbeitung der Sensordaten soll über definierte, austauschbare Module geschehen, um eine aussagekräftige Auswertung verschiedener Algorithmen zu erlauben.
 \end{enumerate}
 
-\subsection{Auschlüsse und Abgrenzungen}
+\subsection{Ausschlüsse und Abgrenzungen}
 
 \begin{enumerate}
-	\item
+	\item In Abgrenzung zu Systemen, welche Motion-Capturing Verfahren zum animieren von virtuellen Avataren verwenden soll dieses System explizit Oberflächenscans von Personen zur 3D Modell Generierung verwenden.
 \end{enumerate}
 
 Folgende Ausschlüsse und Abgrenzungen besitzen nur für Projekt 1 Gültigkeit:
 
 \begin{enumerate}
-	\item
+	\item Das System unterstützt zunächst ausschließlich OpenNI2-kompatible Sensoren
+	\item Das System ist nicht verteilt und verwendet zunächst eine lokale Visualisierung.
 \end{enumerate}
 
 \subsection{Zukünftige Erweiterungen}
 
 \begin{enumerate}
-	\item
+	\item Einbindung von Sensoren über Microsoft Kinect SDK und KinectSDKv2
 \end{enumerate}
 
 \subsection{Glossar}

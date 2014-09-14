@@ -1,0 +1,4 @@
+ofxXmlSettings
+ofxMSATimer
+ofxTimeMeasurements
+ofxUI

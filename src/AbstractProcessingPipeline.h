@@ -17,7 +17,7 @@ public:
 
 protected:
 	CloudConstPtr cloud_;
-	ofMesh mesh_;
+	ofMesh * mesh_;
 
 	AbstractPointProcessor * pp_;
 	AbstractMeshProcessor * mp_;

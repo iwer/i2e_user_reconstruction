@@ -5,6 +5,9 @@
 
 #include "typedefs.h"
 
+/**
+  * Very fast Triangulator. Relies on organized Point Clouds because it exploits the known neighbourhood relations.
+  */
 class OrganizedFastMeshProcessor :
 	public AbstractMeshProcessor
 {

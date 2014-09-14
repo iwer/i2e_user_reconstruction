@@ -18,12 +18,14 @@ public:
 	static ofxUICanvas * getGui();
 	void guiEvent(ofxUIEventArgs &e);
 
+	int renderMode;
+	float background;
+
 private:
 	static ofxUICanvas *gui;
 	ofxUIMovingGraph * fpsMovingGraph;
 	static std::string saveFileName;
-	int renderMode;
-	float background;
+
 
 
 };

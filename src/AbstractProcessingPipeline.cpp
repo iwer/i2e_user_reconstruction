@@ -15,5 +15,5 @@ void AbstractProcessingPipeline::setInputCloud(CloudConstPtr cloud){
 }
 
 ofMesh * AbstractProcessingPipeline::getOutputMesh(){
-	return &mesh_;
+	return mesh_;
 }

@@ -2,12 +2,14 @@
 
 #include "ofMain.h"
 #include "ofxUi.h"
+#include "Controls.h"
+#include "AbstractProcessingPipeline.h"
+#include "Pipeline01.h"
 
 #include <pcl/common/time.h> //fps calculations
 #include <pcl/common/angles.h>
 #include <pcl/io/openni2_grabber.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/surface/organized_fast_mesh.h>
+
 
 #include "typedefs.h"
 
@@ -59,30 +61,17 @@ public:
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
 	void exit();
-	void guiEvent(ofxUIEventArgs &e);
 
-	pcl::PassThrough<PointType> pass_;
-
-	pcl::OrganizedFastMesh<PointType> ofm;
-	boost::shared_ptr<std::vector<pcl::Vertices> > vertices_;
 
 	pcl::io::OpenNI2Grabber * grabber_;
 	boost::mutex cloud_mutex_;
 
 	CloudConstPtr cloud_;
-	CloudConstPtr temp_cloud;
-	ofMesh mesh;
-	ofEasyCam cam;
+	CloudConstPtr temp_cloud_;
+	ofEasyCam cam_;
 
-	ofxUICanvas *gui;
-	ofxUIMovingGraph * fpsMovingGraph;
+	Controls * control_;
 
-	int renderMode;
+	AbstractProcessingPipeline * pipeline_;
 
-	float background;
-
-	float depthThreshMax;
-	float depthThreshMin;
-
-	int ofmPixelSize;
 };

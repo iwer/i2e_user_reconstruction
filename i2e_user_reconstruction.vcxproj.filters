@@ -157,6 +157,25 @@
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWidgetWithLabel.cpp">
       <Filter>addons\ofxUI\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Controls.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AbstractMeshProcessor.cpp">
+      <Filter>src\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AbstractPointProcessor.cpp">
+      <Filter>src\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AbstractProcessingPipeline.cpp">
+      <Filter>src\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DepthThreshold.cpp">
+      <Filter>src\Implementation\PointProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OrganizedFastMeshProcessor.cpp">
+      <Filter>src\Implementation\MeshProcessor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Pipeline01.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -377,6 +396,25 @@
     <ClInclude Include="src\typedefs.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Controls.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AbstractMeshProcessor.h">
+      <Filter>src\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AbstractPointProcessor.h">
+      <Filter>src\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AbstractProcessingPipeline.h">
+      <Filter>src\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DepthThreshold.h">
+      <Filter>src\Implementation\PointProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OrganizedFastMeshProcessor.h">
+      <Filter>src\Implementation\MeshProcessor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Pipeline01.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

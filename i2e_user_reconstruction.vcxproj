@@ -90,6 +90,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AbstractMeshProcessor.cpp" />
+    <ClCompile Include="src\AbstractPointProcessor.cpp" />
+    <ClCompile Include="src\AbstractProcessingPipeline.cpp" />
+    <ClCompile Include="src\Controls.cpp" />
+    <ClCompile Include="src\DepthThreshold.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\src\ofxXmlSettings.cpp" />
@@ -142,8 +147,15 @@
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWaveform.cpp" />
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWidget.cpp" />
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWidgetWithLabel.cpp" />
+    <ClCompile Include="src\OrganizedFastMeshProcessor.cpp" />
+    <ClCompile Include="src\Pipeline01.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AbstractMeshProcessor.h" />
+    <ClInclude Include="src\AbstractPointProcessor.h" />
+    <ClInclude Include="src\AbstractProcessingPipeline.h" />
+    <ClInclude Include="src\Controls.h" />
+    <ClInclude Include="src\DepthThreshold.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="..\..\..\addons\ofxXmlSettings\src\ofxXmlSettings.h" />
     <ClInclude Include="..\..\..\addons\ofxXmlSettings\libs\tinyxml.h" />
@@ -199,6 +211,8 @@
     <ClInclude Include="..\..\..\addons\ofxUI\src\ofxUIWidgets.h" />
     <ClInclude Include="..\..\..\addons\ofxUI\src\ofxUIWidgetWithLabel.h" />
     <ClInclude Include="..\..\..\addons\ofxUI\src\ofxUIWrapper.h" />
+    <ClInclude Include="src\OrganizedFastMeshProcessor.h" />
+    <ClInclude Include="src\Pipeline01.h" />
     <ClInclude Include="src\typedefs.h" />
   </ItemGroup>
   <ItemGroup>

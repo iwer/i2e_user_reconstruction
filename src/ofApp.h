@@ -2,6 +2,9 @@
 
 #include "ofMain.h"
 #include "ofxUi.h"
+#include "ofxMSATimer.h"
+#include "ofxTimeMeasurements.h"
+
 
 #include <pcl/common/time.h> //fps calculations
 #include <pcl/common/angles.h>

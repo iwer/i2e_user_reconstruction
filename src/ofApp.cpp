@@ -13,9 +13,12 @@ ofApp::~ofApp() {
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
+	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
+	
 	ofEnableDepthTest();
-	//setup gui
 
+	//setup gui
 	gui = new ofxUICanvas();        //Creates a canvas at (0,0) using the default width
 	// storage for moving graph
 	vector<float> buffer;
@@ -96,13 +99,17 @@ void ofApp::update(){
 	}
 
 	if(temp_cloud){
-		// apply depth Thresholds
 		CloudPtr cloudFiltered(new Cloud);
+
+		// apply depth Thresholds
+		TS_START("depththresholding");
 		pass_.setFilterLimits (depthThreshMin, depthThreshMax);
 		pass_.setInputCloud(temp_cloud);
 		pass_.filter(*cloudFiltered);
+		TS_STOP("depththresholding");
 
 		// fast organized mesh triangulation
+    	TS_START("meshing");
 		ofm.setTrianglePixelSize (ofmPixelSize);
 		ofm.setInputCloud(cloudFiltered);
 		ofm.reconstruct (*temp_verts);
@@ -123,6 +130,7 @@ void ofApp::update(){
 				mesh.addColor(ofColor(p.r,p.g,p.b));
 			}
 		}
+    	TS_STOP("meshing");
 	}
 }
 
@@ -132,6 +140,7 @@ void ofApp::draw(){
 
 	cam.begin();
 	ofPushMatrix();
+   	TS_START("drawing");
 
 	switch(renderMode){
 	case RENDER_POINTS:
@@ -146,6 +155,7 @@ void ofApp::draw(){
 	default:
 		mesh.drawVertices();
 	}
+   	TS_STOP("drawing");
 
 	ofPopMatrix();
 	cam.end();

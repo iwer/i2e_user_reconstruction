@@ -4,6 +4,9 @@
 #include "ofxUi.h"
 #include "Controls.h"
 #include "AbstractProcessingPipeline.h"
+#include "AbstractPointCloudGenerator.h"
+
+#include "PclOpenNI2Grabber.h"
 #include "Pipeline01.h"
 
 #include <pcl/common/time.h> //fps calculations
@@ -49,8 +52,6 @@ public:
 	void update();
 	void draw();
 
-	void cloud_callback (const CloudConstPtr& cloud);
-
 	void keyPressed(int key);
 	void keyReleased(int key);
 	void mouseMoved(int x, int y );
@@ -63,15 +64,11 @@ public:
 	void exit();
 
 
-	pcl::io::OpenNI2Grabber * grabber_;
-	boost::mutex cloud_mutex_;
-
-	CloudConstPtr cloud_;
 	CloudConstPtr temp_cloud_;
 	ofEasyCam cam_;
 
 	Controls * control_;
 
 	AbstractProcessingPipeline * pipeline_;
-
+	AbstractPointCloudGenerator * cloudSource_;
 };

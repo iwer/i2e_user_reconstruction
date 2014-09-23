@@ -2,12 +2,9 @@
 
 ofApp::ofApp()
 {
-	grabber_ =  new pcl::io::OpenNI2Grabber("", pcl::io::OpenNI2Grabber::OpenNI_Default_Mode, pcl::io::OpenNI2Grabber::OpenNI_Default_Mode);
-	grabber_->start ();
 }
 
 ofApp::~ofApp() {
-	delete grabber_;
 }
 
 //--------------------------------------------------------------
@@ -16,11 +13,7 @@ void ofApp::setup(){
 	//setup gui
 	control_ = new Controls();
 	pipeline_ = new Pipeline01();
-
-
-	// connect cloud callback to openni grabber
-	boost::function<void (const CloudConstPtr&) > cloud_cb = boost::bind (&ofApp::cloud_callback, this, _1);
-	boost::signals2::connection cloud_connection = grabber_->registerCallback (cloud_cb);
+	cloudSource_ = new PclOpenNI2Grabber();
 
 	// setup camera
 	cam_.setPosition(ofVec3f(0, 0, 0));
@@ -31,11 +24,7 @@ void ofApp::setup(){
 void ofApp::update(){
 
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
-	if (cloud_mutex_.try_lock ())
-	{
-		cloud_.swap (temp_cloud_);
-		cloud_mutex_.unlock ();
-	}
+	temp_cloud_ = cloudSource_->getOutputCloud();
 
 	if(temp_cloud_){
 		pipeline_->setInputCloud(temp_cloud_);
@@ -66,16 +55,6 @@ void ofApp::draw(){
 
 	ofPopMatrix();
 	cam_.end();
-}
-
-//--------------------------------------------------------------
-void ofApp::cloud_callback (const CloudConstPtr& cloud)
-{
-	FPS_CALC ("cloud callback");
-	{
-		boost::mutex::scoped_lock lock (cloud_mutex_);
-		cloud_ = cloud;
-	}
 }
 
 //--------------------------------------------------------------
@@ -125,6 +104,5 @@ void ofApp::exit()
 {
 	Controls::getGui()->saveSettings("settings.xml");
 	delete control_;
-	grabber_->stop();
 }
 

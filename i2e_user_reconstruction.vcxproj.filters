@@ -176,6 +176,12 @@
       <Filter>src\Implementation\MeshProcessor</Filter>
     </ClCompile>
     <ClCompile Include="src\Pipeline01.cpp" />
+    <ClCompile Include="src\AbstractPointCloudGenerator.cpp">
+      <Filter>src\Abstract</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PclOpenNI2Grabber.cpp">
+      <Filter>src\Implementation\PointCloudGenerator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -225,6 +231,9 @@
     </Filter>
     <Filter Include="src\Implementation\ProcessingPipeline">
       <UniqueIdentifier>{1cf41ed0-1ebc-4e2c-b994-cb2f901b371d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Implementation\PointCloudGenerator">
+      <UniqueIdentifier>{3ab15470-1bc4-43fc-bebc-52ad0811273e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -415,6 +424,12 @@
       <Filter>src\Implementation\MeshProcessor</Filter>
     </ClInclude>
     <ClInclude Include="src\Pipeline01.h" />
+    <ClInclude Include="src\AbstractPointCloudGenerator.h">
+      <Filter>src\Abstract</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PclOpenNI2Grabber.h">
+      <Filter>src\Implementation\PointCloudGenerator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />

@@ -1,21 +1,18 @@
 #include "ofApp.h"
 
-ofApp::ofApp()
-{
-}
-
-ofApp::~ofApp() {
-}
-
 //--------------------------------------------------------------
 void ofApp::setup(){
 	ofEnableDepthTest();
 	//setup gui
-	/*
-	control_ = new Controls();
-	pipeline_ = new Pipeline01();
+
+	Controls::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
+	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
+	pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
+		&Controls::getInstance().updateMaxDepth,
+		&Controls::getInstance().updateTriangleSize);
 	cloudSource_ = new PclOpenNI2Grabber();
-	*/
+	cloudSource_->start();
+
 	// setup camera
 	cam_.setPosition(ofVec3f(0, 0, 0));
 	cam_.lookAt(ofVec3f(0, 0, 4000), ofVec3f(0, 1, 0));
@@ -23,7 +20,8 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	/*
+	// Update Framerate in Gui
+	Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
 	temp_cloud_ = cloudSource_->getOutputCloud();
 
@@ -31,17 +29,16 @@ void ofApp::update(){
 		pipeline_->setInputCloud(temp_cloud_);
 		pipeline_->processData();
 	}
-	*/
 }
 
 //--------------------------------------------------------------
-void ofApp::draw(){/*
-	ofBackground(control_->background);
+void ofApp::draw(){
+	ofBackground(background);
 
 	cam_.begin();
 	ofPushMatrix();
 
-	switch(control_->renderMode){
+	switch(rendermode){
 	case RENDER_POINTS:
 		pipeline_->getOutputMesh()->drawVertices();
 		break;
@@ -53,11 +50,12 @@ void ofApp::draw(){/*
 		break;
 	default:
 		pipeline_->getOutputMesh()->drawVertices();
+		break;
 	}
 
 	ofPopMatrix();
 	cam_.end();
-	*/
+
 }
 
 //--------------------------------------------------------------
@@ -70,14 +68,14 @@ void ofApp::keyReleased(int key){
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-	/*
-	// if mouse on gui
-	if(Controls::getGui()->getRect()->getMaxX() >= x && Controls::getGui()->getRect()->getMaxY() >= y){
+
+	// disable cam when mouse on gui
+	if(Controls::getInstance().getGui()->getRect()->getMaxX() >= x && Controls::getInstance().getGui()->getRect()->getMaxY() >= y){
 		cam_.disableMouseInput();
 	} else {
 		cam_.enableMouseInput();
 	}
-	*/
+
 }
 
 //--------------------------------------------------------------
@@ -107,9 +105,17 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 //--------------------------------------------------------------
 void ofApp::exit()
 {
-	/*
-	Controls::getGui()->saveSettings("settings.xml");
-	delete control_;
-	*/
+	Controls::getInstance().getGui()->saveSettings("settings.xml");
+	cloudSource_->stop();
+}
+
+//--------------------------------------------------------------
+void ofApp::setBackground(float color){
+	background = color;
+}
+
+//--------------------------------------------------------------
+void ofApp::setRendermode(int mode){
+	rendermode = mode;
 }
 

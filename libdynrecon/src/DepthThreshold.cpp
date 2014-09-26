@@ -1,43 +1,43 @@
 #include "DepthThreshold.h"
 
-DepthThreshold::DepthThreshold(void)
+DepthThreshold::DepthThreshold(void):
+	AbstractPointProcessor()
 {
-	Controls::getGui()->addLabel("lDepthTresh","Depth Threshold");
-	ofxUISlider * dMaxSl = Controls::getGui()->addSlider("MAXDEPTH", .1, 5.0, 100.0);
-	ofxUISlider * dMinSl = Controls::getGui()->addSlider("MINDEPTH", .1, 5.0, 100.0);
-
-	ofAddListener(Controls::getGui()->newGUIEvent, this, &DepthThreshold::guiEvent);
-
-	Controls::postWidgetAdd();
-
-	depthThreshMax = dMaxSl->getScaledValue();
-	depthThreshMin = dMinSl->getScaledValue();
+	depthThreshMax = 1.5;
+	depthThreshMin = 0;
 	pass_.setFilterFieldName ("z");
 	pass_.setKeepOrganized(true);
 }
 
 DepthThreshold::~DepthThreshold(void)
 {
-	ofRemoveListener(Controls::getGui()->newGUIEvent, this, &DepthThreshold::guiEvent);
 }
 
 void DepthThreshold::processData()
 {
-	pass_.setFilterLimits (depthThreshMin, depthThreshMax);
-	pass_.setInputCloud(inputCloud_);
-	pass_.filter(*outputCloud_);
+	if(inputCloud_->size() > 0) {
+		pass_.setFilterLimits (depthThreshMin, depthThreshMax);
+		pass_.setInputCloud(inputCloud_);
+		pass_.filter(*outputCloud_);
+	}
 }
 
-void DepthThreshold::guiEvent(ofxUIEventArgs &e)
+float DepthThreshold::getDepthThresholdMax()
 {
-	if(e.getName() == "MAXDEPTH")
-	{
-		ofxUISlider *slider = e.getSlider();
-		depthThreshMax = slider->getScaledValue();
-	}
-	else if(e.getName() == "MINDEPTH")
-	{
-		ofxUISlider *slider = e.getSlider();
-		depthThreshMin = slider->getScaledValue();
-	}
+	return depthThreshMax;
+}
+
+void DepthThreshold::setDepthThresholdMax(float value)
+{
+	depthThreshMax = value;
+}
+
+float DepthThreshold::getDepthThresholdMin()
+{
+	return depthThreshMin;
+}
+
+void DepthThreshold::setDepthThresholdMin(float value)
+{
+	depthThreshMin = value;
 }

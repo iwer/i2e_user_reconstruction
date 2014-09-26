@@ -1,8 +1,6 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxUi.h"
-#include "Controls.h"
 #include "typedefs.h"
 #include <boost/thread.hpp>
 
@@ -17,7 +15,6 @@ public:
 	virtual void start() = 0;
 	virtual void stop() = 0;
 
-	virtual void guiEvent(ofxUIEventArgs &e) = 0;
 
 protected:
 	boost::mutex cloud_mutex_;

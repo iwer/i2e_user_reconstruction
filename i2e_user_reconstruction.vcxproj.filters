@@ -157,6 +157,9 @@
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWidgetWithLabel.cpp">
       <Filter>addons\ofxUI\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Controls.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -358,6 +361,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxUI\src\ofxUIWrapper.h">
       <Filter>addons\ofxUI\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Controls.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

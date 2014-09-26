@@ -17,9 +17,6 @@ public:
 	void start();
 	void stop();
 
-	void guiEvent(ofxUIEventArgs &e);
-
-
 private:
 	pcl::io::OpenNI2Grabber * grabber_;
 	boost::signals2::connection cloud_connection;

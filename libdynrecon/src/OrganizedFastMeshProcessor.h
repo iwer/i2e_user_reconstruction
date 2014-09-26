@@ -1,6 +1,5 @@
 #pragma once
 #include "AbstractMeshProcessor.h"
-#include "Controls.h"
 #include <pcl/surface/organized_fast_mesh.h>
 
 #include "typedefs.h"
@@ -16,10 +15,12 @@ public:
 	~OrganizedFastMeshProcessor(void);
 
 	void processData();
-	void guiEvent(ofxUIEventArgs &e);
+
+	int getEdgeLength();
+	void setEdgeLength(int value); 
 private:
 	pcl::OrganizedFastMesh<PointType> ofm;
-	boost::shared_ptr<std::vector<pcl::Vertices> > vertices_;
+	boost::shared_ptr<std::vector<pcl::Vertices> > triangles_;
 
 	int ofmPixelSize;
 

@@ -39,7 +39,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(ProjectDir)\lib\</OutDir>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -64,6 +67,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\OpenNI2\Include;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;C:\DevTools\lib\eigen;C:\Program Files %28x86%29\PCL\include\pcl-1.7;..\..\..\..\addons\ofxXmlSettings\libs;..\..\..\..\addons\ofxXmlSettings\src;..\..\..\..\addons\ofxMSATimer\libs;..\..\..\..\addons\ofxMSATimer\src;..\..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\..\addons\ofxTimeMeasurements\src;..\..\..\..\addons\ofxUI\libs;..\..\..\..\addons\ofxUI\src;..\..\..\..\libs\openFrameworks;..\..\..\..\libs\openFrameworks\graphics;..\..\..\..\libs\openFrameworks\app;..\..\..\..\libs\openFrameworks\sound;..\..\..\..\libs\openFrameworks\utils;..\..\..\..\libs\openFrameworks\communication;..\..\..\..\libs\openFrameworks\video;..\..\..\..\libs\openFrameworks\types;..\..\..\..\libs\openFrameworks\math;..\..\..\..\libs\openFrameworks\3d;..\..\..\..\libs\openFrameworks\gl;..\..\..\..\libs\openFrameworks\events;..\..\..\..\libs\glut\include;..\..\..\..\libs\rtAudio\include;..\..\..\..\libs\quicktime\include;..\..\..\..\libs\freetype\include;..\..\..\..\libs\freetype\include\freetype2;..\..\..\..\libs\freeImage\include;..\..\..\..\libs\fmodex\include;..\..\..\..\libs\videoInput\include;..\..\..\..\libs\glew\include\;..\..\..\..\libs\glu\include;..\..\..\..\libs\tess2\include;..\..\..\..\libs\cairo\include\cairo;..\..\..\..\libs\poco\include;..\..\..\..\libs\glfw\include;..\..\..\..\libs\openssl\include;..\..\..\..\addons</AdditionalIncludeDirectories>
+      <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -87,7 +91,6 @@
     <ClCompile Include="src\AbstractPointCloudGenerator.cpp" />
     <ClCompile Include="src\AbstractPointProcessor.cpp" />
     <ClCompile Include="src\AbstractProcessingPipeline.cpp" />
-    <ClCompile Include="src\Controls.cpp" />
     <ClCompile Include="src\DepthThreshold.cpp" />
     <ClCompile Include="src\OrganizedFastMeshProcessor.cpp" />
     <ClCompile Include="src\PclOpenNI2Grabber.cpp" />
@@ -98,7 +101,6 @@
     <ClInclude Include="src\AbstractPointCloudGenerator.h" />
     <ClInclude Include="src\AbstractPointProcessor.h" />
     <ClInclude Include="src\AbstractProcessingPipeline.h" />
-    <ClInclude Include="src\Controls.h" />
     <ClInclude Include="src\DepthThreshold.h" />
     <ClInclude Include="src\OrganizedFastMeshProcessor.h" />
     <ClInclude Include="src\PclOpenNI2Grabber.h" />

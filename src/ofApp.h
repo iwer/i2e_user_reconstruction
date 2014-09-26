@@ -16,38 +16,12 @@
 
 #include "typedefs.h"
 
-#define SHOW_FPS 1
-#if SHOW_FPS
-#define FPS_CALC(_WHAT_) \
-	do \
-{ \
-	static unsigned count = 0;\
-	static double last = pcl::getTime ();\
-	double now = pcl::getTime (); \
-	++count; \
-	if (now - last >= 1.0) \
-{ \
-	std::cout << "Average framerate ("<< _WHAT_ << "): " << double (count)/double (now - last) << " Hz" <<  std::endl; \
-	count = 0; \
-	last = now; \
-} \
-}while (false)
-#else
-#define FPS_CALC (_WHAT_) \
-	do \
-{ \
-}while (false)
-#endif
-
 #define RENDER_POINTS 0
 #define RENDER_WIRE 1
 #define RENDER_MESH 2
 
 class ofApp : public ofBaseApp{
 public:
-	ofApp();
-	~ofApp();
-
 	void setup();
 	void update();
 	void draw();
@@ -63,14 +37,17 @@ public:
 	void gotMessage(ofMessage msg);
 	void exit();
 
+	void setBackground(float color);
+	void setRendermode(int mode);
+
+private:
 	ofEasyCam cam_;
-
-	/*
+		
 	CloudConstPtr temp_cloud_;
-
-	Controls * control_;
 
 	AbstractProcessingPipeline * pipeline_;
 	AbstractPointCloudGenerator * cloudSource_;
-	*/
+	
+	float background;
+	int rendermode;
 };

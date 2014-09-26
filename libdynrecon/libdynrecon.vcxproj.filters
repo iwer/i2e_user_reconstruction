@@ -30,9 +30,6 @@
     <ClCompile Include="src\AbstractProcessingPipeline.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\Controls.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="src\DepthThreshold.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -57,9 +54,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\AbstractProcessingPipeline.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Controls.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\DepthThreshold.h">

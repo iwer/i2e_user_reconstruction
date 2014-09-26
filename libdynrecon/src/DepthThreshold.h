@@ -14,7 +14,11 @@ public:
 	~DepthThreshold(void);
 
 	void processData();
-	void guiEvent(ofxUIEventArgs &e);
+
+	float getDepthThresholdMax();
+	void setDepthThresholdMax(float value);
+	float getDepthThresholdMin();
+	void setDepthThresholdMin(float value);
 private:
 	pcl::PassThrough<PointType> pass_;
 	float depthThreshMax;

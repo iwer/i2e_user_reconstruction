@@ -75,7 +75,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\OpenNI2\Include;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;C:\DevTools\lib\eigen;C:\Program Files %28x86%29\PCL\include\pcl-1.7;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DevTools\of_v0.8.3_vs_release\apps\myApps\i2e_user_reconstruction\libdynrecon\src;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\OpenNI2\Include;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;C:\DevTools\lib\eigen;C:\Program Files %28x86%29\PCL\include\pcl-1.7;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
@@ -91,6 +91,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Controls.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\ofApp.cpp" />
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\src\ofxXmlSettings.cpp" />
@@ -145,6 +146,7 @@
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWidgetWithLabel.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Controls.h" />
     <ClInclude Include="src\ofApp.h" />
     <ClInclude Include="..\..\..\addons\ofxXmlSettings\src\ofxXmlSettings.h" />
     <ClInclude Include="..\..\..\addons\ofxXmlSettings\libs\tinyxml.h" />

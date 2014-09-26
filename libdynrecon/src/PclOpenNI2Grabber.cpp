@@ -4,7 +4,6 @@
 PclOpenNI2Grabber::PclOpenNI2Grabber(void)
 {
 	grabber_ =  new pcl::io::OpenNI2Grabber("", pcl::io::OpenNI2Grabber::OpenNI_Default_Mode, pcl::io::OpenNI2Grabber::OpenNI_Default_Mode);
-
 }
 
 
@@ -38,7 +37,3 @@ void PclOpenNI2Grabber::cloud_callback (const CloudConstPtr& cloud)
 	cloud_ = cloud;
 }
 
-void PclOpenNI2Grabber::guiEvent(ofxUIEventArgs &e)
-{
-
-}

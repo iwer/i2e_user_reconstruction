@@ -63,12 +63,14 @@ public:
 	void gotMessage(ofMessage msg);
 	void exit();
 
-
-	CloudConstPtr temp_cloud_;
 	ofEasyCam cam_;
+
+	/*
+	CloudConstPtr temp_cloud_;
 
 	Controls * control_;
 
 	AbstractProcessingPipeline * pipeline_;
 	AbstractPointCloudGenerator * cloudSource_;
+	*/
 };

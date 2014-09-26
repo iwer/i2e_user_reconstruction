@@ -157,31 +157,6 @@
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUIWidgetWithLabel.cpp">
       <Filter>addons\ofxUI\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Controls.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AbstractMeshProcessor.cpp">
-      <Filter>src\Abstract</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AbstractPointProcessor.cpp">
-      <Filter>src\Abstract</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AbstractProcessingPipeline.cpp">
-      <Filter>src\Abstract</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DepthThreshold.cpp">
-      <Filter>src\Implementation\PointProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\OrganizedFastMeshProcessor.cpp">
-      <Filter>src\Implementation\MeshProcessor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Pipeline01.cpp" />
-    <ClCompile Include="src\AbstractPointCloudGenerator.cpp">
-      <Filter>src\Abstract</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PclOpenNI2Grabber.cpp">
-      <Filter>src\Implementation\PointCloudGenerator</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -216,24 +191,6 @@
     </Filter>
     <Filter Include="addons\ofxUI\src">
       <UniqueIdentifier>{A00C2D23-6C11-BC86-3993-2CF0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Abstract">
-      <UniqueIdentifier>{4d59b95a-1675-48d8-aa8a-0fe65c3125b2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Implementation">
-      <UniqueIdentifier>{26ffae58-5f44-44bb-a0a5-28ccf0f8ae76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Implementation\PointProcessor">
-      <UniqueIdentifier>{9ab6e3f9-7d98-4bbe-b7ec-39f81e4ef4a0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Implementation\MeshProcessor">
-      <UniqueIdentifier>{9d696989-7eed-41ae-8a60-59f4fca2c473}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Implementation\ProcessingPipeline">
-      <UniqueIdentifier>{1cf41ed0-1ebc-4e2c-b994-cb2f901b371d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="src\Implementation\PointCloudGenerator">
-      <UniqueIdentifier>{3ab15470-1bc4-43fc-bebc-52ad0811273e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -401,34 +358,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxUI\src\ofxUIWrapper.h">
       <Filter>addons\ofxUI\src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\typedefs.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Controls.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AbstractMeshProcessor.h">
-      <Filter>src\Abstract</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AbstractPointProcessor.h">
-      <Filter>src\Abstract</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AbstractProcessingPipeline.h">
-      <Filter>src\Abstract</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DepthThreshold.h">
-      <Filter>src\Implementation\PointProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OrganizedFastMeshProcessor.h">
-      <Filter>src\Implementation\MeshProcessor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Pipeline01.h" />
-    <ClInclude Include="src\AbstractPointCloudGenerator.h">
-      <Filter>src\Abstract</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PclOpenNI2Grabber.h">
-      <Filter>src\Implementation\PointCloudGenerator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

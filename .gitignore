@@ -1,3 +1,8 @@
+bin-master/*
+*.vpp~*
+
+
+
 # Created by http://www.gitignore.io
 
 ### VisualStudio ###

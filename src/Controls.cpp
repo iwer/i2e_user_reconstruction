@@ -25,9 +25,9 @@ Controls::Controls(void)
 	names.push_back("TRIANGLEMESH");
 	ofxUIRadio * radio = gui->addRadio("RENDERMODE", names, OFX_UI_ORIENTATION_VERTICAL);
 
-	
-	
-	
+
+
+
 	// register listener callback
 	ofAddListener(gui->newGUIEvent, this, &Controls::guiEvent);
 
@@ -42,6 +42,7 @@ Controls::Controls(void)
 	updateTriangleSize(trSl->getScaledValue());
 
 	std::string active = radio->getActiveName();
+	std::cout << "Active radio: " << radio->getValue() << std::endl;
 	if(active == "POINTS"){
 		updateRenderMode(RENDER_POINTS);
 	}
@@ -81,6 +82,7 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 	{
 		ofxUIRadio *radio = (ofxUIRadio *) e.widget;
 		std::string active = radio->getActiveName();
+		std::cout << "Active radio: " << radio->getValue() << std::endl;
 		if(active == "POINTS"){
 			updateRenderMode(RENDER_POINTS);
 		}

@@ -8,6 +8,9 @@
 
 #include "PclOpenNI2Grabber.h"
 #include "Pipeline01.h"
+#include "ofxMSATimer.h"
+#include "ofxTimeMeasurements.h"
+
 
 #include <pcl/common/time.h> //fps calculations
 #include <pcl/common/angles.h>

@@ -18,12 +18,12 @@ void OrganizedFastMeshProcessor::processData()
 {
 	if(inputCloud_->size() > 0) {
 		// fast organized mesh triangulation
-		std::cout << "Cloud Size before Meshing: " << inputCloud_->size() << std::endl;
+		//std::cout << "Cloud Size before Meshing: " << inputCloud_->size() << std::endl;
 
 		ofm.setTrianglePixelSize (ofmPixelSize);
 		ofm.setInputCloud(inputCloud_);
 		ofm.reconstruct (*triangles_);
-		std::cout << "Reconstructed triangles: " << triangles_->size() << std::endl;
+		//std::cout << "Reconstructed triangles: " << triangles_->size() << std::endl;
 
 		// make an ofMesh
 		outputMesh_.clear();
@@ -43,7 +43,7 @@ void OrganizedFastMeshProcessor::processData()
 				//TODO: add normals, texturecoordinates
 			}
 		}
-		std::cout << "Mesh Size after meshing: " << outputMesh_.getNumVertices() << std::endl;
+		//std::cout << "Mesh Size after meshing: " << outputMesh_.getNumVertices() << std::endl;
 
 	}
 }

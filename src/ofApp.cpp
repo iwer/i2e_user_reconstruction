@@ -2,8 +2,10 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
+	TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
+	
 	ofEnableDepthTest();
-	//setup gui
 
 	Controls::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
 	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
@@ -37,6 +39,7 @@ void ofApp::draw(){
 
 	cam_.begin();
 	ofPushMatrix();
+   	TS_START("drawing");
 
 	switch(rendermode){
 	case RENDER_POINTS:
@@ -52,6 +55,7 @@ void ofApp::draw(){
 		pipeline_->getOutputMesh()->drawVertices();
 		break;
 	}
+   	TS_STOP("drawing");
 
 	ofPopMatrix();
 	cam_.end();

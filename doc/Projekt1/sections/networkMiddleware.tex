@@ -1,4 +1,4 @@
 \section{Netzwerk Middleware}
-
+Damit einzelne Komponenten des Mixed-Reality Systems verteilt kommunizieren können, wird eine gemeinsame Netzwerk-Middleware entwickelt, welche auf die Serialisierungslösung Google protobuf setzt. Da Implementierungen für verschiedenste Programmiersprachen existieren können wir ein geringe Kopplung zwischen einzelnen Komponenten erreichen. Hierfür muss jedoch ein Netzwerk-Adapter für jede Programmiersprache entwickelt werden, welcher den Netzwerktransport der mit protobuf serialisierten Daten übernimmt. Im weiteren wird auf die Entwicklung der C++ Implementierung des Netzwerk-Adapters eingegangen.
 \subsection{Netzwerk-Adapter (C++)}
 

@@ -7,7 +7,7 @@ class AbstractPointProcessor
 {
 public:
 	AbstractPointProcessor(void);
-	~AbstractPointProcessor(void);
+	virtual ~AbstractPointProcessor(void);
 
 	void setInputCloud(CloudConstPtr);
 	virtual void processData() = 0;

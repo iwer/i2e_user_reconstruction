@@ -13,7 +13,7 @@ public:
 	DepthThreshold(void);
 	~DepthThreshold(void);
 
-	void processData();
+	void processData() override;
 
 	float getDepthThresholdMax();
 	void setDepthThresholdMax(float value);

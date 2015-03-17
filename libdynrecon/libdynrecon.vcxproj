@@ -91,22 +91,30 @@
     <ClCompile Include="src\AbstractPointCloudGenerator.cpp" />
     <ClCompile Include="src\AbstractPointProcessor.cpp" />
     <ClCompile Include="src\AbstractProcessingPipeline.cpp" />
+    <ClCompile Include="src\DepthFilePointCloudGenerator.cpp" />
     <ClCompile Include="src\DepthThreshold.cpp" />
     <ClCompile Include="src\GreedyProjectionMeshProcessor.cpp" />
     <ClCompile Include="src\OrganizedFastMeshProcessor.cpp" />
     <ClCompile Include="src\PclOpenNI2Grabber.cpp" />
     <ClCompile Include="src\Pipeline01.cpp" />
+    <ClCompile Include="src\PointCloudSampler.cpp" />
+    <ClCompile Include="src\PointCloudSmoother.cpp" />
+    <ClCompile Include="src\StaticBackgroundRemover.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AbstractMeshProcessor.h" />
     <ClInclude Include="src\AbstractPointCloudGenerator.h" />
     <ClInclude Include="src\AbstractPointProcessor.h" />
     <ClInclude Include="src\AbstractProcessingPipeline.h" />
+    <ClInclude Include="src\DepthFilePointCloudGenerator.h" />
     <ClInclude Include="src\DepthThreshold.h" />
     <ClInclude Include="src\GreedyProjectionMeshProcessor.h" />
     <ClInclude Include="src\OrganizedFastMeshProcessor.h" />
     <ClInclude Include="src\PclOpenNI2Grabber.h" />
     <ClInclude Include="src\Pipeline01.h" />
+    <ClInclude Include="src\PointCloudSampler.h" />
+    <ClInclude Include="src\PointCloudSmoother.h" />
+    <ClInclude Include="src\StaticBackgroundRemover.h" />
     <ClInclude Include="src\typedefs.h" />
   </ItemGroup>
   <ItemGroup>

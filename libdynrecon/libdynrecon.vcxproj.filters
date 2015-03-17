@@ -13,59 +13,71 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Headerdateien\PointProcessing">
+      <UniqueIdentifier>{43182f0e-d287-4b12-a766-5f820208692e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\MeshProcessing">
+      <UniqueIdentifier>{3df0acfc-1ca6-4a17-9b64-ad037fa43735}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\PointcloudSources">
+      <UniqueIdentifier>{86b482ed-c911-4561-9a63-3f0c92ec8920}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\MeshProcessing">
+      <UniqueIdentifier>{2ec50df2-df96-4a07-8310-7a8238869ca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\PointcloudSources">
+      <UniqueIdentifier>{a46c9695-59a6-446c-a762-8b41a0aefb85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\PointProcessing">
+      <UniqueIdentifier>{f608260a-2194-408b-8993-85d7a9b896ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\AbstractMeshProcessor.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AbstractPointCloudGenerator.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\AbstractPointProcessor.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="src\AbstractProcessingPipeline.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DepthThreshold.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\OrganizedFastMeshProcessor.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\PclOpenNI2Grabber.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\Pipeline01.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\AbstractMeshProcessor.cpp">
+      <Filter>Quelldateien\MeshProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AbstractPointCloudGenerator.cpp">
+      <Filter>Quelldateien\PointcloudSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AbstractPointProcessor.cpp">
+      <Filter>Quelldateien\PointProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DepthFilePointCloudGenerator.cpp">
+      <Filter>Quelldateien\PointcloudSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DepthThreshold.cpp">
+      <Filter>Quelldateien\PointProcessing</Filter>
+    </ClCompile>
     <ClCompile Include="src\GreedyProjectionMeshProcessor.cpp">
-      <Filter>Quelldateien</Filter>
+      <Filter>Quelldateien\MeshProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OrganizedFastMeshProcessor.cpp">
+      <Filter>Quelldateien\MeshProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PclOpenNI2Grabber.cpp">
+      <Filter>Quelldateien\PointcloudSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PointCloudSampler.cpp">
+      <Filter>Quelldateien\PointProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PointCloudSmoother.cpp">
+      <Filter>Quelldateien\PointcloudSources</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StaticBackgroundRemover.cpp">
+      <Filter>Quelldateien\PointcloudSources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\AbstractMeshProcessor.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AbstractPointCloudGenerator.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\AbstractPointProcessor.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="src\AbstractProcessingPipeline.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DepthThreshold.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\OrganizedFastMeshProcessor.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\PclOpenNI2Grabber.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\Pipeline01.h">
@@ -74,8 +86,38 @@
     <ClInclude Include="src\typedefs.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="src\AbstractMeshProcessor.h">
+      <Filter>Headerdateien\MeshProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AbstractPointProcessor.h">
+      <Filter>Headerdateien\PointProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AbstractPointCloudGenerator.h">
+      <Filter>Headerdateien\PointcloudSources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DepthFilePointCloudGenerator.h">
+      <Filter>Headerdateien\PointcloudSources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DepthThreshold.h">
+      <Filter>Headerdateien\PointProcessing</Filter>
+    </ClInclude>
     <ClInclude Include="src\GreedyProjectionMeshProcessor.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Headerdateien\MeshProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OrganizedFastMeshProcessor.h">
+      <Filter>Headerdateien\MeshProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PointCloudSampler.h">
+      <Filter>Headerdateien\PointProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PointCloudSmoother.h">
+      <Filter>Headerdateien\PointProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\StaticBackgroundRemover.h">
+      <Filter>Headerdateien\PointProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PclOpenNI2Grabber.h">
+      <Filter>Headerdateien\PointcloudSources</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

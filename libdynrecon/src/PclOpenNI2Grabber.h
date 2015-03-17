@@ -11,11 +11,11 @@ public:
 	PclOpenNI2Grabber(void);
 	~PclOpenNI2Grabber(void);
 
-	void aquireFrame();
+	void aquireFrame() override;
 	void cloud_callback (const CloudConstPtr& cloud);
 
-	void start();
-	void stop();
+	void start() override;
+	void stop() override;
 
 private:
 	pcl::io::OpenNI2Grabber * grabber_;

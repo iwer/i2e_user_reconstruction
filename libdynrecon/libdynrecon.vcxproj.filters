@@ -42,6 +42,9 @@
     <ClCompile Include="src\Pipeline01.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\GreedyProjectionMeshProcessor.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AbstractMeshProcessor.h">
@@ -69,6 +72,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\typedefs.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GreedyProjectionMeshProcessor.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -26,5 +26,6 @@ void Pipeline01::processData()
 	pp_->processData();
 	mp_->setInputCloud(pp_->getOutputCloud());
 	mp_->processData();
-	mesh_ = mp_->getOutputMesh();
+	meshCloud_ = mp_->getInputCloud();
+	triangles_ = mp_->getTriangles();
 }

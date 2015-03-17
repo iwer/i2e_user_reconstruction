@@ -23,6 +23,8 @@
 #define RENDER_WIRE 1
 #define RENDER_MESH 2
 
+#define USE_MSA_TIMER
+
 class ofApp : public ofBaseApp{
 public:
 	void setup();
@@ -43,6 +45,8 @@ public:
 	void setBackground(float color);
 	void setRendermode(int mode);
 
+	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles);
+	void createOfMesh(CloudConstPtr inputCloud);
 private:
 	ofEasyCam cam_;
 		
@@ -51,6 +55,8 @@ private:
 	AbstractProcessingPipeline * pipeline_;
 	AbstractPointCloudGenerator * cloudSource_;
 	
+	ofMesh mesh;
+
 	float background;
 	int rendermode;
 };

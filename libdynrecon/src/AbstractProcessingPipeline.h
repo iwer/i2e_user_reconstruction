@@ -13,11 +13,15 @@ public:
 
 	void setInputCloud(CloudConstPtr cloud);
 	virtual void processData() = 0;
-	ofMesh * getOutputMesh();
+
+	CloudConstPtr getInputCloud();
+	TrianglesPtr getTriangles();
+
 
 protected:
 	CloudConstPtr cloud_;
-	ofMesh * mesh_;
+	CloudConstPtr meshCloud_;
+	TrianglesPtr triangles_;
 
 	AbstractPointProcessor * pp_;
 	AbstractMeshProcessor * mp_;

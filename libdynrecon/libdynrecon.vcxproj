@@ -92,6 +92,7 @@
     <ClCompile Include="src\AbstractPointProcessor.cpp" />
     <ClCompile Include="src\AbstractProcessingPipeline.cpp" />
     <ClCompile Include="src\DepthThreshold.cpp" />
+    <ClCompile Include="src\GreedyProjectionMeshProcessor.cpp" />
     <ClCompile Include="src\OrganizedFastMeshProcessor.cpp" />
     <ClCompile Include="src\PclOpenNI2Grabber.cpp" />
     <ClCompile Include="src\Pipeline01.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="src\AbstractPointProcessor.h" />
     <ClInclude Include="src\AbstractProcessingPipeline.h" />
     <ClInclude Include="src\DepthThreshold.h" />
+    <ClInclude Include="src\GreedyProjectionMeshProcessor.h" />
     <ClInclude Include="src\OrganizedFastMeshProcessor.h" />
     <ClInclude Include="src\PclOpenNI2Grabber.h" />
     <ClInclude Include="src\Pipeline01.h" />

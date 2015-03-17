@@ -35,5 +35,6 @@ void PclOpenNI2Grabber::cloud_callback (const CloudConstPtr& cloud)
 {
 	boost::mutex::scoped_lock lock (cloud_mutex_);
 	cloud_ = cloud;
+	//std::cout << "Grabbed clouds size: " << cloud_->size() << std::endl;
 }
 

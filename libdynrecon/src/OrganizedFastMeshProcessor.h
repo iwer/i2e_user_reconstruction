@@ -20,7 +20,6 @@ public:
 	void setEdgeLength(int value); 
 private:
 	pcl::OrganizedFastMesh<PointType> ofm;
-	boost::shared_ptr<std::vector<pcl::Vertices> > triangles_;
 
 	int ofmPixelSize;
 

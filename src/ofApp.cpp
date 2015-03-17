@@ -34,7 +34,7 @@ void ofApp::update(){
 	// Update Framerate in Gui
 	Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
-	temp_cloud_ = cloudSource_->getOutputCloud();
+	auto temp_cloud_ = cloudSource_->getOutputCloud();
 
 	if(temp_cloud_){
 		pipeline_->setInputCloud(temp_cloud_);

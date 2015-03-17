@@ -23,7 +23,6 @@ protected:
 	 */
 	CloudConstPtr cloud_;
 private:
-	CloudConstPtr temp_cloud_;
 
 };
 

@@ -50,7 +50,7 @@ public:
 private:
 	ofEasyCam cam_;
 		
-	CloudConstPtr temp_cloud_;
+	//CloudConstPtr temp_cloud_;
 
 	AbstractProcessingPipeline * pipeline_;
 	AbstractPointCloudGenerator * cloudSource_;

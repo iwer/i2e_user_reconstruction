@@ -3,7 +3,8 @@
 #include <pcl/Vertices.h>
 
 
-typedef pcl::PointXYZRGBA PointType;
+typedef pcl::PointXYZRGB PointType;
+typedef pcl::PointXYZRGBNormal PointNormalType;
 typedef pcl::PointCloud<PointType> Cloud;
 typedef Cloud::ConstPtr CloudConstPtr;
 typedef Cloud::Ptr CloudPtr;

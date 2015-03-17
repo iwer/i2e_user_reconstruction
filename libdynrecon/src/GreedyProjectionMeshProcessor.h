@@ -17,7 +17,7 @@ public:
 private:
 	pcl::NormalEstimationOMP<PointType, pcl::Normal> n;
 	pcl::search::KdTree<PointType>::Ptr tree;
-	pcl::GreedyProjectionTriangulation<PointType> gp3;
+	pcl::GreedyProjectionTriangulation<PointNormalType> gp3;
 
 	pcl::PointCloud<pcl::Normal>::Ptr normals;
 };

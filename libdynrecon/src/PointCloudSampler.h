@@ -2,7 +2,7 @@
 #include <pcl/filters/voxel_grid.h>
 
 class PointCloudSampler 
-	: AbstractPointProcessor 
+	: public AbstractPointProcessor 
 {
 public:
 	PointCloudSampler();

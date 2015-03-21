@@ -1,21 +1,24 @@
 #pragma once
 #include "AbstractProcessingPipeline.h"
 #include "DepthThreshold.h"
-#include "OrganizedFastMeshProcessor.h"
+#include "GreedyProjectionMeshProcessor.h"
 #include <boost/signals2.hpp>
+#include "PointCloudSampler.h"
 
-class Pipeline01 :
+class Pipeline02 :
 	public AbstractProcessingPipeline
 {
 public:
-	Pipeline01(boost::signals2::signal<void (float)> * minDepUpdate, 
+	Pipeline02(boost::signals2::signal<void (float)> * minDepUpdate, 
 		boost::signals2::signal<void (float)> * maxDepUpdate, 
 		boost::signals2::signal<void (float)> * triangleSizeUpdate);
-	~Pipeline01(void);
+	~Pipeline02(void);
 
 	void processData();
-	void updateTriangleSize(float size);
+
+private:
 	DepthThreshold d;
-	OrganizedFastMeshProcessor m;
+	PointCloudSampler s;
+	GreedyProjectionMeshProcessor g;
 };
 

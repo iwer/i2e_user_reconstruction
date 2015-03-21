@@ -21,7 +21,7 @@ void OrganizedFastMeshProcessor::processData()
 		ofm.setTrianglePixelSize (ofmPixelSize);
 		ofm.setInputCloud(inputCloud_);
 		{
-			boost::mutex::scoped_lock(triangle_mutex_);
+			//boost::mutex::scoped_lock(triangle_mutex_);
 			ofm.reconstruct (*triangles_);
 		}
 		ofm.getIndices();

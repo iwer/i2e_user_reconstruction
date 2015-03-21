@@ -14,19 +14,18 @@ AbstractMeshProcessor::~AbstractMeshProcessor(void)
 
 CloudConstPtr AbstractMeshProcessor::getInputCloud()
 {
-
+	//boost::mutex::scoped_lock(cloud_mutex_);
 	return inputCloud_;
 }
 
 TrianglesPtr AbstractMeshProcessor::getTriangles()
 {
-	boost::mutex::scoped_lock(triangle_mutex_);
+	//boost::mutex::scoped_lock(triangle_mutex_);
 	return triangles_;
 }
 
 void AbstractMeshProcessor::setInputCloud(CloudConstPtr cloud)
 {
-	boost::mutex::scoped_lock(cloud_mutex_);
 	inputCloud_ = cloud;
 }
 

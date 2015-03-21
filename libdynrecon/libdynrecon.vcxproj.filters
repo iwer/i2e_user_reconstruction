@@ -75,6 +75,9 @@
     <ClCompile Include="src\StaticBackgroundRemover.cpp">
       <Filter>Quelldateien\PointcloudSources</Filter>
     </ClCompile>
+    <ClCompile Include="src\Pipeline02.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AbstractProcessingPipeline.h">
@@ -118,6 +121,9 @@
     </ClInclude>
     <ClInclude Include="src\PclOpenNI2Grabber.h">
       <Filter>Headerdateien\PointcloudSources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Pipeline02.h">
+      <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

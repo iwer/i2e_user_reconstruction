@@ -97,6 +97,7 @@
     <ClCompile Include="src\OrganizedFastMeshProcessor.cpp" />
     <ClCompile Include="src\PclOpenNI2Grabber.cpp" />
     <ClCompile Include="src\Pipeline01.cpp" />
+    <ClCompile Include="src\Pipeline02.cpp" />
     <ClCompile Include="src\PointCloudSampler.cpp" />
     <ClCompile Include="src\PointCloudSmoother.cpp" />
     <ClCompile Include="src\StaticBackgroundRemover.cpp" />
@@ -112,6 +113,7 @@
     <ClInclude Include="src\OrganizedFastMeshProcessor.h" />
     <ClInclude Include="src\PclOpenNI2Grabber.h" />
     <ClInclude Include="src\Pipeline01.h" />
+    <ClInclude Include="src\Pipeline02.h" />
     <ClInclude Include="src\PointCloudSampler.h" />
     <ClInclude Include="src\PointCloudSmoother.h" />
     <ClInclude Include="src\StaticBackgroundRemover.h" />

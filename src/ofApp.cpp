@@ -14,7 +14,10 @@ void ofApp::setup(){
 	
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
-	pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
+	//pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
+	//	&Controls::getInstance().updateMaxDepth,
+	//	&Controls::getInstance().updateTriangleSize);
+	pipeline_ = new Pipeline02(&Controls::getInstance().updateMinDepth,
 		&Controls::getInstance().updateMaxDepth,
 		&Controls::getInstance().updateTriangleSize);
 

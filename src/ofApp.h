@@ -8,6 +8,7 @@
 
 #include "PclOpenNI2Grabber.h"
 #include "Pipeline01.h"
+#include "Pipeline02.h"
 #include "ofxMSATimer.h"
 #include "ofxTimeMeasurements.h"
 

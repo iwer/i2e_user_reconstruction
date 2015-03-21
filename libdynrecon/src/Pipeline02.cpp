@@ -1,35 +1,32 @@
-#include "Pipeline01.h"
+#include "Pipeline02.h"
 
 
-Pipeline01::Pipeline01(boost::signals2::signal<void (float)> * minDepUpdate, 
+Pipeline02::Pipeline02(boost::signals2::signal<void (float)> * minDepUpdate, 
 					   boost::signals2::signal<void (float)> * maxDepUpdate, 
 					   boost::signals2::signal<void (float)> * triangleSizeUpdate)
 {
 
 
 	pp_ = &d;
-	mp_ = &m;
+	mp_ = &g;
 
 	minDepUpdate->connect(boost::bind(&DepthThreshold::setDepthThresholdMin, &d, _1));
 	maxDepUpdate->connect(boost::bind(&DepthThreshold::setDepthThresholdMax, &d, _1));
-	triangleSizeUpdate->connect(boost::bind(&Pipeline01::updateTriangleSize, this, _1));
+	triangleSizeUpdate->connect(boost::bind(&PointCloudSampler::setResolution, &s, _1));
 }
 
 
-Pipeline01::~Pipeline01(void)
+Pipeline02::~Pipeline02(void)
 {
 }
 
-void Pipeline01::updateTriangleSize(float size)
-{
-	m.setEdgeLength(int(size));
-}
-
-void Pipeline01::processData()
+void Pipeline02::processData()
 {
 	pp_->setInputCloud(cloud_);
 	pp_->processData();
-	mp_->setInputCloud(pp_->getOutputCloud());
+	s.setInputCloud(pp_->getOutputCloud());
+	s.processData();
+	mp_->setInputCloud(s.getOutputCloud());
 	mp_->processData();
 	meshCloud_ = mp_->getInputCloud();
 	triangles_ = mp_->getTriangles();

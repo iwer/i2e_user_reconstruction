@@ -29,7 +29,7 @@ public:
 	boost::signals2::signal<void (int)> updateRenderMode;
 	boost::signals2::signal<void (float)> updateMaxDepth;
 	boost::signals2::signal<void (float)> updateMinDepth;
-	boost::signals2::signal<void (int)> updateTriangleSize;
+	boost::signals2::signal<void (float)> updateTriangleSize;
 
 private:
 	Controls();							// Don't Implement

@@ -1,0 +1,4 @@
+[submodule "librecon"]
+	path = librecon
+	url = git@intergitlab.informatik.haw-hamburg.de:iwer/librecon.git
+	branch = develop

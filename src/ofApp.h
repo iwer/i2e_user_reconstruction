@@ -3,11 +3,12 @@
 #include "ofMain.h"
 #include "ofxUi.h"
 #include "Controls.h"
-#include "AbstractProcessingPipeline.h"
-#include "AbstractPointCloudGenerator.h"
+#include "recon/AbstractProcessingPipeline.h"
+#include "recon/AbstractPointCloudGenerator.h"
 
-#include "PclOpenNI2Grabber.h"
-#include "Pipeline01.h"
+#include "recon/PclOpenNI2Grabber.h"
+#include "recon/Pipeline01.h"
+#include "recon/Pipeline02.h"
 #include "ofxMSATimer.h"
 #include "ofxTimeMeasurements.h"
 
@@ -17,11 +18,13 @@
 #include <pcl/io/openni2_grabber.h>
 
 
-#include "typedefs.h"
+#include "recon/typedefs.h"
 
 #define RENDER_POINTS 0
 #define RENDER_WIRE 1
 #define RENDER_MESH 2
+
+#define USE_MSA_TIMER
 
 class ofApp : public ofBaseApp{
 public:
@@ -43,14 +46,18 @@ public:
 	void setBackground(float color);
 	void setRendermode(int mode);
 
+	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles);
+	void createOfMesh(CloudConstPtr inputCloud);
 private:
 	ofEasyCam cam_;
 		
-	CloudConstPtr temp_cloud_;
+	//CloudConstPtr temp_cloud_;
 
 	AbstractProcessingPipeline * pipeline_;
 	AbstractPointCloudGenerator * cloudSource_;
 	
+	ofMesh mesh;
+
 	float background;
 	int rendermode;
 };

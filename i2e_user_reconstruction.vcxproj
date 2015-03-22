@@ -75,7 +75,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>C:\DevTools\of_v0.8.3_vs_release\apps\myApps\i2e_user_reconstruction\libdynrecon\src;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\OpenNI2\Include;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;C:\DevTools\lib\eigen;C:\Program Files %28x86%29\PCL\include\pcl-1.7;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DevTools\of_v0.8.3_vs_release\apps\myApps\i2e_user_reconstruction\librecon\include;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\VTK\include\vtk-6.1;C:\Program Files %28x86%29\qhull\include;C:\Program Files %28x86%29\OpenNI2\Include;C:\Program Files %28x86%29\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
@@ -207,8 +207,13 @@
     <ProjectReference Include="..\..\..\libs\openFrameworksCompiled\project\vs\openframeworksLib.vcxproj">
       <Project>{5837595d-aca9-485c-8e76-729040ce4b0b}</Project>
     </ProjectReference>
-    <ProjectReference Include="libdynrecon\libdynrecon.vcxproj">
-      <Project>{0f8ff137-09bd-404c-803a-f65177e9edfd}</Project>
+    <ProjectReference Include="librecon\build\src\sharedlib.vcxproj">
+      <Project>{d51d384a-ca4a-4a52-a97b-7a28617d347d}</Project>
+      <Private>false</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

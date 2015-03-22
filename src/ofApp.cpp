@@ -4,7 +4,11 @@
 void ofApp::setup(){
 	//TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
-	
+
+	DepthFilePointCloudGenerator d;
+	d.loadDepthImageFromFile("data/rgbscan_cam1.png", "data/scan_cam1.png");
+
+
 	ofEnableDepthTest();
 
 	// connect control callbacks
@@ -17,9 +21,9 @@ void ofApp::setup(){
 	//pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
 	//	&Controls::getInstance().updateMaxDepth,
 	//	&Controls::getInstance().updateTriangleSize);
-	pipeline_ = new Pipeline02(&Controls::getInstance().updateMinDepth,
-		&Controls::getInstance().updateMaxDepth,
-		&Controls::getInstance().updateTriangleSize);
+	//pipeline_ = new Pipeline02(&Controls::getInstance().updateMinDepth,
+	//	&Controls::getInstance().updateMaxDepth,
+	//	&Controls::getInstance().updateTriangleSize);
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;

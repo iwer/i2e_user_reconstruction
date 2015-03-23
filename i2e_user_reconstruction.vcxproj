@@ -58,7 +58,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\VTK\include\vtk-6.1;C:\Program Files %28x86%29\qhull\include;C:\Program Files %28x86%29\OpenNI2\Include;C:\Program Files %28x86%29\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\DevTools\of_v0.8.3_vs_release\apps\myApps\i2e_user_reconstruction\librecon\include;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\VTK\include\vtk-6.1;C:\Program Files %28x86%29\qhull\include;C:\Program Files %28x86%29\OpenNI2\Include;C:\Program Files %28x86%29\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>

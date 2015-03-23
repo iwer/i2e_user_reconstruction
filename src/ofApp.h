@@ -61,4 +61,6 @@ private:
 
 	float background;
 	int rendermode;
+
+	CloudConstPtr tmpCloud;
 };

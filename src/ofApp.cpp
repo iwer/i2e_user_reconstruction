@@ -5,8 +5,9 @@ void ofApp::setup(){
 	//TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
 
-	DepthFilePointCloudGenerator d;
-	d.loadDepthImageFromFile("data/rgbscan_cam1.png", "data/scan_cam1.png");
+	DepthFilePointCloudGenerator * d = new DepthFilePointCloudGenerator(30);
+	cloudSource_ = (AbstractPointCloudGenerator*)d;
+	d->loadDepthImageFromFile("data/rgbscan_cam1.png", "data/scan_cam1.png");
 
 
 	ofEnableDepthTest();
@@ -15,7 +16,7 @@ void ofApp::setup(){
 	std::cout << "Connecting App Callbacks" << std::endl;
 	Controls::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
 	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
-	
+
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
 	//pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
@@ -27,28 +28,33 @@ void ofApp::setup(){
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
-	cloudSource_ = new PclOpenNI2Grabber();
-	cloudSource_->start();
+	//cloudSource_ = new PclOpenNI2Grabber();
+	//cloudSource_->start();
 
 	// setup camera
 	std::cout << "Setup camera" << std::endl;
 	cam_.setPosition(ofVec3f(0, 0, 0));
+	cam_.setFov(57);
 	cam_.lookAt(ofVec3f(0, 0, 4000), ofVec3f(0, 1, 0));
+	cam_.setFarClip(1000000);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	// Update Framerate in Gui
-	Controls::getInstance().updateFramerate(ofGetFrameRate());
+	//Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
-	auto temp_cloud_ = cloudSource_->getOutputCloud();
+	if(cloudSource_){
+		auto temp_cloud_ = cloudSource_->getOutputCloud();
 
-	if(temp_cloud_){
-		pipeline_->setInputCloud(temp_cloud_);
-		pipeline_->processData();
-		createOfMesh(pipeline_->getInputCloud(), pipeline_->getTriangles());
-		
-		//createOfMesh(temp_cloud_);
+
+		if(temp_cloud_){
+			//pipeline_->setInputCloud(temp_cloud_);
+			//pipeline_->processData();
+			//createOfMesh(pipeline_->getInputCloud(), pipeline_->getTriangles());
+
+			createOfMesh(temp_cloud_);
+		}
 	}
 }
 
@@ -58,8 +64,8 @@ void ofApp::draw(){
 
 	cam_.begin();
 	ofPushMatrix();
-   	//TS_START("drawing");
-	
+	//TS_START("drawing");
+
 	//std::cout << "Mesh vertices count: " << mesh->getNumVertices() << std::endl;
 	switch(rendermode){
 	case RENDER_POINTS:
@@ -75,7 +81,7 @@ void ofApp::draw(){
 		mesh.drawVertices();
 		break;
 	}
-   	//TS_STOP("drawing");
+	//TS_STOP("drawing");
 
 	ofPopMatrix();
 	cam_.end();

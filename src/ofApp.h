@@ -48,20 +48,22 @@ public:
 	void setBackground(float color);
 	void setRendermode(int mode);
 
-	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles);
-	void createOfMesh(CloudConstPtr inputCloud);
+	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles, int meshIndex);
+	void createOfMesh(CloudConstPtr inputCloud, int meshIndex);
 private:
 	ofEasyCam cam_;
 		
 	//CloudConstPtr temp_cloud_;
 
 	AbstractProcessingPipeline * pipeline_;
-	AbstractPointCloudGenerator * cloudSource_;
+	AbstractPointCloudGenerator * cloudSource_[4];
 	
-	ofMesh mesh;
+	ofMesh mesh[4];
 
 	float background;
 	int rendermode;
 
 	CloudConstPtr tmpCloud;
+
+	ofColor cloudColors[4];
 };

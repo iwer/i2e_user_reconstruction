@@ -5,10 +5,6 @@ void ofApp::setup(){
 	//TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
 
-	DepthFilePointCloudGenerator * d = new DepthFilePointCloudGenerator(30);
-	cloudSource_ = (AbstractPointCloudGenerator*)d;
-	d->loadDepthImageFromFile("data/rgbscan_cam1.png", "data/scan_cam1.png");
-
 
 	ofEnableDepthTest();
 
@@ -29,14 +25,22 @@ void ofApp::setup(){
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
 	//cloudSource_ = new PclOpenNI2Grabber();
-	//cloudSource_->start();
+	//DepthFilePointCloudGenerator * d = new DepthFilePointCloudGenerator(30);
+	//cloudSource_ = (AbstractPointCloudGenerator*)d;
+	//d->loadDepthImageFromFile("data/rgbscan_cam1.png", "data/scan_cam1_16bit_1.png");
+
+	cloudSource_ = new FilePointCloudGenerator("data/scan02.pcd");
+	cloudSource_->start();
 
 	// setup camera
 	std::cout << "Setup camera" << std::endl;
 	cam_.setPosition(ofVec3f(0, 0, 0));
 	cam_.setFov(57);
 	cam_.lookAt(ofVec3f(0, 0, 4000), ofVec3f(0, 1, 0));
-	cam_.setFarClip(1000000);
+	cam_.setNearClip(.1);
+	cam_.setFarClip(100000000);
+
+	Controls::getInstance().getGui()->loadSettings("settings.xml");
 }
 
 //--------------------------------------------------------------
@@ -65,7 +69,8 @@ void ofApp::draw(){
 	cam_.begin();
 	ofPushMatrix();
 	//TS_START("drawing");
-
+	ofDrawAxis(1000);
+	//ofDrawGridPlane(1000);
 	//std::cout << "Mesh vertices count: " << mesh->getNumVertices() << std::endl;
 	switch(rendermode){
 	case RENDER_POINTS:

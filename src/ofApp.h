@@ -11,8 +11,8 @@
 #include "recon/FilePointCloudGenerator.h"
 #include "recon/Pipeline01.h"
 #include "recon/Pipeline02.h"
-#include "ofxMSATimer.h"
-#include "ofxTimeMeasurements.h"
+//#include "ofxMSATimer.h"
+//#include "ofxTimeMeasurements.h"
 
 
 #include <pcl/common/time.h> //fps calculations
@@ -22,48 +22,45 @@
 
 #include "recon/typedefs.h"
 
-#define RENDER_POINTS 0
-#define RENDER_WIRE 1
-#define RENDER_MESH 2
+//#define USE_MSA_TIMER
 
-#define USE_MSA_TIMER
+#define NCLOUDS 4
 
 class ofApp : public ofBaseApp{
 public:
-	void setup();
-	void update();
-	void draw();
+	void setup() override;
+	void update() override;
+	void draw() override;
 
-	void keyPressed(int key);
-	void keyReleased(int key);
-	void mouseMoved(int x, int y );
-	void mouseDragged(int x, int y, int button);
-	void mousePressed(int x, int y, int button);
-	void mouseReleased(int x, int y, int button);
-	void windowResized(int w, int h);
-	void dragEvent(ofDragInfo dragInfo);
-	void gotMessage(ofMessage msg);
-	void exit();
+	void keyPressed(int key) override;
+	void keyReleased(int key) override;
+	void mouseMoved(int x, int y ) override;
+	void mouseDragged(int x, int y, int button) override;
+	void mousePressed(int x, int y, int button) override;
+	void mouseReleased(int x, int y, int button) override;
+	void windowResized(int w, int h) override;
+	void dragEvent(ofDragInfo dragInfo) override;
+	void gotMessage(ofMessage msg) override;
+	void exit() override;
 
 	void setBackground(float color);
 	void setRendermode(int mode);
 
-	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles, int meshIndex);
+	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles);
 	void createOfMesh(CloudConstPtr inputCloud, int meshIndex);
 private:
 	ofEasyCam cam_;
 		
-	//CloudConstPtr temp_cloud_;
-
 	AbstractProcessingPipeline * pipeline_;
-	AbstractPointCloudGenerator * cloudSource_[4];
+	AbstractPointCloudGenerator * cloudSource_[NCLOUDS];
 	
-	ofMesh mesh[4];
+	ofMesh inputMesh[NCLOUDS];
+	ofMesh outputMesh;
 
 	float background;
 	int rendermode;
 
 	CloudConstPtr tmpCloud;
 
-	ofColor cloudColors[4];
+	ofColor cloudColors[NCLOUDS];
 };

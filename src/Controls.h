@@ -4,9 +4,10 @@
 #include "ofxUi.h"
 #include <boost/signals2.hpp>
 
-#define RENDER_POINTS 0
-#define RENDER_WIRE 1
-#define RENDER_MESH 2
+#define RENDER_SOURCES 0
+#define RENDER_POINTS 1
+#define RENDER_WIRE 2
+#define RENDER_MESH 3
 
 class Controls
 {
@@ -25,11 +26,17 @@ public:
 
 	void guiEvent(ofxUIEventArgs &e);
 
+	void loadSettings();
+	void saveSettings();
+
 	boost::signals2::signal<void (float)> updateBackground;
-	boost::signals2::signal<void (int)> updateRenderMode;
+	boost::signals2::signal<void (int)>	  updateRenderMode;
 	boost::signals2::signal<void (float)> updateMaxDepth;
 	boost::signals2::signal<void (float)> updateMinDepth;
 	boost::signals2::signal<void (float)> updateTriangleSize;
+	boost::signals2::signal<void (int)>   updateNormalKNeighbour;
+	boost::signals2::signal<void (float)> updateMu;
+	boost::signals2::signal<void (int)>   updateMaxNearestNeighbours;
 
 private:
 	Controls();							// Don't Implement

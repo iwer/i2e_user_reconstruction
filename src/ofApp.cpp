@@ -18,9 +18,13 @@ void ofApp::setup(){
 	//pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
 	//	&Controls::getInstance().updateMaxDepth,
 	//	&Controls::getInstance().updateTriangleSize);
-	pipeline_ = new Pipeline02(&Controls::getInstance().updateMinDepth,
+	pipeline_ = new Pipeline02(NCLOUDS, 
+		&Controls::getInstance().updateMinDepth,
 		&Controls::getInstance().updateMaxDepth,
-		&Controls::getInstance().updateTriangleSize);
+		&Controls::getInstance().updateTriangleSize,
+		&Controls::getInstance().updateNormalKNeighbour,
+		&Controls::getInstance().updateMu,
+		&Controls::getInstance().updateMaxNearestNeighbours);
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
@@ -36,7 +40,7 @@ void ofApp::setup(){
 		"data/scan04.pcd"
 	};
 
-	for(auto i = 0; i < 4; i++) {
+	for(auto i = 0; i < NCLOUDS; i++) {
 		std::cout << "Loading " << filenames[i] << std::endl;
 		cloudSource_[i] = new FilePointCloudGenerator(filenames[i]);
 		cloudSource_[i]->start();
@@ -55,7 +59,7 @@ void ofApp::setup(){
 	cam_.setNearClip(.1);
 	cam_.setFarClip(100000000);
 
-	Controls::getInstance().getGui()->loadSettings("settings.xml");
+	Controls::getInstance().loadSettings();
 }
 
 //--------------------------------------------------------------
@@ -63,18 +67,18 @@ void ofApp::update(){
 	// Update Framerate in Gui
 	//Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
-	for(auto i = 0; i < 4;i++){
+	for(auto i = 0; i < NCLOUDS; i++){
 		if(cloudSource_[i]){
 			auto temp_cloud_ = cloudSource_[i]->getOutputCloud();
 			if(temp_cloud_){
-				pipeline_->setInputCloud(temp_cloud_);
-				pipeline_->processData();
-				createOfMesh(pipeline_->getInputCloud(), pipeline_->getTriangles(), i);
-
-				//createOfMesh(temp_cloud_, i);
+				pipeline_->setInputCloud(temp_cloud_, i);
+				createOfMesh(temp_cloud_, i);
 			}
 		}
 	}
+
+	pipeline_->processData();
+	createOfMesh(pipeline_->getOutputCloud(), pipeline_->getTriangles());
 }
 
 //--------------------------------------------------------------
@@ -86,27 +90,36 @@ void ofApp::draw(){
 	//TS_START("drawing");
 	ofDrawAxis(1000);
 	//ofDrawGridPlane(1000);
-	//std::cout << "Mesh vertices count: " << mesh->getNumVertices() << std::endl;
+	//std::cout << "Mesh vertices count: " << inputMesh->getNumVertices() << std::endl;
 	switch(rendermode){
+	case RENDER_SOURCES:
+		//for(auto &m : inputMesh) {
+		//	m.drawVertices();
+		//}
+		break;
 	case RENDER_POINTS:
-		for(auto &m : mesh) {
-			m.drawVertices();
-		}
+		//for(auto &m : inputMesh) {
+		//	m.drawVertices();
+		//}
+		outputMesh.drawVertices();
 		break;
 	case RENDER_WIRE:
-		for(auto &m : mesh) {
-			m.drawWireframe();
-		}
+		//for(auto &m : inputMesh) {
+		//	m.drawWireframe();
+		//}
+		outputMesh.drawWireframe();
 		break;
 	case RENDER_MESH:
-		for(auto &m : mesh) {
-			m.draw();
-		}
+		//for(auto &m : inputMesh) {
+		//	m.draw();
+		//}
+		outputMesh.draw();
 		break;
 	default:
-		for(auto &m : mesh) {
-			m.drawVertices();
-		}
+		//for(auto &m : inputMesh) {
+		//	m.drawVertices();
+		//}
+		outputMesh.drawVertices();
 		break;
 	}
 	//TS_STOP("drawing");
@@ -163,7 +176,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 //--------------------------------------------------------------
 void ofApp::exit()
 {
-	Controls::getInstance().getGui()->saveSettings("settings.xml");
+	Controls::getInstance().saveSettings();
 	for (auto &cs : cloudSource_) {
 		cs->stop();
 	}
@@ -179,20 +192,19 @@ void ofApp::setRendermode(int mode){
 	rendermode = mode;
 }
 
-void ofApp::createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles, int meshIndex)
+void ofApp::createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles)
 {
 
-	// triangle mesh
-	mesh[meshIndex].clear();
-	mesh[meshIndex].setMode(OF_PRIMITIVE_TRIANGLES);
+	// triangle inputMesh
+	outputMesh.clear();
+	outputMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 	PointType p;
 	for(auto &t : *triangles) {
 		// So easy, such style, very beauty, many readable, so wow!
 		for(auto &pointindex : t.vertices){
 			p = inputCloud->at(pointindex);
-			mesh[meshIndex].addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
-			//mesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
-			mesh[meshIndex].addColor(cloudColors[meshIndex]);
+			outputMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+			outputMesh.addColor(ofColor(p.r,p.g,p.b));
 			//TODO: add normals, texturecoordinates
 		}
 	}
@@ -203,12 +215,12 @@ void ofApp::createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles, int m
 void ofApp::createOfMesh(CloudConstPtr inputCloud, int meshIndex)
 {
 
-	// triangle mesh
-	mesh[meshIndex].clear();
-	mesh[meshIndex].setMode(OF_PRIMITIVE_POINTS);
+	// triangle inputMesh
+	inputMesh[meshIndex].clear();
+	inputMesh[meshIndex].setMode(OF_PRIMITIVE_POINTS);
 	for(auto &p : inputCloud->points){
-		mesh[meshIndex].addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
-		//mesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
-		mesh[meshIndex].addColor(cloudColors[meshIndex]);
+		inputMesh[meshIndex].addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+		//inputMesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
+		inputMesh[meshIndex].addColor(cloudColors[meshIndex]);
 	}
 }

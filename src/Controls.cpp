@@ -16,8 +16,11 @@ Controls::Controls(void)
 	gui->addLabel("lDepthTresh","Depth Threshold");
 	auto * dMaxSl = gui->addSlider("MAXDEPTH", .3, 5.0, 5.0);
 	auto * dMinSl = gui->addSlider("MINDEPTH", .1, 5.0, .1);
+	gui->addLabel("lResolution","Sample Resolution");
+	auto * dResSl = gui->addSlider("RESOLUTION", .01, .5, .1);
+
 	gui->addLabel("lOrgFastMesh","Meshing");
-	auto * trSl = gui->addSlider("TRIANGLESIZE", .01, 10, 5.0);
+	auto * trSl = gui->addSlider("TRIANGLESIZE", .01, 50, 5.0);
 	//trSl->setIncrement(1);
 	auto * normalKSl = gui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);
 	auto * muSl = gui->addSlider("GREEDY PROJECTION MU", .1, 10, 2.5);
@@ -113,6 +116,11 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 		auto *slider = e.getSlider();
 		updateMinDepth(slider->getScaledValue());
 	}
+	else if(name == "RESOLUTION")
+	{
+		auto *slider = e.getSlider();
+		updateSampleResolution(slider->getScaledValue());
+	}	
 	else if(name == "TRIANGLESIZE")
 	{
 		auto *slider = e.getSlider();

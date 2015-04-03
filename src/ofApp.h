@@ -22,8 +22,6 @@
 
 #include "recon/typedefs.h"
 
-//#define USE_MSA_TIMER
-
 #define NCLOUDS 4
 
 class ofApp : public ofBaseApp{
@@ -46,8 +44,9 @@ public:
 	void setBackground(float color);
 	void setRendermode(int mode);
 
-	void createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles);
-	void createOfMesh(CloudConstPtr inputCloud, int meshIndex);
+	void createOfMeshFromPointsAndTriangles(CloudConstPtr inputCloud, TrianglesPtr triangles, ofMesh &targetMesh);
+	void createOfMeshFromPoints(CloudConstPtr inputCloud, ofMesh &targetMesh);
+	void createIndexedOfMesh(CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
 private:
 	ofEasyCam cam_;
 		

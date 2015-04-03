@@ -37,6 +37,7 @@ public:
 	boost::signals2::signal<void (int)>   updateNormalKNeighbour;
 	boost::signals2::signal<void (float)> updateMu;
 	boost::signals2::signal<void (int)>   updateMaxNearestNeighbours;
+	boost::signals2::signal<void (float)> updateSampleResolution;
 
 private:
 	Controls();							// Don't Implement

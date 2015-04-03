@@ -24,7 +24,8 @@ void ofApp::setup(){
 		&Controls::getInstance().updateTriangleSize,
 		&Controls::getInstance().updateNormalKNeighbour,
 		&Controls::getInstance().updateMu,
-		&Controls::getInstance().updateMaxNearestNeighbours);
+		&Controls::getInstance().updateMaxNearestNeighbours,
+		&Controls::getInstance().updateSampleResolution);
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
@@ -65,20 +66,20 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
 	// Update Framerate in Gui
-	//Controls::getInstance().updateFramerate(ofGetFrameRate());
+	Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
 	for(auto i = 0; i < NCLOUDS; i++){
 		if(cloudSource_[i]){
 			auto temp_cloud_ = cloudSource_[i]->getOutputCloud();
 			if(temp_cloud_){
 				pipeline_->setInputCloud(temp_cloud_, i);
-				createOfMesh(temp_cloud_, i);
+				createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
 			}
 		}
 	}
 
 	pipeline_->processData();
-	createOfMesh(pipeline_->getOutputCloud(), pipeline_->getTriangles());
+	createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
 }
 
 //--------------------------------------------------------------
@@ -93,32 +94,20 @@ void ofApp::draw(){
 	//std::cout << "Mesh vertices count: " << inputMesh->getNumVertices() << std::endl;
 	switch(rendermode){
 	case RENDER_SOURCES:
-		//for(auto &m : inputMesh) {
-		//	m.drawVertices();
-		//}
+		for(auto &m : inputMesh) {
+			m.drawVertices();
+		}
 		break;
 	case RENDER_POINTS:
-		//for(auto &m : inputMesh) {
-		//	m.drawVertices();
-		//}
 		outputMesh.drawVertices();
 		break;
 	case RENDER_WIRE:
-		//for(auto &m : inputMesh) {
-		//	m.drawWireframe();
-		//}
 		outputMesh.drawWireframe();
 		break;
 	case RENDER_MESH:
-		//for(auto &m : inputMesh) {
-		//	m.draw();
-		//}
 		outputMesh.draw();
 		break;
 	default:
-		//for(auto &m : inputMesh) {
-		//	m.drawVertices();
-		//}
 		outputMesh.drawVertices();
 		break;
 	}
@@ -192,19 +181,19 @@ void ofApp::setRendermode(int mode){
 	rendermode = mode;
 }
 
-void ofApp::createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles)
+void ofApp::createOfMeshFromPointsAndTriangles(CloudConstPtr inputCloud, TrianglesPtr triangles, ofMesh &targetMesh)
 {
 
 	// triangle inputMesh
-	outputMesh.clear();
-	outputMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+	targetMesh.clear();
+	targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 	PointType p;
 	for(auto &t : *triangles) {
 		// So easy, such style, very beauty, many readable, so wow!
 		for(auto &pointindex : t.vertices){
 			p = inputCloud->at(pointindex);
-			outputMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
-			outputMesh.addColor(ofColor(p.r,p.g,p.b));
+			targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+			targetMesh.addColor(ofColor(p.r,p.g,p.b));
 			//TODO: add normals, texturecoordinates
 		}
 	}
@@ -212,15 +201,29 @@ void ofApp::createOfMesh(CloudConstPtr inputCloud, TrianglesPtr triangles)
 
 }
 
-void ofApp::createOfMesh(CloudConstPtr inputCloud, int meshIndex)
+void ofApp::createOfMeshFromPoints(CloudConstPtr inputCloud, ofMesh &targetMesh)
 {
 
 	// triangle inputMesh
-	inputMesh[meshIndex].clear();
-	inputMesh[meshIndex].setMode(OF_PRIMITIVE_POINTS);
+	targetMesh.clear();
+	targetMesh.setMode(OF_PRIMITIVE_POINTS);
 	for(auto &p : inputCloud->points){
-		inputMesh[meshIndex].addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+		targetMesh.addColor(ofColor(p.r,p.g,p.b));
+		//targetMesh.addColor(cloudColors[meshIndex]);
+	}
+	std::cout << "Mesh Size after meshing: " << targetMesh.getNumVertices() << " " << inputCloud->size() << std::endl;
+}
+
+void ofApp::createIndexedOfMesh(CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh)
+{
+
+	// triangle inputMesh
+	targetMesh.clear();
+	targetMesh.setMode(OF_PRIMITIVE_POINTS);
+	for(auto &p : inputCloud->points){
+		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
 		//inputMesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
-		inputMesh[meshIndex].addColor(cloudColors[meshIndex]);
+		targetMesh.addColor(cloudColors[meshIndex]);
 	}
 }

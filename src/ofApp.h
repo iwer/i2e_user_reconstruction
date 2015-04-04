@@ -44,14 +44,14 @@ public:
 	void setBackground(float color);
 	void setRendermode(int mode);
 
-	void createOfMeshFromPointsAndTriangles(CloudConstPtr inputCloud, TrianglesPtr triangles, ofMesh &targetMesh);
-	void createOfMeshFromPoints(CloudConstPtr inputCloud, ofMesh &targetMesh);
-	void createIndexedOfMesh(CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
+	void createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh);
+	void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh);
+	void createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
 private:
 	ofEasyCam cam_;
-		
-	AbstractProcessingPipeline * pipeline_;
-	AbstractPointCloudGenerator * cloudSource_[NCLOUDS];
+
+	recon::AbstractProcessingPipeline * pipeline_;
+	recon::AbstractPointCloudGenerator * cloudSource_[NCLOUDS];
 	
 	ofMesh inputMesh[NCLOUDS];
 	ofMesh outputMesh;
@@ -59,7 +59,7 @@ private:
 	float background;
 	int rendermode;
 
-	CloudConstPtr tmpCloud;
+	recon::CloudConstPtr tmpCloud;
 
 	ofColor cloudColors[NCLOUDS];
 };

@@ -18,7 +18,7 @@ void ofApp::setup(){
 	//pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
 	//	&Controls::getInstance().updateMaxDepth,
 	//	&Controls::getInstance().updateTriangleSize);
-	pipeline_ = new Pipeline02(NCLOUDS, 
+	pipeline_ = new recon::Pipeline02(NCLOUDS, 
 		&Controls::getInstance().updateMinDepth,
 		&Controls::getInstance().updateMaxDepth,
 		&Controls::getInstance().updateTriangleSize,
@@ -43,7 +43,7 @@ void ofApp::setup(){
 
 	for(auto i = 0; i < NCLOUDS; i++) {
 		std::cout << "Loading " << filenames[i] << std::endl;
-		cloudSource_[i] = new FilePointCloudGenerator(filenames[i]);
+		cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
 		cloudSource_[i]->start();
 	}
 
@@ -181,13 +181,13 @@ void ofApp::setRendermode(int mode){
 	rendermode = mode;
 }
 
-void ofApp::createOfMeshFromPointsAndTriangles(CloudConstPtr inputCloud, TrianglesPtr triangles, ofMesh &targetMesh)
+void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh)
 {
 
 	// triangle inputMesh
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
-	PointType p;
+	recon::PointType p;
 	for(auto &t : *triangles) {
 		// So easy, such style, very beauty, many readable, so wow!
 		for(auto &pointindex : t.vertices){
@@ -201,7 +201,7 @@ void ofApp::createOfMeshFromPointsAndTriangles(CloudConstPtr inputCloud, Triangl
 
 }
 
-void ofApp::createOfMeshFromPoints(CloudConstPtr inputCloud, ofMesh &targetMesh)
+void ofApp::createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
 {
 
 	// triangle inputMesh
@@ -215,7 +215,7 @@ void ofApp::createOfMeshFromPoints(CloudConstPtr inputCloud, ofMesh &targetMesh)
 	std::cout << "Mesh Size after meshing: " << targetMesh.getNumVertices() << " " << inputCloud->size() << std::endl;
 }
 
-void ofApp::createIndexedOfMesh(CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh)
+void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh)
 {
 
 	// triangle inputMesh

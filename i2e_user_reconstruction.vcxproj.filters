@@ -19,9 +19,6 @@
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\libs\tinyxmlparser.cpp">
       <Filter>addons\ofxXmlSettings\libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxMSATimer\src\ofxMSATimer.cpp">
-      <Filter>addons\ofxMSATimer\src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\addons\ofxTimeMeasurements\src\ofxTimeMeasurements.cpp">
       <Filter>addons\ofxTimeMeasurements\src</Filter>
     </ClCompile>

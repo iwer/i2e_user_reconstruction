@@ -43,6 +43,7 @@
     <TargetName>$(ProjectName)_debug</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
+    <IncludePath>C:\DevTools\openFrameworks\apps\myApps\i2e_user_reconstruction\librecon\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>bin\</OutDir>
@@ -75,7 +76,7 @@
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>C:\DevTools\of_v0.8.3_vs_release\apps\myApps\i2e_user_reconstruction\librecon\include;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\VTK\include\vtk-6.1;C:\Program Files %28x86%29\qhull\include;C:\Program Files %28x86%29\OpenNI2\Include;C:\Program Files %28x86%29\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\librecon\include;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\VTK\include\vtk-6.1;C:\Program Files %28x86%29\qhull\include;C:\Program Files %28x86%29\OpenNI2\Include;C:\Program Files %28x86%29\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
@@ -98,7 +99,6 @@
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\libs\tinyxml.cpp" />
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\libs\tinyxmlerror.cpp" />
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\libs\tinyxmlparser.cpp" />
-    <ClCompile Include="..\..\..\addons\ofxMSATimer\src\ofxMSATimer.cpp" />
     <ClCompile Include="..\..\..\addons\ofxTimeMeasurements\src\ofxTimeMeasurements.cpp" />
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUI2DGraph.cpp" />
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUI2DPad.cpp" />
@@ -208,12 +208,7 @@
       <Project>{5837595d-aca9-485c-8e76-729040ce4b0b}</Project>
     </ProjectReference>
     <ProjectReference Include="librecon\build\src\sharedlib.vcxproj">
-      <Project>{d51d384a-ca4a-4a52-a97b-7a28617d347d}</Project>
-      <Private>false</Private>
-      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
-      <LinkLibraryDependencies>true</LinkLibraryDependencies>
-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+      <Project>{ce13d26c-f4b4-47bd-866a-3de364edd454}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -5,6 +5,7 @@ void ofApp::setup(){
 	//TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
 
+	recon::PclOpenNI2Grabber::checkConnectedDevices();
 
 	ofEnableDepthTest();
 
@@ -41,6 +42,13 @@ void ofApp::setup(){
 		"data/scan04.pcd"
 	};
 
+	std::string bgFilenames[4] = {
+		"data/background01.pcd",
+		"data/background02.pcd",
+		"data/background03.pcd",
+		"data/background04.pcd"
+	};
+
 	for(auto i = 0; i < NCLOUDS; i++) {
 		std::cout << "Loading " << filenames[i] << std::endl;
 		cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
@@ -71,7 +79,7 @@ void ofApp::update(){
 	for(auto i = 0; i < NCLOUDS; i++){
 		if(cloudSource_[i]){
 			auto temp_cloud_ = cloudSource_[i]->getOutputCloud();
-			if(temp_cloud_){
+			if(temp_cloud_ && temp_cloud_->size() > 0){
 				pipeline_->setInputCloud(temp_cloud_, i);
 				createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
 			}

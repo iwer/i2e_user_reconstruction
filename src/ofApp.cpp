@@ -5,7 +5,11 @@ void ofApp::setup(){
 	//TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
 	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
 
-	recon::PclOpenNI2Grabber::checkConnectedDevices();
+	recon::SensorFactory s;
+	s.checkConnectedDevices();
+
+ 	recon::AbstractSensor::Ptr g = s.createPclOpenNI2Grabber();
+ 	recon::AbstractSensor::Ptr h = s.createPclOpenNI2Grabber();
 
 	ofEnableDepthTest();
 

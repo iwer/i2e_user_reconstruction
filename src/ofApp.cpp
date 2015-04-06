@@ -53,11 +53,13 @@ void ofApp::setup(){
 		"data/background04.pcd"
 	};
 
-	for(auto i = 0; i < NCLOUDS; i++) {
-		std::cout << "Loading " << filenames[i] << std::endl;
-		cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
-		cloudSource_[i]->start();
-	}
+	recon::AbstractSensor::Ptr f1 = s.createFilePointCloudGenerator(filenames[0], bgFilenames[0]);
+
+	//for(auto i = 0; i < NCLOUDS; i++) {
+	//	std::cout << "Loading " << filenames[i] << std::endl;
+	//	cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
+	//	cloudSource_[i]->start();
+	//}
 
 	cloudColors[0].set(255,0,0);
 	cloudColors[1].set(0,255,0);
@@ -80,18 +82,18 @@ void ofApp::update(){
 	// Update Framerate in Gui
 	Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
-	for(auto i = 0; i < NCLOUDS; i++){
-		if(cloudSource_[i]){
-			auto temp_cloud_ = cloudSource_[i]->getOutputCloud();
-			if(temp_cloud_ && temp_cloud_->size() > 0){
-				pipeline_->setInputCloud(temp_cloud_, i);
-				createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
-			}
-		}
-	}
+	//for(auto i = 0; i < NCLOUDS; i++){
+	//	if(cloudSource_[i]){
+	//		auto temp_cloud_ = cloudSource_[i]->getOutputCloud();
+	//		if(temp_cloud_ && temp_cloud_->size() > 0){
+	//			pipeline_->setInputCloud(temp_cloud_, i);
+	//			createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
+	//		}
+	//	}
+	//}
 
-	pipeline_->processData();
-	createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+	//pipeline_->processData();
+	//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
 }
 
 //--------------------------------------------------------------
@@ -178,9 +180,10 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 void ofApp::exit()
 {
 	Controls::getInstance().saveSettings();
-	for (auto &cs : cloudSource_) {
-		cs->stop();
-	}
+	//for (auto &cs : cloudSource_) {
+	//	cs->stop();
+	//}
+
 }
 
 //--------------------------------------------------------------

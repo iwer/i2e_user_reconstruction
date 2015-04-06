@@ -78,6 +78,7 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>.\librecon\include;%(AdditionalIncludeDirectories);C:\Program Files %28x86%29\VTK\include\vtk-6.1;C:\Program Files %28x86%29\qhull\include;C:\Program Files %28x86%29\OpenNI2\Include;C:\Program Files %28x86%29\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\DevTools\lib\flann\include;C:\DevTools\lib\boost_1_55_0;..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxMSATimer\libs;..\..\..\addons\ofxMSATimer\src;..\..\..\addons\ofxTimeMeasurements\libs;..\..\..\addons\ofxTimeMeasurements\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
+      <BrowseInformation>true</BrowseInformation>
     </ClCompile>
     <Link>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
@@ -90,6 +91,9 @@
       <AdditionalLibraryDirectories>C:\Program Files %28x86%29\VTK\lib;C:\Program Files %28x86%29\qhull\lib;C:\Program Files %28x86%29\PCL\lib;C:\Program Files %28x86%29\OpenNI2\Lib;C:\DevTools\lib\flann\lib;C:\DevTools\lib\boost_1_55_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>PocoXML.lib;PocoFoundation.lib;PocoFoundationd.lib;atlthunk.lib;LIBC.lib;LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
+    <Bscmake>
+      <PreserveSbr>true</PreserveSbr>
+    </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Controls.cpp" />

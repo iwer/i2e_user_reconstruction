@@ -6,7 +6,7 @@
 #include "recon/AbstractProcessingPipeline.h"
 #include "recon/AbstractPointCloudGenerator.h"
 
-#include "recon/PclOpenNI2Grabber.h"
+#include "recon/SensorFactory.h"
 #include "recon/DepthFilePointCloudGenerator.h"
 #include "recon/FilePointCloudGenerator.h"
 #include "recon/Pipeline01.h"

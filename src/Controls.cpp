@@ -10,21 +10,30 @@ Controls::Controls(void)
 		buffer.push_back(0.0);
 	}
 	gui->addFPS();
+
 	fpsMovingGraph = gui->addMovingGraph("FPS OVER TIME", buffer, 256, 0.0, 120.0);
+
 	auto *bgSl = gui->addSlider("BACKGROUND",0.0,255.0,100.0);
+
 	gui->addToggle("FULLSCREEN", false);
+
 	gui->addLabel("lDepthTresh","Depth Threshold");
 	auto * dMaxSl = gui->addSlider("MAXDEPTH", .3, 5.0, 5.0);
 	auto * dMinSl = gui->addSlider("MINDEPTH", .1, 5.0, .1);
+
 	gui->addLabel("lResolution","Sample Resolution");
 	auto * dResSl = gui->addSlider("RESOLUTION", .01, .5, .1);
 
 	gui->addLabel("lOrgFastMesh","Meshing");
-	auto * trSl = gui->addSlider("TRIANGLESIZE", .01, 50, 5.0);
+	auto * trSl = gui->addSlider("TRIANGLESIZE", .001, 2, 1.0);
 	//trSl->setIncrement(1);
+
 	auto * normalKSl = gui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);
+
 	auto * muSl = gui->addSlider("GREEDY PROJECTION MU", .1, 10, 2.5);
+
 	auto * meshNeighbourSl = gui->addSlider("MESH MAX NEIGHBOURS", 10, 200, 150);
+
 	vector<string> names;
 	names.push_back("SOURCES");
 	names.push_back("POINTS");
@@ -47,6 +56,9 @@ Controls::Controls(void)
 	updateMaxDepth(dMaxSl->getScaledValue());
 	updateMinDepth(dMinSl->getScaledValue());
 	updateTriangleSize(trSl->getScaledValue());
+	updateNormalKNeighbour(normalKSl->getScaledValue());
+	updateMu(muSl->getScaledValue());
+	updateMaxNearestNeighbours(meshNeighbourSl->getScaledValue());
 
 	std::string active = radio->getActiveName();
 	std::cout << "Active radio: " << radio->getValue() << std::endl;

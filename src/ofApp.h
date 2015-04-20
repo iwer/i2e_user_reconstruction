@@ -52,7 +52,7 @@ private:
 
 	recon::AbstractProcessingPipeline * pipeline_;
 	recon::AbstractPointCloudGenerator * cloudSource_[NCLOUDS];
-	
+	recon::AbstractSensor::Ptr sensors_[NCLOUDS];
 	ofMesh inputMesh[NCLOUDS];
 	ofMesh outputMesh;
 

@@ -8,9 +8,6 @@ void ofApp::setup(){
 	recon::SensorFactory s;
 	s.checkConnectedDevices();
 
- 	recon::AbstractSensor::Ptr g = s.createPclOpenNI2Grabber();
- 	recon::AbstractSensor::Ptr h = s.createPclOpenNI2Grabber();
-
 	ofEnableDepthTest();
 
 	// connect control callbacks
@@ -20,9 +17,6 @@ void ofApp::setup(){
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
-	//pipeline_ = new Pipeline01(&Controls::getInstance().updateMinDepth,
-	//	&Controls::getInstance().updateMaxDepth,
-	//	&Controls::getInstance().updateTriangleSize);
 	pipeline_ = new recon::Pipeline02(NCLOUDS, 
 		&Controls::getInstance().updateMinDepth,
 		&Controls::getInstance().updateMaxDepth,
@@ -34,10 +28,6 @@ void ofApp::setup(){
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
-	//cloudSource_ = new PclOpenNI2Grabber();
-	//DepthFilePointCloudGenerator * d = new DepthFilePointCloudGenerator(30);
-	//cloudSource_ = (AbstractPointCloudGenerator*)d;
-	//d->loadDepthImageFromFile("data/rgbscan_cam1.png", "data/scan_cam1_16bit_1.png");
 
 	std::string filenames[4] = {
 		"data/scan01.pcd",
@@ -53,18 +43,26 @@ void ofApp::setup(){
 		"data/background04.pcd"
 	};
 
-	recon::AbstractSensor::Ptr f1 = s.createFilePointCloudGenerator(filenames[0], bgFilenames[0]);
-
-	//for(auto i = 0; i < NCLOUDS; i++) {
-	//	std::cout << "Loading " << filenames[i] << std::endl;
-	//	cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
-	//	cloudSource_[i]->start();
-	//}
-
 	cloudColors[0].set(255,0,0);
 	cloudColors[1].set(0,255,0);
 	cloudColors[2].set(0,0,255);
 	cloudColors[3].set(255,255,0);
+
+	for(auto i = 0; i < NCLOUDS; i++) {
+		//	std::cout << "Loading " << filenames[i] << std::endl;
+		//	cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
+		//	cloudSource_[i]->start();
+		sensors_[i] = s.createFilePointCloudGenerator(filenames[i], bgFilenames[i]);
+		sensors_[i]->setBackground();
+		pipeline_->setSensor(sensors_[i], i);
+
+		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
+		if(temp_cloud_ && temp_cloud_->size() > 0){
+			createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
+		}
+	}
+
+
 
 	// setup camera
 	std::cout << "Setup camera" << std::endl;
@@ -82,18 +80,20 @@ void ofApp::update(){
 	// Update Framerate in Gui
 	Controls::getInstance().updateFramerate(ofGetFrameRate());
 	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
+
+
+
 	//for(auto i = 0; i < NCLOUDS; i++){
-	//	if(cloudSource_[i]){
-	//		auto temp_cloud_ = cloudSource_[i]->getOutputCloud();
+	//	if(sensors_[i]){
+	//		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
 	//		if(temp_cloud_ && temp_cloud_->size() > 0){
-	//			pipeline_->setInputCloud(temp_cloud_, i);
 	//			createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
 	//		}
 	//	}
 	//}
 
-	//pipeline_->processData();
-	//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+	pipeline_->processData();
+	createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
 }
 
 //--------------------------------------------------------------

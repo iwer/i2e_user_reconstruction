@@ -30,7 +30,7 @@ Controls::Controls(void)
 
 	auto * normalKSl = gui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);
 
-	auto * muSl = gui->addSlider("GREEDY PROJECTION MU", .1, 10, 2.5);
+	auto * muSl = gui->addSlider("GREEDY PROJECTION MU", 1.0, 10, 2.5);
 
 	auto * meshNeighbourSl = gui->addSlider("MESH MAX NEIGHBOURS", 10, 200, 150);
 

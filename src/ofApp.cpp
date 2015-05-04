@@ -56,6 +56,11 @@ void ofApp::setup(){
 		sensors_[i]->setBackground();
 		pipeline_->setSensor(sensors_[i], i);
 
+		auto ext = sensors_[i]->getDepthExtrinsics();
+		sourceTranslation[i].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
+		sourceRotation[i].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
+
+
 		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
 		if(temp_cloud_ && temp_cloud_->size() > 0){
 			createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
@@ -79,21 +84,10 @@ void ofApp::setup(){
 void ofApp::update(){
 	// Update Framerate in Gui
 	Controls::getInstance().updateFramerate(ofGetFrameRate());
-	// See if we can get a cloud. If we cant get one because Grabber is writing, we render the last frame again.
-
-
-
-	//for(auto i = 0; i < NCLOUDS; i++){
-	//	if(sensors_[i]){
-	//		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
-	//		if(temp_cloud_ && temp_cloud_->size() > 0){
-	//			createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
-	//		}
-	//	}
-	//}
-
 	pipeline_->processData();
-	createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+
+	//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+	createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
 }
 
 //--------------------------------------------------------------
@@ -108,8 +102,16 @@ void ofApp::draw(){
 	//std::cout << "Mesh vertices count: " << inputMesh->getNumVertices() << std::endl;
 	switch(rendermode){
 	case RENDER_SOURCES:
-		for(auto &m : inputMesh) {
-			m.drawVertices();
+		for(auto i = 0; i < NCLOUDS; i++) {
+			ofPushMatrix();
+			ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
+
+			ofVec3f qaxis; float qangle;
+			sourceRotation[i].getRotate(qangle, qaxis);
+			ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
+
+			inputMesh[i].drawVertices();
+			ofPopMatrix();
 		}
 		break;
 	case RENDER_POINTS:

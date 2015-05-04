@@ -1,0 +1,25 @@
+%!TEX root = ../paper.tex
+
+\section{Mobile Device} \label{sec:mobiledevice}
+Für die Darstellung der Mixed-Reality Umgebung werden in erster Linie Augmented-Reality Brillen eingesetzt.
+Um einen einfachen Einblick in die Szene zu erhalten, können aber auch herkömmliche Smartphones verwendet werden.
+\subsection{Nachrichten}
+Wie bereits erwähnt, findet der Rendering-Prozess in der \visualization auf einem eigenen Server statt und stellt für alle Clients einen individuellen Stream von Camera-Screen Nachrichten bereit.
+Um diesen Stream zu empfangen, verbindet sich die \mobileDeviceComponent zunächst über TCP mit der \visualization.
+Anschließend verschickt die \mobileDeviceComponent eine Nachricht an die \visualization, um sich für den Empfang von Camera-Screen Nachrichten zu registrieren.
+Die \visualization fängt sofort nach der Registrierung damit an konstant Camera-Screen Nachrichten an die \mobileDeviceComponent zu verschicken.
+Sollte die \mobileDeviceComponent keinen Bedarf mehr an neuen Camera-Screen Nachrichten haben, kann sie sich mit einer Nachricht bei der \visualization wieder abmelden.
+Da sich Augmented-Reality Brillen und Smartphones in ihrer Auflösung und in ihrem Sichtfeld stark voneinander unterscheiden können, gibt es für diese beiden Eigenschaften jeweils eine Nachricht, mit der Anpassungen vorgenommen werden können.
+Diese Änderungen können jederzeit stattfinden.
+Damit die gerenderte Augmented-Reality Szene der \visualization möglichst exakt auf der wahrgenommenen Realität liegt, ist es notwendig der \visualization konstant eine präzise Viewport-Beschreibung für die virtuelle Kamera zu übermitteln.
+Die hierfür verwendete Nachricht beinhaltet eine Position und eine Rotation, die mit Eulerschen Winkeln angegeben wird.
+\subsection{Viewport}
+Bislang erfolgte die Bestimmung der Kopfposition durch Marker basiertes Tracking \cite{chilitags}. 
+Die Berechnung der Transformations-Matrix ist jedoch für die \mobileDeviceComponent bereits ein zu hoher Rechenaufwand und so wurden im Schnitt nur 17 Transformationen pro Sekunde erzielt.
+Des Weiteren ist das Verfahren sehr fehleranfällig und es setzt gute Lichtverhältnisse voraus.
+Außerdem ist es notwendig, dass der Anwender ständig Blickkontakt zu einem Marker hält und der Marker beispielsweise auch nicht durch eine Hand verdeckt wird.
+Zukünftig wird die Kopfposition daher aus den Skelett-Daten extrahiert, die von einer an das System angeschlossenen Kinect gesendet werden.
+Hierfür wird sich die \mobileDeviceComponent bei einer Komponente registrieren, die in der Lage ist Kinect-Daten zu verschicken.
+Im Anschluss wird \mobileDeviceComponent konstant Skelett-Nachrichten von dieser Komponente empfangen und die Kopfposition extrahieren.
+Die Kopfrotation wird durch einen internen Accelerometer-Sensor, einen Magnetfeld-Sensor und gegebenenfalls einem Gyroscope bestimmt.
+Diese Vorgehensweise wird eine Kalibrierung für jeden einzelnen Benutzer erforderlich machen.

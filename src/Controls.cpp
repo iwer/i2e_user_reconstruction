@@ -49,6 +49,7 @@ Controls::Controls(void)
 
 	// scale to fit
 	gui->autoSizeToFitWidgets();
+
 	// restore gui state from save file
 	gui->loadSettings(saveFileName);
 	// set config from gui state

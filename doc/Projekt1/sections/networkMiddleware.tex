@@ -1,4 +1,16 @@
 \section{Netzwerk Middleware}
+\label{sec:network}
+Damit einzelne Komponenten der Mixed-Reality Anwendung verteilt kommunizieren können, wird eine gemeinsame Netzwerk-Middleware entwickelt, welche auf die Serialisierungslösung Google protobuf \footnote{\url{https://code.google.com/p/protobuf/}} setzt. Da Implementierungen für verschiedenste Programmiersprachen existieren können wir ein geringe Kopplung zwischen einzelnen Komponenten erreichen. Hierfür muss jedoch ein Netzwerk-Adapter für jede Programmiersprache entwickelt werden, welcher den Netzwerktransport der mit protobuf serialisierten Daten übernimmt. Malte Eckhoff hat eine Referenzimplementierung in C\# entwickelt, an welcher sich Implementierungen in anderen Programmiersprachen orientieren sollten.\\
+
+In einer protobuf eigenen Definitionssprache werden Nachrichtentypen definiert. Aus diesen Definitionen wird für die genutzte Programmiersprache Quellcode generiert, welcher die Nachricht in ein Byte-Array serialisiert und umgekehrt ein Byte-Array in eine Nachricht de-serialisiert. \\
+Das Byte-Array wird schließlich in eine standardisierte protobuf Nachricht verpackt und versendet. Alle weiteren Meta-Informationen, die zum de-serialisieren benötigt werden, wie zum Beispiel der Nachrichtentyp, werden in diesen "Briefumschlag" geschrieben. \\
+Es sollen prinzipiell Nachrichten mit und ohne Antwort unterstützt werden. Um bei Nachrichten die eine Antwort erfordern eine Zuordnung zur Frage zu ermöglichen, wird für solche Anfragen eine global eindeutige GUID generiert, welche eine sehr geringe Wahrscheinlichkeit hat dupliziert zu werden. \\
+Tritt bei der Verarbeitung einer Anfrage ein Fehler auf, wird im Falle einer zu beantwortenden Frage eine Fehlernachricht zurückgeschickt. Bei Nachrichten die keiner Antwort bedürfen, wird die GUID leer gelassen, und es erfolgt auch keine Benachrichtigung im Fehlerfall.\\
+Im weiteren wird auf die Entwicklung der C++ Implementierung des Netzwerk-Adapters eingegangen.\\
 
 \subsection{Netzwerk-Adapter (C++)}
+Der erste Versuch den Adapter in C++, sehr nahe am Referenzdesign zu implementieren scheiterte an der Schwierigkeit Techniken, die in C\# Bestandteil des Sprachstandards sind, in C++ abzubilden. Im speziellen stellten die C\# Delegates eine große Schwierigkeit dar. Diese arbeiten ähnlich wie C Funktionszeiger, sind aber im Gegensatz dazu objektorientiert und typsicher. Aufgrund dieser Schwierigkeiten wurde beschlossen, dass vor allem das Interface des Netzwerkadapters der Referenzimplementierung entsprechen sollte. Für die interne Realisierung der gemeinsamen Konventionen besteht so eine größere Freiheit.\\
+
+Teil von Projekt 2 wird diese erneute Implementierung des C++ Netzwerkadapters sein. Geplant ist eine Realisierung des Transports mit Hilfe der Boost::Asio Bibliothek. Für die Realisierung der Anbindung des Netzwerkadapters an eine Applikation wird die Boost::Signals Bibliothek verwendet werden. Die Applikation muss dann einen Callback-Receiver pro Nachrichtentyp beim Netzwerkadapter registrieren.\\
+
 

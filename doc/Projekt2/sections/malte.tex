@@ -1,0 +1,191 @@
+%!TEX root = ../paper.tex
+\newcommand{\concept}{\textit{Konzept: }}
+\newcommand{\currentState}{\textit{Aktueller Stand: }}
+\newcommand{\openQuestions}{\textit{Nächste Schritte: }}
+
+% components
+\newcommand{\visualization}{Visualisierung }
+\newcommand{\constructionLogic}{Konstruktionslogik }
+\newcommand{\gestureRecognition}{Natural User Interface }
+\newcommand{\mobileDeviceComponent}{Mobile Device }
+\newcommand{\netWorkMiddleware}{Netzwerk Middleware }
+\newcommand{\userReconstruction}{User Reconstruction }
+
+% common terminology
+\newcommand{\mobileDevice}{See-Through AR-Brille }
+\newcommand{\physicalGestures}{Physikalische Gesten }
+\newcommand{\interpretedGestures}{Interpretierte Gesten }
+
+\section{Architektur} \label{sec:architecture}
+
+Wir verfolgen mit unserer Architektur eine lose Kopplung der Komponenten und 
+effiziente Skalierung mit der verfügbaren Hardware. Dies erlaubt eine einfache
+Erweiterbarkeit und den problemlosen Austausch von Technologien. Somit können
+wir schnell und effizient auf veränderte Anforderungen während der Entwicklung
+reagieren.\\
+
+Die kollaborative verteilte Umgebung besteht aus mehreren Client Instanzen. Eine
+Client Instanz ist als Umgebung definiert, die an jedem Standort ausgeführt
+wird. Jede Client Instanz besteht aus mehreren Komponenten, die über das
+Netzwerk mithilfe der \netWorkMiddleware kommunizieren.
+Abbildung ~\ref{fig:flowchart} zeigt die Abhängigkeiten, angebundenen Sensoren
+und übergeordneten Datenfluss.
+
+Die \userReconstruction ist für die online 3D Rekonstruktion von Benutzern
+zuständig. Das Ergebnis, ein Mesh des Benutzers, wird an alle anderen Client
+Instanzen für Darstellungszwecke übertragen.
+
+Die \gestureRecognition kümmert sich um die Eingaben durch den lokalen Benutzer.
+Die \constructionLogic wird kontinuierlich von der \gestureRecognition über die
+Bewegungen der Arme und Hände des Benutzers informiert. Dadurch ist es möglich
+virtuelle Objekte direkt zu greifen, anzuheben oder zu verschieben. Wir nennen
+dies \physicalGestures.
+
+Die \gestureRecognition erkennt außerdem Gesten des Benutzers und leitet diese
+an die \constructionLogic weiter. Wir nennen dies \interpretedGestures. Diese
+bildet die Gesten auf Aktionen wie bspw. das zusammenfügen oder
+auseinandernehmen von virtuellen Objekten ab.
+
+Die \constructionLogic stellt sicher, dass nur Transformationen auf dem
+unterliegende Modell ausgeführt werden können, die dieses von einem konsistenten
+Zustand in einen konsistenten Zustand überführen. Des weiteren löst die
+\constructionLogic auch Konflikte zwischen in Konflikt stehenden Aktionen
+verschiedener Benutzer auf.
+
+Die \visualization erstellt aus dem Modell der \constructionLogic eine virtuelle
+Szene. Die \mobileDeviceComponent informiert die \visualization über den
+viewport aus der diese Szene für die jeweilige \mobileDevice gerendered werden
+muss. Die Ergebnisse der Render-Prozesse werden dann an die
+\mobileDeviceComponent weitergeleitet wird.
+
+\todo[inline]{Grafik übersetzen}
+\begin{figure}[H]
+	\includegraphics[width=\columnwidth]{figs/FlowChart_v2}
+	\caption{Client Architektur}
+	\label{fig:flowchart}
+\end{figure}
+
+Das Projekt Arvida \cite{Arvida2015} verfolgt einen ganz ähnlichen Ansatz. Die
+Hauptunterschiede bestehen in der hohen Fokussierung auf Webtechnologien und die
+Einbindung von Diensten dritter. Unsere Architektur implementiert eine Teilmenge
+der in \cite{Arvida2015} beschriebenen Funktionalitäten. 
+
+\section{Netzwerk Middleware}
+\label{sec:middleware}
+Unser Ziel ist eine einfach erweiterbare Architektur deren Komponenten beliebige
+Programmiersprachen verwenden und auf beliebigen Betriebssystemen ausgeführt
+werden können. Für diese Zielstellung ist eine Middleware wünschenswert, die
+möglichst weit von der unterliegenden Netzwerktechnik abstrahiert.
+
+Wir möchten objektorientiert, Nachrichten basiert, mit einem geringen overhead
+und Typsicher über das Netzwerk kommunizieren. Die von uns entwickelte
+Netzwerk-Middleware erfüllt diese Kriterien.
+
+Für eine performante Serialisierung der Daten wird Protobuf verwendet. Für jede
+verwendete Sprache muss eine eigene Implementation der Middleware
+geschrieben werden. Um die Kompatiblität der Implementationen untereinander zu
+gewährleisten halten sich jede Implementation
+an den von Google vorgegebenen Wire-Standard für Protobuf-Nachrichten.
+
+Protobuf-Nachrichten sind nicht selbst identifizierend. Dewegen arbeiten wir mit
+einer Text-Datei, die eine Abbildung von Identifiern auf Nachrichtentypen zur
+Verfügung stellt. Diese wird automatisch beim kompilieren der
+Protobuf-Nachrichten Definitionen erstellt.
+
+Damit sichergestellt ist, dass alle beteiligten Systeme die selben
+Nachrichtendefinitionen und Identifier nutzen sind alle Protobuf
+Nachrichtendefinitionen in einem zentralen Git-Repository abgelegt.
+
+\section{\constructionLogic} \label{sec:constructionlogic}
+
+Die \constructionLogic hält den aktuellen Zustand des Modells einer
+Client-Instanz. Auf allen Client-Instanzen wird die selbe Logik ausgeführt um
+den Zustand des Modells abzufragen und zu manipulieren. Das Modell einer
+Client-Instanz wird dabei für die Synchronisierung mit den anderen Instanzen als
+Master festgelegt. Differiert der Modellzustand einer Client-Instanz mit dem dem
+Master wird diese an den Zustand des Master-Modells angepasst. Um Konflikte
+zwischen den Aktionen der Benutzer zu erkennen und zu jedem Zeitpunkt einen
+konsistenten Modellzustand zu gewährleisten werden alle Aktionen von Benutzern
+auf Actions abgebildet.
+
+Jede Action unterstützt die Abfrage, ob die Aktion im derzeitigen Modellkontext
+ausgeführt werden kann und bietet die Möglichkeit die verursachten Änderungen
+rückgängig zu machen (rollback). Außerdem legt jede Aktion fest, wie lange ein
+Protokoll der Aktion aufbewahrt werden soll. Eine Aktion kann nur dann
+ausgeführt werden, wenn sie im lokalen Modellkontext gültig ist. Jede Aktion
+kann lokal ausgeführt werden, muss aber von der Master-Instanz bestätigt werden
+um für alle Client-Instanzen Gültigkeit zu erlangen. Alle so validierten
+Aktionen werden für einen von der Aktion abhängigen Zeitraum protokolliert.
+Falls die Aktion im Modell Kontext der Master-Instanz nicht gültig ist wird
+diese in der jeweiligen Client-Instanz rückgängig gemacht.
+
+Der Zustand des Modells kann nur durch Aktionen von Benutzern geändert werden.
+Falls also eine Aktion im Kontext der Master-Instanz keine Gültigkeit hat kann
+dies nur durch die Aktion eines anderen Benutzers ausgelöst worden sein. Ein
+Konflikt wurde erkannt. Im einfachsten Fall wird nun die (nun invalide) Aktion
+rückgängig gemacht. Je nach Domäne kann aber auch versucht werden die
+Benutzeraktionen zusammen zu führen, da genug wissen vorhanden ist um die
+spezifische konkurrierende Aktion genau zu bestimmen.\\
+
+Die Constraints wurden für einen einfachen Anwendungsfall
+implementiert und erfolgreich getestet. Wir haben uns als ersten Anwendungsfall
+für die Konstruktion einer Murmelbahn entschieden, weil dafür nur ein sehr
+begrenztes Domänenwissen notwendig ist.
+
+\section{\visualization}
+\label{sec:visualization}
+Damit die Benutzer den aktuellen Modellzustand einfach wahrnehmen können
+benötigen wir eine visuelle Repräsentation. Diese wird von der \visualization
+aus dem aktuellen Modellzustand erzeugt. Für jeden Benutzer wird diese
+Repräsentation aus seinem aktuellen Sichtbereich gerendered. Diese Daten werden
+dann an die jeweilige \mobileDevice weitergeschickt.\\
+
+\subsection{\gestureRecognition Anbindung}
+
+Wir möchten virtuelle Objekte anfassen und die Anwendung durch Gesten steuern
+können. Um virtuelle Objekte physikalisch manipulieren zu können sendet die
+\constructionLogic die Position, Geschwindigkeit, Beschleunigung und Rotation
+der Arme, Hände und Finger an die \constructionLogic. Gesten des Benutzers
+werden von der \gestureRecognition interpretiert und auf abstrakte Befehle
+abgebildet. Derzeit arbeiten wir an der physikalischen Interaktion mit
+virtuellen Objekten.\\ 
+
+\subsection{\mobileDeviceComponent Anbindung}
+
+Um eine möglichst intuitive Wahrnehmung des Modells der \constructionLogic zu
+ermöglichen geben wir das gerenderte Ergebnis der \visualization auf einer
+\mobileDevice aus die vom Benutzer getragen wird. Die \mobileDeviceComponent
+gibt an aus welcher Position die jeweiligen Benutzer die virtuelle Szene sehen.
+Dafür werden Position und Rotation der jeweiligen \mobileDevice an die
+\visualization geschickt. Die virtuelle Szene wird dann aus der jeweiligen
+Position gerendered und das Ergebnis zurück an die Brille geschickt.
+
+\subsection{\userReconstruction Anbindung}
+
+Wir glauben, dass Benutzer intuitiv mit anderen Benutzern in Konflikt stehende
+Aktionen vermeiden, wenn sie diese möglichst realitätsnah visualisiert werden.
+Zu diesem Zweck schickt die \userReconstruction das texturierte Mesh des lokalen
+Benutzers an die \visualization welche dies an alle anderen Client Instanzen
+verteilt. Die Meshes der Benutzer der anderen Client Instanzen werden von der
+lokalen \visualization empfangen und dargestellt.
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+\todo[inline]{Nächste Schritte in einem eigenen Abschnitt zusammen fassen.}
+
+Ein Fehler der häufig auftritt sind differierende
+Netzwerknachrichtendefinitionen auf den beteiligten Systemen. Um
+den Fehler sofort nach dem Verbindungsaufbau zu bemerken ist die Verwendung
+einer Checksumme der verwendeten Nachrichtendefinitionen geplant.
+
+Die Constraints werden als nächstes für komplexere
+Anwendungsfälle aus dem Bereich Maschinenbau implementiert und getestet werden.
+
+Die Position der Hände und Finger wird derzeit unmodifiziert von der
+\constructionLogic übernommen. Dies erfordert eine umsichtige Bedienung durch
+den Benutzer. Bspw. ist es möglich in virtuelle Objekte hinein zu greifen. Dies
+führt zu Fehlern in der verwendeten Physik-Engine. In einem nächsten Schritt
+werden die Positionen entsprechend angepasst werden um diese Fehler zu vermeiden
+und die Bedienung zu vereinfachen.
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+

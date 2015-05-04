@@ -22,7 +22,7 @@
 
 #include "recon/typedefs.h"
 
-#define NCLOUDS 4
+#define NCLOUDS 2
 
 class ofApp : public ofBaseApp{
 public:
@@ -53,7 +53,12 @@ private:
 	recon::AbstractProcessingPipeline * pipeline_;
 	recon::AbstractPointCloudGenerator * cloudSource_[NCLOUDS];
 	recon::AbstractSensor::Ptr sensors_[NCLOUDS];
+	
 	ofMesh inputMesh[NCLOUDS];
+	ofColor cloudColors[NCLOUDS];
+	ofPoint sourceTranslation[NCLOUDS];
+	ofQuaternion sourceRotation[NCLOUDS];
+	
 	ofMesh outputMesh;
 
 	float background;
@@ -61,5 +66,5 @@ private:
 
 	recon::CloudConstPtr tmpCloud;
 
-	ofColor cloudColors[NCLOUDS];
+	
 };

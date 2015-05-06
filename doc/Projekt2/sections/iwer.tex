@@ -110,10 +110,18 @@ dann in ein gemeinsames Koordinatensystem transformiert. Nach der Vereinigung
 der so zueinander ausgerichteten Punktwolken wird die vereinigte Punktwolke auf 
 den Meshtriangulationschritt vorbereitet. Der wichtigste Schritt in dieser 
 Vorbereitung ist die Reduzierung der Punktanzahl durch Reduzierung der räumlichen 
-Auflösung. Weitere Vorbereitungsschritte könnten aus der Generierung von 
-Oberflächennormalen sowie aus einem Glättungsschritt bestehen. Anschließend wird 
+Auflösung. Weitere Vorbereitungsschritte sind Voraussetzung für eine erfolgreiche 
+Triangulation und bestehen aus der Generierung von Oberflächennormalen sowie aus 
+einem Glättungsschritt (siehe Abbildung \ref{fig:recon_pipeline_tri}). Anschließend wird 
 die Punktwolke mit einem geeigneten Meshtriangulationsverfahren mit einem Gitter 
 überzogen.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{figs/tri_pipe}
+	\caption{Rekonstruktions-Pipeline: Detailansicht Mesh-Triangulation}
+	\label{fig:recon_pipeline_tri}
+\end{figure}
 
 Die Farbbilder der einzelnen Kameras werden zunächst in einer Matrix zu einem 
 einzelnen Bild angeordnet. Durch Rücktranformation der Punkte in die 

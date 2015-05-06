@@ -76,8 +76,8 @@ Farbe sondern Texturkoordinaten erhalten welche ein 3D Texturmapping ermögliche
 
 Um 3D Modelle von Usern des MR-Systems auf einer entfernten System-Instanz 
 darstellen zu können, müssen diese zunächst durch eine Echtzeit Scanning 
-Komponente erfasst und anschließend über eine Netzwerkverbindung an das 
-darstellende System versendet werden. Ähnlich wie das System von 
+Komponente erfasst und anschließend über eine Netzwerkverbindung an ein 
+darstellendes System versendet werden. Ähnlich wie das System von 
 \cite{alexiadis2013real} und \cite{mekuria2013teleimmersion} werden Microsoft 
 Kinect Kameras als Sensoren verwendet, um aus den Tiefenbildern 3D Informationen 
 der Umgebung zu erhalten. Dazu werden um einen definierten Bereich die Kameras 
@@ -105,7 +105,7 @@ Abbildung \ref{fig:recon_pipeline} dargestellt, nimmt die Pipeline aus den
 Tiefenbildern generierten Punktwolken sowie die Farbbilder der Kameras entgegen.
 Zunächst wird über eine Hintergrundseparation die zu rekonstruierenden Teile der 
 einzelnen Punktwolken freigestellt. Mit Hilfe der über eine geeignete 
-Kalibrierungsmethode bezogenen Transformationmatrizen werden die Punktwolken 
+Kalibrierungsmethode bezogenen Transformationsmatrizen werden die Punktwolken 
 dann in ein gemeinsames Koordinatensystem transformiert. Nach der Vereinigung 
 der so zueinander ausgerichteten Punktwolken wird die vereinigte Punktwolke auf 
 den Meshtriangulationschritt vorbereitet. Der wichtigste Schritt in dieser 
@@ -186,7 +186,7 @@ Algorithmus nutzt Oberflächennormalen um entlang ihren Richtung eine lokale
 Ebene zu projizieren, in welcher mittels einer KD-Tree Repräsentation der Punktwolke 
 nach benachbarten Punkten gesucht wird, welche dann zu einem Mesh verbunden 
 werden. Dieser Algorithmus erfordert einigermaßen glatte Oberflächen, was sich 
-vor allem über die verwendeten Oberflächennormal auswirkt. Der naive Versuch die 
+vor allem über die verwendeten Oberflächennormalen auswirkt. Der naive Versuch, die 
 rohe, vereinigte Punktwolke zu triangulieren zeigt deutlich die Nachteile der 
 fehlenden Nachbarschaftsverhältnisse. In einer Auflösung, in der einzelne 
 Punktwolken mit einem 2,5D Algorithmus bei 25 - 30 Rekonstruktionen pro Sekunde 

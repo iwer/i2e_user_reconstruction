@@ -13,8 +13,7 @@ virtuelle Darstellung entfernter User innerhalb der virtuellen Szene, so dass
 sie von anderen Teilnehmer mittels VR-See-Through-Brillen wahrgenommen werden 
 kann. So können Konflikte schon durch Erkennen der Intentionen entfernter User 
 vermieden werden. Dieser Ansatz, der von \cite{Cassell:2000:ECI:332051.332075} 
-beschrieben wurde, wird in den Arbeiten von \cite{mcmanus2011influence} und 
-\cite{dodds2011talk} verifiziert, die mit Hilfe von selbst-animierten Avataren 
+beschrieben wurde, wird unter anderem in den Arbeiten von \cite{mcmanus2011influence} und \cite{dodds2011talk} verifiziert, die mit Hilfe von selbst-animierten Avataren 
 - welche durch Motion-Capturing die Bewegungen von Benutzern abbilden - 
 nachgewiesen haben, dass dieses Vorgehen die Kommunikation zwischen Usern sowie 
 die Koordination von Handlungen in virtuellen, kollaborativen Umgebungen 
@@ -29,7 +28,7 @@ verbessert.
 	\label{fig:animationproblem}
 \end{figure}
 
-Die Probleme die üblicherweise bei Charakteranimation auftreten( siehe Abbildung 
+Die Probleme die üblicherweise bei Charakteranimation auftreten (siehe Abbildung 
 \ref{fig:animationproblem}) sowie Ungenauigkeiten beim Motion-Capturing lassen 
 allerdings keine beliebig hohe Detaillierung des Avatars zu. Weiterhin kann die 
 Komplexität des Skelettmodells schnell sehr groß werden, wenn zum Beispiel 
@@ -218,6 +217,14 @@ Kalibrierungsparameter festzulegen. Mit diesem Modell können analog zu reellen
 Kameras simulierte Kameras verwendet werden, die zum Beispiel die Mit Blensor 
 generierten Punktwolken an die Pipeline auszuliefern.
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{figs/class_diagram}
+	\caption{Klassen Diagramm mit Erweiterung im Vergleich zu Projekt 1}
+	\label{fig:classdiag}
+\end{figure}
+
+
 %Future work:
 % Texturmapping durch Rückprojektion der Punkte auf Kameraebene.
 
@@ -264,8 +271,8 @@ versuchen. Da eine weitere Beschäftigung mit Kompressionsmöglichkeiten im Rahm
 Masterarbeit nicht mehr abzusehen ist, wird dieser Plan auch Bestand haben. Bei der 
 Nachrichtendefinition für die Texturübertragung wird sich an der, für die 
 Übertragung an das See-Through Display verwendeten, orientiert werden. Die 
-Nachrichtendefinition für die Mesh-Daten besteht dann im Prinzip lediglich aus einem 
-Array an Vertizen, sowie einem Array an Punktindizes. Diese Nachrichten werden dann 
-in einer noch zu entwickelnden Unity Komponente mit Hilfe des C\# Netzwerkadapters 
-entgegengenommen, in eine für Unity geeignete Datenstruktur integriert und 
-dargestellt.
+Nachrichtendefinition für die Mesh-Daten besteht dann im Prinzip lediglich aus je 
+einem Array für Vertizen, Texturkoordinaten und Punktindizes. Diese Nachrichten 
+werden dann in einer noch zu entwickelnden Unity Komponente mit Hilfe des C\# 
+Netzwerkadapters entgegengenommen, in eine für Unity geeignete Datenstruktur 
+integriert und dargestellt.

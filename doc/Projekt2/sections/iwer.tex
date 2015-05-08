@@ -224,21 +224,6 @@ generierten Punktwolken an die Pipeline auszuliefern.
 	\label{fig:classdiag}
 \end{figure}
 
-
-%Future work:
-% Texturmapping durch Rückprojektion der Punkte auf Kameraebene.
-
-\subsubsection{Nächste Schritte: } 
-Zunächst gilt es die Punktwolkenvorverarbeitung zu 
-vervollständigen um das Triangulationsergebnis zu optimieren. Anschließend ist 
-eine Texturmappingkomponente zu entwicklen welche die nötigen Daten erzeugt um 
-ein texturiertes 3D Modell rendern zu können. Auf dieser Basis kann dann eine 
-Bewertung sowie Justierung des Rekonstruktionsergebnisses stattfinden. Als 
-nächstes gilt es dann, das rekonstruierte Mesh an die Visualisierungskomponente 
-des Projektsystems zu streamen, um die Wirksamkeit des Konzeptes in einer Mixed 
-Reality Umgebung zu testen. Zu guter letzt wäre die Entwicklung einer komfortablen 
-Kamerakalibrierungs-Lösung wünschenswert.
-
 \section{Netzwerk-Middle C++ Implementierung}
 Die C++ Implementierung der Netzwerk-Middleware ist in weiten Teilen abgeschlossen. 
 Wie geplant wurde diese auf Basis der asynchronen Boost::asio Bibliothek für den 
@@ -251,7 +236,9 @@ angestellt. Umfangreiche Tests zur Kommunikation mit den Implementierungen in C\
 und Java stehen somit ebenfalls noch aus.
 
 \section{Mesh-Streaming und Darstellung}
-Zu diesem Teilthema ist noch keine praktische Arbeit vorgenommen worden. Einige Überlegungen zur Übertragung sowie Darstellung des rekonstruierten Modells sind dennoch angefallen.
+Zu diesem Teilthema ist noch keine praktische Arbeit vorgenommen worden. Einige 
+Überlegungen zur Übertragung sowie Darstellung des rekonstruierten Modells sind 
+dennoch angefallen.
 
 Um das rekonstruierte Modell in einer 3D Umgebung darzustellen sind einige Daten 
 erforderlich. Neben den eigentlichen Meshdaten, bestehend aus Vertizen inklusive 
@@ -276,3 +263,15 @@ einem Array für Vertizen, Texturkoordinaten und Punktindizes. Diese Nachrichten
 werden dann in einer noch zu entwickelnden Unity Komponente mit Hilfe des C\# 
 Netzwerkadapters entgegengenommen, in eine für Unity geeignete Datenstruktur 
 integriert und dargestellt.
+
+\section{Nächste Schritte} 
+Zunächst gilt es die Punktwolkenvorverarbeitung zu vervollständigen um das 
+Triangulationsergebnis zu optimieren. Anschließend ist eine Texturmappingkomponente 
+zu entwicklen welche die nötigen Daten erzeugt um ein texturiertes 3D Modell rendern 
+zu können. Auf dieser Basis kann dann eine Bewertung sowie Justierung des 
+Rekonstruktionsergebnisses stattfinden. Als nächstes gilt es dann, das rekonstruierte 
+Mesh an die Visualisierungskomponente des Projektsystems zu streamen, um die 
+Wirksamkeit des Konzeptes in einer Mixed Reality Umgebung zu testen. Im Rahmen der 
+Enwicklung der Streaming-Komponente wird dann auch der C++ Middleware Adapter 
+fertiggestellt. Zu guter letzt wäre die Entwicklung einer komfortablen 
+Kamerakalibrierungs-Lösung wünschenswert.

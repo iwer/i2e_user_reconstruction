@@ -1,5 +1,5 @@
 %!TEX root = ../paper.tex
-\section{Online-Rekonstruktion von Teilnehmern}
+\section{Einführung}
 \label{sec:user_reconstruction}
 
 % Einsatz von Spielmechaniken in verschiedenen organisationalen Kontexten (z.B. Wissensmanagement, Innovationsmanagement, Aus- und Weiterbildung)
@@ -8,13 +8,13 @@
 % Integration der Technologie virtueller Welten mit anderen Technologien und Informationssystemen
 
 In verteilten, kollaborativen Multi-User MR-Umgebungen sind konfliktträchtige 
-Handlungen zwischen Usern imminent. Abhilfe schafft hier eine realistische 
+Handlungen zwischen Usern immanent. Abhilfe schafft hier eine realistische 
 virtuelle Darstellung entfernter User innerhalb der virtuellen Szene, so dass 
 sie von anderen Teilnehmer mittels VR-See-Through-Brillen wahrgenommen werden 
 kann. So können Konflikte schon durch Erkennen der Intentionen entfernter User 
 vermieden werden. Dieser Ansatz, der von \cite{Cassell:2000:ECI:332051.332075} 
 beschrieben wurde, wird in den Arbeiten von \cite{mcmanus2011influence} und 
-\cite{dodds2011talk} verifiziert, die mit Hilfe von selbstanimierten Avataren 
+\cite{dodds2011talk} verifiziert, die mit Hilfe von selbst-animierten Avataren 
 - welche durch Motion-Capturing die Bewegungen von Benutzern abbilden - 
 nachgewiesen haben, dass dieses Vorgehen die Kommunikation zwischen Usern sowie 
 die Koordination von Handlungen in virtuellen, kollaborativen Umgebungen 
@@ -52,7 +52,7 @@ Streaming Pipeline ausgebaut. Dank ausgeklügelten Kompressionsstrategie erreich
 das System auf dem darstellenden Zielsystem eine Framerate von 5 - 8 Bildern 
 pro Sekunde.
 
-\subsection{Konzept}
+\section{Konzept}
 % Pipeline wie Me13, Optimierung durch Downsampling, Einzelbildrekonstruktion
 Im Gegensatz zu der Methode von \cite{alexiadis2013real}, welche zunächst 
 Teilmeshes aus den Daten der einzelnen Kameras generiert und diese dann 
@@ -87,7 +87,7 @@ gemeinsame räumliche Ausrichtung der Kameradaten zu ermöglichen sind
 extrinsische sowie intrinsische Parameter der Kameras mit Hilfe einer 
 Kalibrierungsmethode zu erfassen.
 
-\subsubsection{Rekonstruktions-Pipeline}
+\subsection{Rekonstruktions-Pipeline}
 
 % Offline Kalibrierung, Reko-Pipeline, Streaming-Komponente
 
@@ -104,7 +104,11 @@ Farbbilder der Kameras für eine spätere Texturierung mitverarbeitet. Wie in
 Abbildung \ref{fig:recon_pipeline} dargestellt, nimmt die Pipeline aus den 
 Tiefenbildern generierten Punktwolken sowie die Farbbilder der Kameras entgegen.
 Zunächst wird über eine Hintergrundseparation die zu rekonstruierenden Teile der 
-einzelnen Punktwolken freigestellt. Mit Hilfe der über eine geeignete 
+einzelnen Punktwolken freigestellt. Diese besteht momentan aus einem Tiefenthreshold, 
+mit dem Punkte, die zu nah oder zu weit weg von der Kamera sind herausgefiltert. In 
+Zukunft ist hier zusätzlich der Einsatz einer statischen Hintergrundsubtraktion 
+geplant, welche Punkte entfernt, die sehr nah an Punkten eines gespeicherten 
+Hintergrundabbildes ist. Mit Hilfe der über eine geeignete 
 Kalibrierungsmethode bezogenen Transformationsmatrizen werden die Punktwolken 
 dann in ein gemeinsames Koordinatensystem transformiert. Nach der Vereinigung 
 der so zueinander ausgerichteten Punktwolken wird die vereinigte Punktwolke auf 
@@ -136,6 +140,7 @@ Modell über eine Netzwerkschnittstelle an das Zielsystem versendet. Hierbei wir
 zunächst auf die Projekt-Middleware gesetzt. Da der verfolgte Rekonstruktionsansatz 
 primär auf die Datenreduktion zielt, wird zunächst auf eine weitere Kompression verzichtet.
 
+\subsubsection{Aktueller Stand: }
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=.5\textwidth]{figs/recon_wireframe}
@@ -143,7 +148,7 @@ primär auf die Datenreduktion zielt, wird zunächst auf eine weitere Kompressio
 	\label{fig:2dmeshed}
 \end{figure}
 
-{\em Aktueller Stand: } Erste Experimente mit der Rekonstruktion aus von der 
+Erste Experimente mit der Rekonstruktion aus von der 
 Kinect generierten Punktwolken wurden mit einer einzelnen Kamera gemacht. Mit 
 einem 2,5D Triangulationsalgorithmus, der die bekannte Nachbarschaft der Pixel 
 eines Tiefenbildes ausnutzt um benachbarte 3D Punkte zu verbinden, können Halbschalen 
@@ -205,17 +210,62 @@ durchgeführt worden. Auch ist die räumliche Auflösung der Punktwolke in diese
 Beispiel weit höher als es möglicherweise für ein funktionables 3D Modell nötig 
 ist.
 
+
+Um diese Pipeline zu realisieren wurde das in Projekt 1 vorgestellte Konzept um 
+abstrakte Sensoren erweitert. Diese beinhalten die eigentlichen 
+Punktwolkengeneratoren sowie Methoden um eine Hintergrundpunktwolke sowie 
+Kalibrierungsparameter festzulegen. Mit diesem Modell können analog zu reellen 
+Kameras simulierte Kameras verwendet werden, die zum Beispiel die Mit Blensor 
+generierten Punktwolken an die Pipeline auszuliefern.
+
 %Future work:
 % Texturmapping durch Rückprojektion der Punkte auf Kameraebene.
 
-{\em Nächste Schritte: } Zunächst gilt es die Punktwolkenvorverarbeitung zu 
+\subsubsection{Nächste Schritte: } 
+Zunächst gilt es die Punktwolkenvorverarbeitung zu 
 vervollständigen um das Triangulationsergebnis zu optimieren. Anschließend ist 
 eine Texturmappingkomponente zu entwicklen welche die nötigen Daten erzeugt um 
 ein texturiertes 3D Modell rendern zu können. Auf dieser Basis kann dann eine 
-Bewertung sowie Jusierung des Rekonstruktionsergebnisses stattfinden. Als 
+Bewertung sowie Justierung des Rekonstruktionsergebnisses stattfinden. Als 
 nächstes gilt es dann, das rekonstruierte Mesh an die Visualisierungskomponente 
 des Projektsystems zu streamen, um die Wirksamkeit des Konzeptes in einer Mixed 
 Reality Umgebung zu testen. Zu guter letzt wäre die Entwicklung einer komfortablen 
 Kamerakalibrierungs-Lösung wünschenswert.
 
+\section{Netzwerk-Middle C++ Implementierung}
+Die C++ Implementierung der Netzwerk-Middleware ist in weiten Teilen abgeschlossen. 
+Wie geplant wurde diese auf Basis der asynchronen Boost::asio Bibliothek für den 
+Netzwerktransport entwickelt. Hierbei musste in größeren Teilen vom Konzept der C\# 
+Referenzimplementierung abgewichen werden, da diese einige High-Level Konzepte 
+verwendet, die so in C++ kaum umsetzbar sind. Ein essentieller Part der noch fehlt 
+ist die Möglichkeit Callbacks für den Erhalt spezifischer Nachrichtentypen bei der 
+Middleware zu registrieren. Aus Zeitgründen wurde diese Aufgabe zunächst hinten 
+angestellt. Umfangreiche Tests zur Kommunikation mit den Implementierungen in C\# 
+und Java stehen somit ebenfalls noch aus.
 
+\section{Mesh-Streaming und Darstellung}
+Zu diesem Teilthema ist noch keine praktische Arbeit vorgenommen worden. Einige Überlegungen zur Übertragung sowie Darstellung des rekonstruierten Modells sind dennoch angefallen.
+
+Um das rekonstruierte Modell in einer 3D Umgebung darzustellen sind einige Daten 
+erforderlich. Neben den eigentlichen Meshdaten, bestehend aus Vertizen inklusive 
+Texturkoordinaten und Dreiecken als Triple von Punktindizes muss auch die 
+kombinierte Textur bekannt sein. Ausserdem muss ein Ort im Welt-Koordinatensystem 
+der 3D Umgebung festgelegt sein, welche die Basis der Vertizen des Meshes bestimmt.
+Um eine Relation dieses Koordinatenursprungs zu einem Punkt in der Wirklichkeit zu 
+erhalten, wäre der Einsatz eines markerbasierten Trackingverfahrens denkbar. Da sich 
+in dem geplanten Setup sowohl die Kameras als auch der Koordinatenursprung nicht 
+bewegen sollten, wäre diese Prozedur als Teil der Initialisierung des Systems zu 
+realisieren. Somit bleiben die Mesh-Daten sowie die Textur, die Bild für Bild aufs 
+neue benötigt werden. Die im Projekt entwickelte Netzwerk-Middleware hat sich im 
+Rahmen der Anbindung des See-Through Displays bereits als tauglich erwiesen, Bilder 
+in akzeptabler Auflösung und Framerate übertragen zu können. Dies bestätigt 
+angfänglich naive Pläne, das Mesh-Streaming zunächst auf dieser Middleware zu 
+versuchen. Da eine weitere Beschäftigung mit Kompressionsmöglichkeiten im Rahmen der 
+Masterarbeit nicht mehr abzusehen ist, wird dieser Plan auch Bestand haben. Bei der 
+Nachrichtendefinition für die Texturübertragung wird sich an der, für die 
+Übertragung an das See-Through Display verwendeten, orientiert werden. Die 
+Nachrichtendefinition für die Mesh-Daten besteht dann im Prinzip lediglich aus einem 
+Array an Vertizen, sowie einem Array an Punktindizes. Diese Nachrichten werden dann 
+in einer noch zu entwickelnden Unity Komponente mit Hilfe des C\# Netzwerkadapters 
+entgegengenommen, in eine für Unity geeignete Datenstruktur integriert und 
+dargestellt.

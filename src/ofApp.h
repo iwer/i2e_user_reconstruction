@@ -22,7 +22,7 @@
 
 #include "recon/typedefs.h"
 
-#define NCLOUDS 2
+#define NCLOUDS 1
 
 class ofApp : public ofBaseApp{
 public:

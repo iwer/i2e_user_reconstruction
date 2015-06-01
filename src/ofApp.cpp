@@ -229,7 +229,7 @@ void ofApp::createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targ
 		targetMesh.addColor(ofColor(p.r,p.g,p.b));
 		//targetMesh.addColor(cloudColors[meshIndex]);
 	}
-	std::cout << "Mesh Size after meshing: " << targetMesh.getNumVertices() << " " << inputCloud->size() << std::endl;
+	//std::cout << "Mesh Size after meshing: " << targetMesh.getNumVertices() << " " << inputCloud->size() << std::endl;
 }
 
 void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh)

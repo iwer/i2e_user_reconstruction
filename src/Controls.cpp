@@ -4,6 +4,7 @@ Controls::Controls(void)
 {
 	saveFileName = "settings.xml";
 	gui = new ofxUICanvas();
+	transformSources = true;
 
 	vector<float> buffer;
 	for(auto i = 0; i < 256; i++) {
@@ -16,10 +17,11 @@ Controls::Controls(void)
 	auto *bgSl = gui->addSlider("BACKGROUND",0.0,255.0,100.0);
 
 	gui->addToggle("FULLSCREEN", false);
+	gui->addToggle("TRANSFORM SOURCES", true);
 
 	gui->addLabel("lDepthTresh","Depth Threshold");
-	auto * dMaxSl = gui->addSlider("MAXDEPTH", .3, 5.0, 5.0);
-	auto * dMinSl = gui->addSlider("MINDEPTH", .1, 5.0, .1);
+	auto * dMaxSl = gui->addSlider("MAXDEPTH", -8, 8.0, 5.0);
+	auto * dMinSl = gui->addSlider("MINDEPTH", -8, 8.0, -5);
 
 	gui->addLabel("lResolution","Sample Resolution");
 	auto * dResSl = gui->addSlider("RESOLUTION", .01, .5, .1);
@@ -61,8 +63,8 @@ Controls::Controls(void)
 	updateMu(muSl->getScaledValue());
 	updateMaxNearestNeighbours(meshNeighbourSl->getScaledValue());
 
+	radio->setState(0);
 	std::string active = radio->getActiveName();
-	std::cout << "Active radio: " << radio->getValue() << std::endl;
 	if(active == "POINTS"){
 		updateRenderMode(RENDER_POINTS);
 	}
@@ -100,6 +102,11 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 	{
 		auto *toggle = e.getToggle();
 		ofSetFullscreen(toggle->getValue());
+	}
+	else if(name == "TRANSFORM SOURCES")
+	{
+		auto *toggle = e.getToggle();
+		transformSources = toggle->getValue();
 	}
 	else if(name == "RENDERMODE")
 	{

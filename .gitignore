@@ -223,5 +223,4 @@ $RECYCLE.BIN/
 sftp-config.json
 
 libdynrecon/lib/libdynrecon.lib
-i2e_user_reconstruction.sln
-i2e_user_reconstruction.vcxproj
+

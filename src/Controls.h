@@ -39,6 +39,7 @@ public:
 	boost::signals2::signal<void (int)>   updateMaxNearestNeighbours;
 	boost::signals2::signal<void (float)> updateSampleResolution;
 
+	bool transformSources;
 private:
 	Controls();							// Don't Implement
 	Controls(Controls const&);			// Don't Implement

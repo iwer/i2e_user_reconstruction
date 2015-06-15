@@ -1,9 +1,9 @@
 #include "ofApp.h"
 
 //--------------------------------------------------------------
-void ofApp::setup(){
-	//TIME_SAMPLE_SET_FRAMERATE( 30.0f ); //set the app's target framerate (MANDATORY)
-	//TIME_SAMPLE_SET_DRAW_LOCATION( TIME_MEASUREMENTS_TOP_RIGHT );
+void ofApp::setup2(){
+	this->splashScreen.init("splash.png");
+	this->splashScreen.begin();
 
 	recon::SensorFactory s;
 	s.checkConnectedDevices();
@@ -30,17 +30,17 @@ void ofApp::setup(){
 	std::cout << "Create Pointcloud sources" << std::endl;
 
 	std::string filenames[4] = {
-		"data/scan01.pcd",
-		"data/scan02.pcd",
-		"data/scan03.pcd",
-		"data/scan04.pcd"
+		"data/vpscan01.pcd",
+		"data/vpscan02.pcd",
+		"data/vpscan03.pcd",
+		"data/vpscan04.pcd"
 	};
 
 	std::string bgFilenames[4] = {
-		"data/background01.pcd",
-		"data/background02.pcd",
-		"data/background03.pcd",
-		"data/background04.pcd"
+		"data/vpbackground01.pcd",
+		"data/vpbackground02.pcd",
+		"data/vpbackground03.pcd",
+		"data/vpbackground04.pcd"
 	};
 
 	cloudColors[0].set(255,0,0);
@@ -73,21 +73,32 @@ void ofApp::setup(){
 	std::cout << "Setup camera" << std::endl;
 	cam_.setPosition(ofVec3f(0, 0, 0));
 	cam_.setFov(57);
-	cam_.lookAt(ofVec3f(0, 0, 4000), ofVec3f(0, 1, 0));
+	cam_.lookAt(ofVec3f(0, 4000, 0), ofVec3f(0, 0, 1));
 	cam_.setNearClip(.1);
 	cam_.setFarClip(100000000);
 
 	Controls::getInstance().loadSettings();
+	//ofSetFullscreen(true);
+	this->splashScreen.end();
+	fullyInitialized = true;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	// Update Framerate in Gui
-	Controls::getInstance().updateFramerate(ofGetFrameRate());
-	pipeline_->processData();
+	if (ofGetFrameNum() == 1)
+	{
+		nextframe = false;
+		this->setup2();
+	}
+	else if (fullyInitialized) 
+	{
+		// Update Framerate in Gui
+		Controls::getInstance().updateFramerate(ofGetFrameRate());
+		pipeline_->processData();
 
-	//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
-	createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
+		//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+		createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
+	}
 }
 
 //--------------------------------------------------------------
@@ -104,27 +115,38 @@ void ofApp::draw(){
 	case RENDER_SOURCES:
 		for(auto i = 0; i < NCLOUDS; i++) {
 			ofPushMatrix();
-			ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
+			if(Controls::getInstance().transformSources) {
 
-			ofVec3f qaxis; float qangle;
-			sourceRotation[i].getRotate(qangle, qaxis);
-			ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
+				ofTranslate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 
+				ofVec3f qaxis; float qangle;
+				sourceRotation[i].getRotate(qangle, qaxis);
+				ofRotate(qangle, -qaxis.x , -qaxis.y, qaxis.z);
+			}
 			inputMesh[i].drawVertices();
+			ofDrawAxis(100);
 			ofPopMatrix();
 		}
 		break;
 	case RENDER_POINTS:
+		ofPushMatrix();
 		outputMesh.drawVertices();
+		ofPopMatrix();
 		break;
 	case RENDER_WIRE:
+		ofPushMatrix();
 		outputMesh.drawWireframe();
+		ofPopMatrix();
 		break;
 	case RENDER_MESH:
+		ofPushMatrix();
 		outputMesh.draw();
+		ofPopMatrix();
 		break;
 	default:
+		ofPushMatrix();
 		outputMesh.drawVertices();
+		ofPopMatrix();
 		break;
 	}
 	//TS_STOP("drawing");
@@ -136,6 +158,10 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
+	if(key == ' ')
+	{
+		nextframe = true;
+	}
 }
 
 //--------------------------------------------------------------

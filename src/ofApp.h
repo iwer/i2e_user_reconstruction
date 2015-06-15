@@ -13,6 +13,7 @@
 #include "recon/Pipeline02.h"
 //#include "ofxMSATimer.h"
 //#include "ofxTimeMeasurements.h"
+#include "ofxSplashScreen.h"
 
 
 #include <pcl/common/time.h> //fps calculations
@@ -22,11 +23,15 @@
 
 #include "recon/typedefs.h"
 
-#define NCLOUDS 1
+#define NCLOUDS 2
 
 class ofApp : public ofBaseApp{
 public:
-	void setup() override;
+	ofApp()
+	{
+		fullyInitialized = false;
+	}
+	void setup2();
 	void update() override;
 	void draw() override;
 
@@ -66,5 +71,8 @@ private:
 
 	recon::CloudConstPtr tmpCloud;
 
-	
+	ofxSplashScreen splashScreen;
+
+	bool fullyInitialized;
+	bool nextframe;
 };

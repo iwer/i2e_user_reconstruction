@@ -19,9 +19,6 @@
     <ClCompile Include="..\..\..\addons\ofxXmlSettings\libs\tinyxmlparser.cpp">
       <Filter>addons\ofxXmlSettings\libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\addons\ofxTimeMeasurements\src\ofxTimeMeasurements.cpp">
-      <Filter>addons\ofxTimeMeasurements\src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\addons\ofxUI\src\ofxUI2DGraph.cpp">
       <Filter>addons\ofxUI\src</Filter>
     </ClCompile>
@@ -157,6 +154,9 @@
     <ClCompile Include="src\Controls.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\addons\ofxSplashScreen\src\ofxSplashScreen.cpp">
+      <Filter>addons\ofxSplashScreen\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -192,6 +192,12 @@
     <Filter Include="addons\ofxUI\src">
       <UniqueIdentifier>{A00C2D23-6C11-BC86-3993-2CF0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="addons\ofxSplashScreen">
+      <UniqueIdentifier>{7392a770-b654-4619-9968-c2d1dc5ccee7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="addons\ofxSplashScreen\src">
+      <UniqueIdentifier>{cce376ac-eece-4987-a97f-ca7697294d87}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ofApp.h">
@@ -202,12 +208,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxXmlSettings\libs\tinyxml.h">
       <Filter>addons\ofxXmlSettings\libs</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxMSATimer\src\ofxMSATimer.h">
-      <Filter>addons\ofxMSATimer\src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\addons\ofxTimeMeasurements\src\ofxTimeMeasurements.h">
-      <Filter>addons\ofxTimeMeasurements\src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxUI\src\ofxUI.h">
       <Filter>addons\ofxUI\src</Filter>
@@ -361,6 +361,9 @@
     </ClInclude>
     <ClInclude Include="src\Controls.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\addons\ofxSplashScreen\src\ofxSplashScreen.h">
+      <Filter>addons\ofxSplashScreen\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

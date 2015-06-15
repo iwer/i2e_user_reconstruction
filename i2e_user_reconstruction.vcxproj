@@ -54,14 +54,14 @@
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <PreprocessorDefinitions>EIGEN_DONT_VECTORIZE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxUI\src;..\..\..\addons\ofxSplashScreen\src;C:\DevTools\lib\boost_1_55_0;C:\DevTools\lib\UnitTest++;C:\Program Files (x86)\VTK\include\vtk-6.1;C:\Program Files (x86)\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\Program Files (x86)\OpenNI2\Include;C:\DevTools\lib\flann\include;C:\Program Files (x86)\qhull\include;.\librecon\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -74,7 +74,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WholeProgramOptimization>false</WholeProgramOptimization>
-      <PreprocessorDefinitions>EIGEN_DONT_VECTORIZE;EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);..\..\..\addons\ofxXmlSettings\libs;..\..\..\addons\ofxXmlSettings\src;..\..\..\addons\ofxUI\libs;..\..\..\addons\ofxSplashScreen\src;..\..\..\addons\ofxUI\src;C:\DevTools\lib\boost_1_55_0;C:\DevTools\lib\UnitTest++;C:\Program Files (x86)\VTK\include\vtk-6.1;C:\Program Files (x86)\PCL\include\pcl-1.7;C:\DevTools\lib\eigen;C:\Program Files (x86)\OpenNI2\Include;C:\DevTools\lib\flann\include;C:\Program Files (x86)\qhull\include;.\librecon\include</AdditionalIncludeDirectories>

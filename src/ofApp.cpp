@@ -5,6 +5,7 @@ void ofApp::setup2(){
 	this->splashScreen.init("splash.png");
 	this->splashScreen.begin();
 
+	pcl::ScopeTime t("Setup");
 	recon::SensorFactory s;
 	s.checkConnectedDevices();
 
@@ -85,6 +86,8 @@ void ofApp::setup2(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
+	pcl::ScopeTime t("Update");
+
 	if (ofGetFrameNum() == 1)
 	{
 		nextframe = false;
@@ -103,11 +106,12 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	pcl::ScopeTime t("Draw");
+
 	ofBackground(background);
 
 	cam_.begin();
 	ofPushMatrix();
-	//TS_START("drawing");
 	ofDrawAxis(1000);
 	//ofDrawGridPlane(1000);
 	//std::cout << "Mesh vertices count: " << inputMesh->getNumVertices() << std::endl;
@@ -149,7 +153,6 @@ void ofApp::draw(){
 		ofPopMatrix();
 		break;
 	}
-	//TS_STOP("drawing");
 
 	ofPopMatrix();
 	cam_.end();

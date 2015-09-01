@@ -2,59 +2,67 @@
 
 Controls::Controls(void)
 {
-	saveFileName = "settings.xml";
-	gui = new ofxUICanvas();
+	createMainGui();
+	mainGui->setVisible(false);
+	createConfigGui();
+	currentGui = configGui;
+}
+
+void Controls::createMainGui()
+{
+	saveFileName = "mainGuiSettings.xml";
 	transformSources = true;
 
 	vector<float> buffer;
 	for(auto i = 0; i < 256; i++) {
 		buffer.push_back(0.0);
 	}
-	gui->addFPS();
+	mainGui = new ofxUICanvas();
+	mainGui->addFPS();
 
-	fpsMovingGraph = gui->addMovingGraph("FPS OVER TIME", buffer, 256, 0.0, 120.0);
+	fpsMovingGraph = mainGui->addMovingGraph("FPS OVER TIME", buffer, 256, 0.0, 120.0);
 
-	auto *bgSl = gui->addSlider("BACKGROUND",0.0,255.0,100.0);
+	auto *bgSl = mainGui->addSlider("BACKGROUND",0.0,255.0,100.0);
 
-	gui->addToggle("FULLSCREEN", false);
-	gui->addToggle("TRANSFORM SOURCES", true);
+	mainGui->addToggle("FULLSCREEN", false);
+	mainGui->addToggle("TRANSFORM SOURCES", true);
 
-	gui->addLabel("lDepthTresh","Depth Threshold");
-	auto * dMaxSl = gui->addSlider("MAXDEPTH", -8, 8.0, 5.0);
-	auto * dMinSl = gui->addSlider("MINDEPTH", -8, 8.0, -5);
+	mainGui->addLabel("lDepthTresh","Depth Threshold");
+	auto * dMaxSl = mainGui->addSlider("MAXDEPTH", -8, 8.0, 5.0);
+	auto * dMinSl = mainGui->addSlider("MINDEPTH", -8, 8.0, -5);
 
-	gui->addLabel("lResolution","Sample Resolution");
-	auto * dResSl = gui->addSlider("RESOLUTION", .01, .5, .1);
+	mainGui->addLabel("lResolution","Sample Resolution");
+	auto * dResSl = mainGui->addSlider("RESOLUTION", .01, .5, .1);
 
-	gui->addLabel("lOrgFastMesh","Meshing");
-	auto * trSl = gui->addSlider("TRIANGLESIZE", .001, 2, 1.0);
+	mainGui->addLabel("lOrgFastMesh","Meshing");
+	auto * trSl = mainGui->addSlider("TRIANGLESIZE", .001, 2, 1.0);
 	//trSl->setIncrement(1);
 
-	auto * normalKSl = gui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);
+	auto * normalKSl = mainGui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);
 
-	auto * muSl = gui->addSlider("GREEDY PROJECTION MU", 1.0, 10, 2.5);
+	auto * muSl = mainGui->addSlider("GREEDY PROJECTION MU", 1.0, 10, 2.5);
 
-	auto * meshNeighbourSl = gui->addSlider("MESH MAX NEIGHBOURS", 10, 200, 150);
+	auto * meshNeighbourSl = mainGui->addSlider("MESH MAX NEIGHBOURS", 10, 200, 150);
 
 	vector<string> names;
 	names.push_back("SOURCES");
 	names.push_back("POINTS");
 	names.push_back("WIREFRAME");
 	names.push_back("TRIANGLEMESH");
-	auto * radio = gui->addRadio("RENDERMODE", names, OFX_UI_ORIENTATION_VERTICAL);
+	auto * radio = mainGui->addRadio("RENDERMODE", names, OFX_UI_ORIENTATION_VERTICAL);
 
 
 
 
 	// register listener callback
-	ofAddListener(gui->newGUIEvent, this, &Controls::guiEvent);
+	ofAddListener(mainGui->newGUIEvent, this, &Controls::guiEvent);
 
 	// scale to fit
-	gui->autoSizeToFitWidgets();
+	mainGui->autoSizeToFitWidgets();
 
-	// restore gui state from save file
-	gui->loadSettings(saveFileName);
-	// set config from gui state
+	// restore mainGui state from save file
+	mainGui->loadSettings(saveFileName);
+	// set config from mainGui state
 	updateBackground(bgSl->getScaledValue());
 	updateMaxDepth(dMaxSl->getScaledValue());
 	updateMinDepth(dMinSl->getScaledValue());
@@ -80,10 +88,33 @@ Controls::Controls(void)
 
 }
 
+void Controls::createConfigGui()
+{
+	std::string configFileName = "configGuiSettings.xml";
+
+	configGui = new ofxUICanvas("CAM CONFIGURATION");
+	configGui->addLabel("POSITION");
+	auto *slXPos = configGui->addSlider("PosX", -10.0, 10.0, 0.0);
+	auto *slYPos = configGui->addSlider("PosY", -10.0, 10.0, 0.0);
+	auto *slZPos = configGui->addSlider("PosZ", -10.0, 10.0, 0.0);
+	configGui->addLabel("ROTATION");
+	auto *slXRot = configGui->addSlider("RotX", -PI, PI, 0.0);
+	auto *slYRot = configGui->addSlider("RotY", -PI, PI, 0.0);
+	auto *slZRot = configGui->addSlider("RotZ", -PI, PI, 0.0);
+	configGui->addSpacer(5);
+	auto *btnNextCam = configGui->addButton("Next Camera", false); 
+	configGui->autoSizeToFitWidgets();
+
+	// register listener callback
+	ofAddListener(configGui->newGUIEvent, this, &Controls::guiEvent);
+
+	configGui->loadSettings(configFileName);
+
+}
 
 ofxUICanvas * Controls::getGui()
 {
-	return gui;
+	return currentGui;
 }
 
 void Controls::updateFramerate(float rate)
@@ -161,15 +192,60 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 		auto *slider = e.getSlider();
 		updateMaxNearestNeighbours(slider->getScaledValue());
 	}
+	else if(name == "PosX")
+	{
+		auto *slider = e.getSlider();
+		xPos = slider->getScaledValue();
+		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+	}
+	else if(name == "PosY")
+	{
+		auto *slider = e.getSlider();
+		yPos = slider->getScaledValue();
+		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+	}
+	else if(name == "PosZ")
+	{
+		auto *slider = e.getSlider();
+		zPos = slider->getScaledValue();
+		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+	}
+	else if(name == "RotX")
+	{
+		auto *slider = e.getSlider();
+		xRot = slider->getScaledValue();
+		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+	}
+	else if(name == "RotY")
+	{
+		auto *slider = e.getSlider();
+		yRot = slider->getScaledValue();
+		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+	}
+	else if(name == "RotZ")
+	{
+		auto *slider = e.getSlider();
+		zRot = slider->getScaledValue();
+		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+	}
+	else if(name == "Next Camera")
+	{
+		auto *btn = e.getButton();
+		if(btn->getValue() == true) {
+			nextCamera();
+		}
+	}
 
 }
 
 void Controls::loadSettings()
 {
-	gui->loadSettings(saveFileName);
+	mainGui->loadSettings(saveFileName);
+	configGui->loadSettings(configFileName);
 }
 
 void Controls::saveSettings()
 {
-	gui->saveSettings(saveFileName);
+	mainGui->saveSettings(saveFileName);
+	configGui->saveSettings(configFileName);
 }

@@ -15,7 +15,7 @@ public:
 	static Controls& getInstance()
 	{
 		static Controls    instance;	// Guaranteed to be destroyed.
-										// Instantiated on first use.
+		// Instantiated on first use.
 		return instance;
 	}
 
@@ -38,17 +38,26 @@ public:
 	boost::signals2::signal<void (float)> updateMu;
 	boost::signals2::signal<void (int)>   updateMaxNearestNeighbours;
 	boost::signals2::signal<void (float)> updateSampleResolution;
+	boost::signals2::signal<void (float, float, float, float, float, float)> updateCameraTransformation;
+	boost::signals2::signal<void (void)> nextCamera;
 
-	bool transformSources;
+		bool transformSources;
 private:
 	Controls();							// Don't Implement
 	Controls(Controls const&);			// Don't Implement
 	void operator=(Controls const&);	// Don't implement
 
-	ofxUICanvas * gui;
+	ofxUICanvas * mainGui;
+	ofxUICanvas * configGui;
+	ofxUICanvas * currentGui;
+
 	ofxUIMovingGraph * fpsMovingGraph;
 	std::string saveFileName;
+	std::string configFileName;
 
+	void createMainGui();
+	void createConfigGui();
 
+	float xPos, yPos, zPos, xRot, yRot, zRot;
 };
 

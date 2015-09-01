@@ -5,6 +5,8 @@ void ofApp::setup2(){
 	this->splashScreen.init("splash.png");
 	this->splashScreen.begin();
 
+	selectedCamera = 0;
+
 	pcl::ScopeTime t("Setup");
 	recon::SensorFactory s;
 	s.checkConnectedDevices();
@@ -15,6 +17,8 @@ void ofApp::setup2(){
 	std::cout << "Connecting App Callbacks" << std::endl;
 	Controls::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
 	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
+	Controls::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
+	Controls::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
@@ -58,9 +62,10 @@ void ofApp::setup2(){
 		pipeline_->setSensor(sensors_[i], i);
 
 		auto ext = sensors_[i]->getDepthExtrinsics();
-		sourceTranslation[i].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
-		sourceRotation[i].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
-
+		// sourceTranslation[i].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
+		// sourceRotation[i].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
+		sourceTranslation[i].set(0,0,0);
+		sourceRotation[i].set(0,0,0,1);
 
 		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
 		if(temp_cloud_ && temp_cloud_->size() > 0){
@@ -97,24 +102,15 @@ void ofApp::update(){
 	{
 		// Update Framerate in Gui
 		Controls::getInstance().updateFramerate(ofGetFrameRate());
-		pipeline_->processData();
+		//pipeline_->processData();
 
 		//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
-		createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
+		//createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
 	}
 }
 
-//--------------------------------------------------------------
-void ofApp::draw(){
-	pcl::ScopeTime t("Draw");
-
-	ofBackground(background);
-
-	cam_.begin();
-	ofPushMatrix();
-	ofDrawAxis(1000);
-	//ofDrawGridPlane(1000);
-	//std::cout << "Mesh vertices count: " << inputMesh->getNumVertices() << std::endl;
+void ofApp::drawReconstruction()
+{
 	switch(rendermode){
 	case RENDER_SOURCES:
 		for(auto i = 0; i < NCLOUDS; i++) {
@@ -154,10 +150,52 @@ void ofApp::draw(){
 		break;
 	}
 
-	ofPopMatrix();
-	cam_.end();
 
 }
+
+//--------------------------------------------------------------
+void ofApp::draw(){
+	pcl::ScopeTime t("Draw");
+
+	ofBackground(background);
+
+	cam_.begin();
+	ofPushMatrix();
+	ofDrawAxis(1000);
+	//drawReconstruction();
+
+
+	for(auto i = 0; i < NCLOUDS; i++) {
+		ofPushMatrix();
+		ofVec3f qaxis; float qangle;
+		sourceRotation[i].getRotate(qangle, qaxis);
+		if(Controls::getInstance().transformSources) {
+			ofTranslate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
+			ofRotate(qangle, -qaxis.x , -qaxis.y, qaxis.z);
+		}
+		inputMesh[i].drawVertices();
+		ofDrawAxis(100);
+		ofPopMatrix();
+
+		// camera frustum on active cam
+		if (i == selectedCamera) {
+			ofPushMatrix();
+			ofMatrix4x4 mat, persp;
+			mat.translate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, -sourceTranslation[i].z * 1000);
+			mat.rotate(qangle, qaxis.x, qaxis.y, -qaxis.z);
+			persp.makePerspectiveMatrix(37, 1.33, .1, 100000);
+			mat.postMult(persp);
+			ofMultMatrix(mat.getInverse());
+			ofNoFill();
+			ofDrawBox(0, 0, 0, 2.0f);
+			ofPopMatrix();
+		}
+	}
+
+
+
+	ofPopMatrix();
+	cam_.end();}
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
@@ -174,7 +212,7 @@ void ofApp::keyReleased(int key){
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
 
-	// disable cam when mouse on gui
+	// disable cam when mouse on mainGui
 	if(Controls::getInstance().getGui()->getRect()->getMaxX() >= x && Controls::getInstance().getGui()->getRect()->getMaxY() >= y){
 		cam_.disableMouseInput();
 	} else {
@@ -272,4 +310,15 @@ void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, 
 		//inputMesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
 		targetMesh.addColor(cloudColors[meshIndex]);
 	}
+}
+
+void ofApp::updateCameraTransformation(float xPos, float yPos, float zPos, float xRot, float yRot, float zRot)
+{
+	sourceTranslation[selectedCamera].set(xPos, yPos, zPos);
+	sourceRotation[selectedCamera].set(xRot, yRot, zRot, 0);
+}
+
+void ofApp::selectNextCamera()
+{
+	selectedCamera = (selectedCamera + 1) % NCLOUDS;
 }

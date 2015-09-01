@@ -11,8 +11,7 @@
 #include "recon/FilePointCloudGenerator.h"
 #include "recon/Pipeline01.h"
 #include "recon/Pipeline02.h"
-//#include "ofxMSATimer.h"
-//#include "ofxTimeMeasurements.h"
+
 #include "ofxSplashScreen.h"
 
 
@@ -33,6 +32,8 @@ public:
 	}
 	void setup2();
 	void update() override;
+
+	void drawReconstruction();
 	void draw() override;
 
 	void keyPressed(int key) override;
@@ -52,6 +53,9 @@ public:
 	void createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh);
 	void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh);
 	void createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
+
+	void updateCameraTransformation(float xPos,float yPos,float zPos,float xRot,float yRot, float zRot);
+	void selectNextCamera();
 private:
 	ofEasyCam cam_;
 
@@ -68,6 +72,7 @@ private:
 
 	float background;
 	int rendermode;
+	int selectedCamera;
 
 	recon::CloudConstPtr tmpCloud;
 

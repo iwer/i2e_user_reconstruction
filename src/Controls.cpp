@@ -90,17 +90,31 @@ void Controls::createMainGui()
 
 void Controls::createConfigGui()
 {
-	std::string configFileName = "configGuiSettings.xml";
+	configFileName = "configGuiSettings.xml";
+	step = .01;
 
 	configGui = new ofxUICanvas("CAM CONFIGURATION");
 	configGui->addLabel("POSITION");
-	auto *slXPos = configGui->addSlider("PosX", -10.0, 10.0, 0.0);
-	auto *slYPos = configGui->addSlider("PosY", -10.0, 10.0, 0.0);
-	auto *slZPos = configGui->addSlider("PosZ", -10.0, 10.0, 0.0);
+	auto *slXPos = configGui->addSlider("PosX", -10.0, 10.0, &xPos);
+	configGui->addButton("PosX-",false);
+	configGui->addButton("PosX+",false);
+	auto *slYPos = configGui->addSlider("PosY", -10.0, 10.0, &yPos);
+	configGui->addButton("PosY-",false);
+	configGui->addButton("PosY+",false);
+	auto *slZPos = configGui->addSlider("PosZ", -10.0, 10.0, &zPos);
+	configGui->addButton("PosZ-",false);
+	configGui->addButton("PosZ+",false);
+
 	configGui->addLabel("ROTATION");
-	auto *slXRot = configGui->addSlider("RotX", -PI, PI, 0.0);
-	auto *slYRot = configGui->addSlider("RotY", -PI, PI, 0.0);
-	auto *slZRot = configGui->addSlider("RotZ", -PI, PI, 0.0);
+	auto *slXRot = configGui->addSlider("RotX", -180, 180, &xRot);
+	configGui->addButton("RotX-",false);
+	configGui->addButton("RotX+",false);
+	auto *slYRot = configGui->addSlider("RotY", -180, 180, &yRot);
+	configGui->addButton("RotY-",false);
+	configGui->addButton("RotY+",false);
+	auto *slZRot = configGui->addSlider("RotZ", -180, 180, &zRot);
+	configGui->addButton("RotZ-",false);
+	configGui->addButton("RotZ+",false);
 	configGui->addSpacer(5);
 	auto *btnNextCam = configGui->addButton("Next Camera", false); 
 	configGui->autoSizeToFitWidgets();
@@ -192,41 +206,129 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 		auto *slider = e.getSlider();
 		updateMaxNearestNeighbours(slider->getScaledValue());
 	}
-	else if(name == "PosX")
+	else if((name == "PosX") || (name == "PosY") || (name == "PosZ")
+		|| (name == "RotX") || (name == "RotY") || (name == "RotZ"))
 	{
-		auto *slider = e.getSlider();
-		xPos = slider->getScaledValue();
 		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
 	}
-	else if(name == "PosY")
+	else if(name == "PosX-") 
 	{
-		auto *slider = e.getSlider();
-		yPos = slider->getScaledValue();
-		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			xPos-=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}	
 	}
-	else if(name == "PosZ")
+	else if(name == "PosX+") 
 	{
-		auto *slider = e.getSlider();
-		zPos = slider->getScaledValue();
-		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			xPos+=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
 	}
-	else if(name == "RotX")
+	else if(name == "PosY-") 
 	{
-		auto *slider = e.getSlider();
-		xRot = slider->getScaledValue();
-		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			yPos-=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
 	}
-	else if(name == "RotY")
+	else if(name == "PosY+") 
 	{
-		auto *slider = e.getSlider();
-		yRot = slider->getScaledValue();
-		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			yPos+=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
 	}
-	else if(name == "RotZ")
+	else if(name == "PosZ-") 
 	{
-		auto *slider = e.getSlider();
-		zRot = slider->getScaledValue();
-		updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			zPos-=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "PosZ+") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			zPos+=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "RotX-") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			xRot-=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "RotX+") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			xRot+=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "RotY-") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			yRot-=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "RotY+") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			yRot+=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "RotZ-") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			zRot-=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot);
+
+		}
+	}
+	else if(name == "RotZ+") 
+	{
+		auto *btn = e.getButton();
+		if (btn->getValue() == true)
+		{
+			zRot+=step;
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot); 
+		}
 	}
 	else if(name == "Next Camera")
 	{
@@ -248,4 +350,16 @@ void Controls::saveSettings()
 {
 	mainGui->saveSettings(saveFileName);
 	configGui->saveSettings(configFileName);
+}
+
+void Controls::setStepHigh(bool state)
+{
+	if(state)
+	{
+		step=.1;
+	}
+	else
+	{
+		step = .01;
+	}
 }

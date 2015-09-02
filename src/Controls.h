@@ -23,11 +23,12 @@ public:
 
 	void updateFramerate(float rate);
 
-
 	void guiEvent(ofxUIEventArgs &e);
 
 	void loadSettings();
 	void saveSettings();
+
+	void setStepHigh(bool state);
 
 	boost::signals2::signal<void (float)> updateBackground;
 	boost::signals2::signal<void (int)>	  updateRenderMode;
@@ -41,7 +42,7 @@ public:
 	boost::signals2::signal<void (float, float, float, float, float, float)> updateCameraTransformation;
 	boost::signals2::signal<void (void)> nextCamera;
 
-		bool transformSources;
+	bool transformSources;
 private:
 	Controls();							// Don't Implement
 	Controls(Controls const&);			// Don't Implement
@@ -59,5 +60,6 @@ private:
 	void createConfigGui();
 
 	float xPos, yPos, zPos, xRot, yRot, zRot;
+	float step;
 };
 

@@ -203,10 +203,18 @@ void ofApp::keyPressed(int key){
 	{
 		nextframe = true;
 	}
+	if(key == OF_KEY_F1)
+	{
+		Controls::getInstance().setStepHigh(true);
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
+	if(key == OF_KEY_F1)
+	{
+		Controls::getInstance().setStepHigh(false);
+	}
 }
 
 //--------------------------------------------------------------
@@ -315,7 +323,10 @@ void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, 
 void ofApp::updateCameraTransformation(float xPos, float yPos, float zPos, float xRot, float yRot, float zRot)
 {
 	sourceTranslation[selectedCamera].set(xPos, yPos, zPos);
-	sourceRotation[selectedCamera].set(xRot, yRot, zRot, 0);
+	//sourceRotation[selectedCamera].set(xRot, yRot, zRot, 0);
+	
+	ofVec3f x(1,0,0), y(0,1,0), z(0,0,1);
+	sourceRotation[selectedCamera].makeRotate(xRot, x, yRot ,y ,zRot ,z);
 }
 
 void ofApp::selectNextCamera()

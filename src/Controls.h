@@ -29,6 +29,7 @@ public:
 	void saveSettings();
 
 	void setStepHigh(bool state);
+	void setCameraTransformation(float x, float y, float z, float rot_x, float rot_y, float rot_z);
 
 	boost::signals2::signal<void (float)> updateBackground;
 	boost::signals2::signal<void (int)>	  updateRenderMode;
@@ -41,7 +42,7 @@ public:
 	boost::signals2::signal<void (float)> updateSampleResolution;
 	boost::signals2::signal<void (float, float, float, float, float, float)> updateCameraTransformation;
 	boost::signals2::signal<void (void)> nextCamera;
-
+	
 	bool transformSources;
 private:
 	Controls();							// Don't Implement

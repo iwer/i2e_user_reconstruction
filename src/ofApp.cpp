@@ -62,10 +62,10 @@ void ofApp::setup2(){
 		pipeline_->setSensor(sensors_[i], i);
 
 		auto ext = sensors_[i]->getDepthExtrinsics();
-		// sourceTranslation[i].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
-		// sourceRotation[i].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
-		sourceTranslation[i].set(0,0,0);
-		sourceRotation[i].set(0,0,0,1);
+		sourceTranslation[i].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
+		sourceRotation[i].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
+		//sourceTranslation[i].set(0,0,0);
+		//sourceRotation[i].set(0,0,0,1);
 
 		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
 		if(temp_cloud_ && temp_cloud_->size() > 0){
@@ -172,6 +172,14 @@ void ofApp::draw(){
 		if(Controls::getInstance().transformSources) {
 			ofTranslate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 			ofRotate(qangle, -qaxis.x , -qaxis.y, qaxis.z);
+		}
+		if (i == selectedCamera) {
+			inputMesh[i].disableColors();
+			ofColor(255, 255, 255);
+		}
+		else
+		{
+			inputMesh[i].enableColors();
 		}
 		inputMesh[i].drawVertices();
 		ofDrawAxis(100);
@@ -289,13 +297,11 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 			//TODO: add normals, texturecoordinates
 		}
 	}
-	//std::cout << "Mesh Size after meshing: " << outputMesh_.getNumVertices() << std::endl;
 
 }
 
 void ofApp::createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
 {
-
 	// triangle inputMesh
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_POINTS);
@@ -324,12 +330,41 @@ void ofApp::updateCameraTransformation(float xPos, float yPos, float zPos, float
 {
 	sourceTranslation[selectedCamera].set(xPos, yPos, zPos);
 	//sourceRotation[selectedCamera].set(xRot, yRot, zRot, 0);
-	
+
 	ofVec3f x(1,0,0), y(0,1,0), z(0,0,1);
-	sourceRotation[selectedCamera].makeRotate(xRot, x, yRot ,y ,zRot ,z);
+	ofQuaternion q;
+	q.makeRotate(xRot, x, yRot ,y ,zRot ,z);
+	sourceRotation[selectedCamera] = q;
+}
+
+void ofApp::saveExtrinsicsToCurrentSensor()
+{
+	Eigen::Vector4f translation(sourceTranslation[selectedCamera].x, sourceTranslation[selectedCamera].y, sourceTranslation[selectedCamera].z, 0);
+	Eigen::Quaternionf rotation(sourceRotation[selectedCamera].w(), sourceRotation[selectedCamera].x(), sourceRotation[selectedCamera].y(), sourceRotation[selectedCamera].z());
+	recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(translation, rotation));
+	sensors_[selectedCamera]->setDepthExtrinsics(ext);
+}
+
+void ofApp::loadExtrinsicsFromCurrentSensor()
+{
+	auto ext = sensors_[selectedCamera]->getDepthExtrinsics();
+	sourceTranslation[selectedCamera].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
+	sourceRotation[selectedCamera].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
+
+	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
+													sourceTranslation[selectedCamera].y,
+													sourceTranslation[selectedCamera].z,
+													sourceRotation[selectedCamera].getEuler().x,
+													sourceRotation[selectedCamera].getEuler().y,
+													sourceRotation[selectedCamera].getEuler().z);
 }
 
 void ofApp::selectNextCamera()
 {
+	saveExtrinsicsToCurrentSensor();
+
 	selectedCamera = (selectedCamera + 1) % NCLOUDS;
+
+	loadExtrinsicsFromCurrentSensor();
 }
+

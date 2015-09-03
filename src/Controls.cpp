@@ -363,3 +363,13 @@ void Controls::setStepHigh(bool state)
 		step = .01;
 	}
 }
+
+void Controls::setCameraTransformation(float x, float y, float z, float rot_x, float rot_y, float rot_z)
+{
+	xPos = x;
+	yPos = y;
+	zPos = z;
+	xRot = rot_x;
+	yRot = rot_y;
+	zRot = rot_z;
+}

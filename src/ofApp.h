@@ -55,6 +55,8 @@ public:
 	void createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
 
 	void updateCameraTransformation(float xPos,float yPos,float zPos,float xRot,float yRot, float zRot);
+	void saveExtrinsicsToCurrentSensor();
+	void loadExtrinsicsFromCurrentSensor();
 	void selectNextCamera();
 private:
 	ofEasyCam cam_;

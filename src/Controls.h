@@ -4,6 +4,9 @@
 #include "ofxUi.h"
 #include <boost/signals2.hpp>
 
+#define APPMODE_CONFIG 10
+#define APPMODE_RECON 20
+
 #define RENDER_SOURCES 0
 #define RENDER_POINTS 1
 #define RENDER_WIRE 2
@@ -33,6 +36,7 @@ public:
 
 	boost::signals2::signal<void (float)> updateBackground;
 	boost::signals2::signal<void (int)>	  updateRenderMode;
+	boost::signals2::signal<void (int)>	  updateAppMode;
 	boost::signals2::signal<void (float)> updateMaxDepth;
 	boost::signals2::signal<void (float)> updateMinDepth;
 	boost::signals2::signal<void (float)> updateTriangleSize;
@@ -59,6 +63,9 @@ private:
 
 	void createMainGui();
 	void createConfigGui();
+
+	void activateMainGui();
+	void activateConfigGui();
 
 	float xPos, yPos, zPos, xRot, yRot, zRot;
 	float step;

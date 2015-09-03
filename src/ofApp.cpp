@@ -19,6 +19,7 @@ void ofApp::setup2(){
 	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
 	Controls::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
 	Controls::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
+	Controls::getInstance().updateAppMode.connect(boost::bind(&ofApp::setAppmode, this, _1));
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
@@ -111,6 +112,7 @@ void ofApp::update(){
 
 void ofApp::drawReconstruction()
 {
+
 	switch(rendermode){
 	case RENDER_SOURCES:
 		for(auto i = 0; i < NCLOUDS; i++) {
@@ -123,8 +125,8 @@ void ofApp::drawReconstruction()
 				sourceRotation[i].getRotate(qangle, qaxis);
 				ofRotate(qangle, -qaxis.x , -qaxis.y, qaxis.z);
 			}
+			inputMesh[i].enableColors();
 			inputMesh[i].drawVertices();
-			ofDrawAxis(100);
 			ofPopMatrix();
 		}
 		break;
@@ -153,18 +155,8 @@ void ofApp::drawReconstruction()
 
 }
 
-//--------------------------------------------------------------
-void ofApp::draw(){
-	pcl::ScopeTime t("Draw");
-
-	ofBackground(background);
-
-	cam_.begin();
-	ofPushMatrix();
-	ofDrawAxis(1000);
-	//drawReconstruction();
-
-
+void ofApp::drawCalibration()
+{
 	for(auto i = 0; i < NCLOUDS; i++) {
 		ofPushMatrix();
 		ofVec3f qaxis; float qangle;
@@ -199,11 +191,29 @@ void ofApp::draw(){
 			ofPopMatrix();
 		}
 	}
+}
 
+//--------------------------------------------------------------
+void ofApp::draw(){
+	pcl::ScopeTime t("Draw");
 
+	ofBackground(background);
+
+	cam_.begin();
+	ofPushMatrix();
+	ofDrawAxis(1000);
+	if (appmode == APPMODE_RECON)
+	{
+		drawReconstruction();
+	}
+	else if (appmode == APPMODE_CONFIG)
+	{
+		drawCalibration();
+	}
 
 	ofPopMatrix();
-	cam_.end();}
+	cam_.end();
+}
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
@@ -274,6 +284,11 @@ void ofApp::exit()
 //--------------------------------------------------------------
 void ofApp::setBackground(float color){
 	background = color;
+}
+
+void ofApp::setAppmode(int mode)
+{
+	appmode = mode;
 }
 
 //--------------------------------------------------------------
@@ -352,11 +367,11 @@ void ofApp::loadExtrinsicsFromCurrentSensor()
 	sourceRotation[selectedCamera].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
 
 	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
-													sourceTranslation[selectedCamera].y,
-													sourceTranslation[selectedCamera].z,
-													sourceRotation[selectedCamera].getEuler().x,
-													sourceRotation[selectedCamera].getEuler().y,
-													sourceRotation[selectedCamera].getEuler().z);
+		sourceTranslation[selectedCamera].y,
+		sourceTranslation[selectedCamera].z,
+		sourceRotation[selectedCamera].getEuler().x,
+		sourceRotation[selectedCamera].getEuler().y,
+		sourceRotation[selectedCamera].getEuler().z);
 }
 
 void ofApp::selectNextCamera()

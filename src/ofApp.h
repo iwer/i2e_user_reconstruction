@@ -34,6 +34,7 @@ public:
 	void update() override;
 
 	void drawReconstruction();
+	void drawCalibration();
 	void draw() override;
 
 	void keyPressed(int key) override;
@@ -49,6 +50,7 @@ public:
 
 	void setBackground(float color);
 	void setRendermode(int mode);
+	void setAppmode(int mode);
 
 	void createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh);
 	void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh);
@@ -73,6 +75,7 @@ private:
 	ofMesh outputMesh;
 
 	float background;
+	int appmode;
 	int rendermode;
 	int selectedCamera;
 

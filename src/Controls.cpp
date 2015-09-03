@@ -3,9 +3,8 @@
 Controls::Controls(void)
 {
 	createMainGui();
-	mainGui->setVisible(false);
 	createConfigGui();
-	currentGui = configGui;
+	activateConfigGui();
 }
 
 void Controls::createMainGui()
@@ -51,7 +50,8 @@ void Controls::createMainGui()
 	names.push_back("TRIANGLEMESH");
 	auto * radio = mainGui->addRadio("RENDERMODE", names, OFX_UI_ORIENTATION_VERTICAL);
 
-
+	mainGui->addSpacer(5);
+	auto *btnConfig = mainGui->addButton("CALIBRATION", false); 
 
 
 	// register listener callback
@@ -117,6 +117,8 @@ void Controls::createConfigGui()
 	configGui->addButton("RotZ+",false);
 	configGui->addSpacer(5);
 	auto *btnNextCam = configGui->addButton("Next Camera", false); 
+	configGui->addSpacer(5);
+	auto *btnDone = configGui->addButton("Calibration Done", false); 
 	configGui->autoSizeToFitWidgets();
 
 	// register listener callback
@@ -124,6 +126,22 @@ void Controls::createConfigGui()
 
 	configGui->loadSettings(configFileName);
 
+}
+
+void Controls::activateMainGui()
+{
+	mainGui->setVisible(true);
+	configGui->setVisible(false);
+	currentGui = mainGui;
+	updateAppMode(APPMODE_RECON);
+}
+
+void Controls::activateConfigGui()
+{
+	mainGui->setVisible(false);
+	configGui->setVisible(true);
+	currentGui = configGui;
+	updateAppMode(APPMODE_CONFIG);
 }
 
 ofxUICanvas * Controls::getGui()
@@ -337,7 +355,20 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 			nextCamera();
 		}
 	}
-
+	else if(name == "Calibration Done")
+	{
+		auto *btn = e.getButton();
+		if(btn->getValue() == true) {
+			activateMainGui();
+		}
+	}
+		else if(name == "CALIBRATION")
+	{
+		auto *btn = e.getButton();
+		if(btn->getValue() == true) {
+			activateConfigGui();
+		}
+	}
 }
 
 void Controls::loadSettings()

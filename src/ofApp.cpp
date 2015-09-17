@@ -1,5 +1,18 @@
 #include "ofApp.h"
 
+void ofApp::toOfTexture(recon::ImagePtr image)
+{
+	auto width = image->getWidth();
+	auto height = image->getHeight();
+	auto encoding = image->getEncoding();
+
+	if(encoding == pcl::io::Image::Encoding::RGB)
+	{
+		auto data = static_cast<const unsigned char *>(image->getData());
+		texture.loadData(data, width, height, GL_RGB);
+	}
+}
+
 //--------------------------------------------------------------
 void ofApp::setup2(){
 	this->splashScreen.init("splash.png");
@@ -7,6 +20,7 @@ void ofApp::setup2(){
 
 	ofSetFrameRate(40);
 	selectedCamera = 0;
+	appmode = APPMODE_RECON;
 
 	pcl::ScopeTime t("Setup");
 	recon::SensorFactory s;
@@ -123,6 +137,12 @@ void ofApp::update(){
 		Controls::getInstance().updateFramerate(ofGetFrameRate());
 		pipeline_->processData();
 
+		auto image = sensors_[0]->getCloudSource()->getOutputImage();
+		if (image)
+		{
+			toOfTexture(image);
+		}
+
 		createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
 		createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
 		for(auto i = 0; i < NCLOUDS; i++) 
@@ -135,6 +155,7 @@ void ofApp::update(){
 	}
 }
 
+//--------------------------------------------------------------
 void ofApp::drawReconstruction()
 {
 
@@ -167,7 +188,12 @@ void ofApp::drawReconstruction()
 		break;
 	case RENDER_MESH:
 		ofPushMatrix();
+		outputMesh.disableColors();
+		outputMesh.enableTextures();
+		texture.setTextureWrap(GL_CLAMP,GL_CLAMP);
+		texture.bind();
 		outputMesh.draw();
+		texture.unbind();
 		ofPopMatrix();
 		break;
 	default:
@@ -180,6 +206,7 @@ void ofApp::drawReconstruction()
 
 }
 
+//--------------------------------------------------------------
 void ofApp::drawCalibration()
 {
 	for(auto i = 0; i < NCLOUDS; i++) {
@@ -243,6 +270,14 @@ void ofApp::draw(){
 
 	ofPopMatrix();
 	cam_.end();
+
+	ofPushMatrix();
+	auto aspect =  texture.getWidth() / texture.getHeight();
+	auto screenWidth = ofGetWidth()/8;
+	auto screenHeight = screenWidth / aspect;
+	//                                                             vvv to flip image
+	texture.draw(ofPoint(screenWidth,ofGetHeight() - screenHeight), -screenWidth, screenHeight);
+	ofPopMatrix();
 }
 
 //--------------------------------------------------------------
@@ -337,6 +372,31 @@ void ofApp::setAppmode(int mode)
 }
 
 //--------------------------------------------------------------
+ofVec2f* ofApp::calculateTextureCoordinate(ofVec3f &point, int cam_index)
+{
+	ofVec3f qaxis; float qangle;
+	ofMatrix4x4 mat, persp;
+	auto width = texture.getWidth();
+	auto height = texture.getHeight();
+	auto intrinsics = sensors_[cam_index]->getDepthIntrinsics();
+	loadExtrinsicsFromCurrentSensor();
+
+	sourceRotation[cam_index].getRotate(qangle, qaxis);
+	mat.translate(-sourceTranslation[cam_index].x*1000, -sourceTranslation[cam_index].y*1000, sourceTranslation[cam_index].z*1000);
+	mat.rotate(qangle, -qaxis.x, -qaxis.y, qaxis.z);
+	persp.makePerspectiveMatrix(intrinsics->getHFov(), intrinsics->getAspectRatio(), .1, 100000);
+
+	ofVec3f cameraSpacePoint;
+	cameraSpacePoint = point;// * mat.getInverse();
+	ofVec4f projectedPoint = ofVec4f(cameraSpacePoint.x, cameraSpacePoint.y, cameraSpacePoint.z,1) * persp;
+	projectedPoint.x /= projectedPoint.w;
+	projectedPoint.y /= projectedPoint.w;
+	auto new_x = (projectedPoint.x * width) / (2 * projectedPoint.w) + (width * 0.5);
+	auto new_y = (projectedPoint.y * height) / (2 * projectedPoint.w) + (height * 0.5);
+	return new ofVec2f(new_x, new_y);
+}
+
+//--------------------------------------------------------------
 void ofApp::setRendermode(int mode){
 	rendermode = mode;
 }
@@ -353,9 +413,12 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 		// So easy, such style, very beauty, many readable, so wow!
 		for(auto &pointindex : t.vertices){
 			p = inputCloud->at(pointindex);
-			targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
+			ofVec3f ofp = ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000);
+			targetMesh.addVertex(ofp);
 			targetMesh.addColor(ofColor(p.r, p.g, p.b));
 			//TODO: add normals, texturecoordinates
+			ofVec3f source_point = inputMesh[0].getVertex(pointindex);
+			targetMesh.addTexCoord(*calculateTextureCoordinate(source_point, 0));
 		}
 	}
 
@@ -384,7 +447,6 @@ void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, 
 	targetMesh.setMode(OF_PRIMITIVE_POINTS);
 	for(auto &p : inputCloud->points){
 		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
-		//inputMesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
 		targetMesh.addColor(cloudColors[meshIndex]);
 	}
 }

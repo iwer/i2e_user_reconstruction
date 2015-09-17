@@ -31,6 +31,7 @@ public:
 		fullyInitialized = false;
 	}
 	void setup2();
+
 	void update() override;
 
 	void drawReconstruction();
@@ -52,9 +53,12 @@ public:
 	void setRendermode(int mode);
 	void setAppmode(int mode);
 
+	ofVec2f* calculateTextureCoordinate(ofVec3f &point, int cam_index);
 	void createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh);
 	void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh);
 	void createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
+
+	void toOfTexture(recon::ImagePtr image);
 
 	void updateCameraTransformation(float xPos,float yPos,float zPos,float xRot,float yRot, float zRot);
 	void saveExtrinsicsToCurrentSensor();
@@ -85,4 +89,6 @@ private:
 
 	bool fullyInitialized;
 	bool nextframe;
+
+	ofTexture texture;
 };

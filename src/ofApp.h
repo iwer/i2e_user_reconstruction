@@ -13,7 +13,7 @@
 #include "recon/Pipeline02.h"
 
 #include "ofxSplashScreen.h"
-
+#include "SensorCalibrationSettings.h"
 
 #include <pcl/common/time.h> //fps calculations
 #include <pcl/common/angles.h>
@@ -22,7 +22,7 @@
 
 #include "recon/typedefs.h"
 
-#define NCLOUDS 2
+#define NCLOUDS 1
 
 class ofApp : public ofBaseApp{
 public:

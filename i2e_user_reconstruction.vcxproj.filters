@@ -157,6 +157,9 @@
     <ClCompile Include="..\..\..\addons\ofxSplashScreen\src\ofxSplashScreen.cpp">
       <Filter>addons\ofxSplashScreen\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\SensorCalibrationSettings.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="src">
@@ -364,6 +367,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\addons\ofxSplashScreen\src\ofxSplashScreen.h">
       <Filter>addons\ofxSplashScreen\src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SensorCalibrationSettings.h">
+      <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

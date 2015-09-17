@@ -5,11 +5,18 @@ void ofApp::setup2(){
 	this->splashScreen.init("splash.png");
 	this->splashScreen.begin();
 
+	ofSetFrameRate(40);
 	selectedCamera = 0;
 
 	pcl::ScopeTime t("Setup");
 	recon::SensorFactory s;
-	s.checkConnectedDevices();
+	auto n_cams = s.checkConnectedDevices(false);
+
+	if(n_cams < NCLOUDS)
+	{
+		std::cerr << "Not enough sensors" << std::endl;
+		std::exit(1);
+	}
 
 	ofEnableDepthTest();
 
@@ -23,14 +30,18 @@ void ofApp::setup2(){
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
-	pipeline_ = new recon::Pipeline02(NCLOUDS, 
+	//pipeline_ = new recon::Pipeline02(NCLOUDS, 
+	//	&Controls::getInstance().updateMinDepth,
+	//	&Controls::getInstance().updateMaxDepth,
+	//	&Controls::getInstance().updateTriangleSize,
+	//	&Controls::getInstance().updateNormalKNeighbour,
+	//	&Controls::getInstance().updateMu,
+	//	&Controls::getInstance().updateMaxNearestNeighbours,
+	//	&Controls::getInstance().updateSampleResolution);
+	pipeline_ = new recon::Pipeline01(
 		&Controls::getInstance().updateMinDepth,
 		&Controls::getInstance().updateMaxDepth,
-		&Controls::getInstance().updateTriangleSize,
-		&Controls::getInstance().updateNormalKNeighbour,
-		&Controls::getInstance().updateMu,
-		&Controls::getInstance().updateMaxNearestNeighbours,
-		&Controls::getInstance().updateSampleResolution);
+		&Controls::getInstance().updateTriangleSize);
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
@@ -54,26 +65,33 @@ void ofApp::setup2(){
 	cloudColors[2].set(0,0,255);
 	cloudColors[3].set(255,255,0);
 
+	SensorCalibrationSettings cal_set;
+
 	for(auto i = 0; i < NCLOUDS; i++) {
-		//	std::cout << "Loading " << filenames[i] << std::endl;
-		//	cloudSource_[i] = new recon::FilePointCloudGenerator(filenames[i]);
-		//	cloudSource_[i]->start();
-		sensors_[i] = s.createFilePointCloudGenerator(filenames[i], bgFilenames[i]);
-		sensors_[i]->setBackground();
+		//sensors_[i] = s.createFilePointCloudGenerator(filenames[i], bgFilenames[i]);
+		sensors_[i] = s.createPclOpenNI2Grabber();
+		cal_set.loadCalibration(sensors_[i], i);
+
 		pipeline_->setSensor(sensors_[i], i);
 
 		auto ext = sensors_[i]->getDepthExtrinsics();
-		sourceTranslation[i].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
-		sourceRotation[i].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
-		//sourceTranslation[i].set(0,0,0);
-		//sourceRotation[i].set(0,0,0,1);
-
-		auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
+		sourceTranslation[i].set(ext->getTranslation()->x(), ext->getTranslation()->y(), ext->getTranslation()->z());
+		sourceRotation[i].set(ext->getRotation()->x(), ext->getRotation()->y(), ext->getRotation()->z(), ext->getRotation()->w());
+		auto cloudSource = sensors_[i]->getCloudSource();
+		auto temp_cloud_ = cloudSource->getOutputCloud();
 		if(temp_cloud_ && temp_cloud_->size() > 0){
 			createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
 		}
 	}
 
+	// set current cameras calibration in gui
+	loadExtrinsicsFromCurrentSensor();
+	//Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
+	//		sourceTranslation[selectedCamera].y,
+	//		sourceTranslation[selectedCamera].z,
+	//		sourceRotation[selectedCamera].getEuler().x,
+	//		sourceRotation[selectedCamera].getEuler().y,
+	//		sourceRotation[selectedCamera].getEuler().z);
 
 
 	// setup camera
@@ -85,14 +103,14 @@ void ofApp::setup2(){
 	cam_.setFarClip(100000000);
 
 	Controls::getInstance().loadSettings();
-	//ofSetFullscreen(true);
+
 	this->splashScreen.end();
 	fullyInitialized = true;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	pcl::ScopeTime t("Update");
+	//pcl::ScopeTime t("Update");
 
 	if (ofGetFrameNum() == 1)
 	{
@@ -103,10 +121,17 @@ void ofApp::update(){
 	{
 		// Update Framerate in Gui
 		Controls::getInstance().updateFramerate(ofGetFrameRate());
-		//pipeline_->processData();
+		pipeline_->processData();
 
-		//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
-		//createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
+		createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
+		createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+		for(auto i = 0; i < NCLOUDS; i++) 
+		{
+			auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
+			if(temp_cloud_ && temp_cloud_->size() > 0) {
+				createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
+			}
+		}
 	}
 }
 
@@ -173,9 +198,14 @@ void ofApp::drawCalibration()
 		{
 			inputMesh[i].enableColors();
 		}
-		inputMesh[i].drawVertices();
+
+		inputMesh[i].drawVertices();		
 		ofDrawAxis(100);
 		ofPopMatrix();
+
+		//ofPushMatrix();
+		//outputMesh.drawVertices();
+		//ofPopMatrix();
 
 		// camera frustum on active cam
 		if (i == selectedCamera) {
@@ -195,7 +225,7 @@ void ofApp::drawCalibration()
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	pcl::ScopeTime t("Draw");
+	//pcl::ScopeTime t("Draw");
 
 	ofBackground(background);
 
@@ -278,6 +308,12 @@ void ofApp::exit()
 	//for (auto &cs : cloudSource_) {
 	//	cs->stop();
 	//}
+	SensorCalibrationSettings set;
+	for(auto i = 0; i < NCLOUDS; i++) 
+	{
+		set.saveCalibration(sensors_[i], i);
+		i++;
+	}
 
 }
 
@@ -286,9 +322,18 @@ void ofApp::setBackground(float color){
 	background = color;
 }
 
+//--------------------------------------------------------------
 void ofApp::setAppmode(int mode)
 {
 	appmode = mode;
+	if(mode == APPMODE_CONFIG) 
+	{
+		loadExtrinsicsFromCurrentSensor();
+	}
+	else if (mode == APPMODE_RECON)
+	{
+		saveExtrinsicsToCurrentSensor();
+	}
 }
 
 //--------------------------------------------------------------
@@ -296,6 +341,7 @@ void ofApp::setRendermode(int mode){
 	rendermode = mode;
 }
 
+//--------------------------------------------------------------
 void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh)
 {
 
@@ -307,27 +353,29 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 		// So easy, such style, very beauty, many readable, so wow!
 		for(auto &pointindex : t.vertices){
 			p = inputCloud->at(pointindex);
-			targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
-			targetMesh.addColor(ofColor(p.r,p.g,p.b));
+			targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
+			targetMesh.addColor(ofColor(p.r, p.g, p.b));
 			//TODO: add normals, texturecoordinates
 		}
 	}
 
 }
 
+//--------------------------------------------------------------
 void ofApp::createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
 {
 	// triangle inputMesh
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_POINTS);
 	for(auto &p : inputCloud->points){
-		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
 		targetMesh.addColor(ofColor(p.r,p.g,p.b));
 		//targetMesh.addColor(cloudColors[meshIndex]);
 	}
 	//std::cout << "Mesh Size after meshing: " << targetMesh.getNumVertices() << " " << inputCloud->size() << std::endl;
 }
 
+//--------------------------------------------------------------
 void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh)
 {
 
@@ -335,16 +383,16 @@ void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, 
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_POINTS);
 	for(auto &p : inputCloud->points){
-		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,p.z*1000));
+		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
 		//inputMesh[meshIndex].addColor(ofColor(p.r,p.g,p.b));
 		targetMesh.addColor(cloudColors[meshIndex]);
 	}
 }
 
+//--------------------------------------------------------------
 void ofApp::updateCameraTransformation(float xPos, float yPos, float zPos, float xRot, float yRot, float zRot)
 {
 	sourceTranslation[selectedCamera].set(xPos, yPos, zPos);
-	//sourceRotation[selectedCamera].set(xRot, yRot, zRot, 0);
 
 	ofVec3f x(1,0,0), y(0,1,0), z(0,0,1);
 	ofQuaternion q;
@@ -352,6 +400,7 @@ void ofApp::updateCameraTransformation(float xPos, float yPos, float zPos, float
 	sourceRotation[selectedCamera] = q;
 }
 
+//--------------------------------------------------------------
 void ofApp::saveExtrinsicsToCurrentSensor()
 {
 	Eigen::Vector4f translation(sourceTranslation[selectedCamera].x, sourceTranslation[selectedCamera].y, sourceTranslation[selectedCamera].z, 0);
@@ -360,11 +409,12 @@ void ofApp::saveExtrinsicsToCurrentSensor()
 	sensors_[selectedCamera]->setDepthExtrinsics(ext);
 }
 
+//--------------------------------------------------------------
 void ofApp::loadExtrinsicsFromCurrentSensor()
 {
 	auto ext = sensors_[selectedCamera]->getDepthExtrinsics();
-	sourceTranslation[selectedCamera].set(ext->getTranslation().x(), ext->getTranslation().y(), ext->getTranslation().z());
-	sourceRotation[selectedCamera].set(ext->getRotation().x(), ext->getRotation().y(), ext->getRotation().z(), ext->getRotation().w());
+	sourceTranslation[selectedCamera].set(ext->getTranslation()->x(), ext->getTranslation()->y(), ext->getTranslation()->z());
+	sourceRotation[selectedCamera].set(ext->getRotation()->x(), ext->getRotation()->y(), ext->getRotation()->z(), ext->getRotation()->w());
 
 	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
 		sourceTranslation[selectedCamera].y,
@@ -374,6 +424,7 @@ void ofApp::loadExtrinsicsFromCurrentSensor()
 		sourceRotation[selectedCamera].getEuler().z);
 }
 
+//--------------------------------------------------------------
 void ofApp::selectNextCamera()
 {
 	saveExtrinsicsToCurrentSensor();

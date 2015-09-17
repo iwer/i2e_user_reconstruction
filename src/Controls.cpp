@@ -4,7 +4,7 @@ Controls::Controls(void)
 {
 	createMainGui();
 	createConfigGui();
-	activateConfigGui();
+	activateMainGui();
 }
 
 void Controls::createMainGui()
@@ -27,8 +27,8 @@ void Controls::createMainGui()
 	mainGui->addToggle("TRANSFORM SOURCES", true);
 
 	mainGui->addLabel("lDepthTresh","Depth Threshold");
-	auto * dMaxSl = mainGui->addSlider("MAXDEPTH", -8, 8.0, 5.0);
-	auto * dMinSl = mainGui->addSlider("MINDEPTH", -8, 8.0, -5);
+	auto * dMaxSl = mainGui->addSlider("MAXDEPTH", 0, 8.0, 5.0);
+	auto * dMinSl = mainGui->addSlider("MINDEPTH", 0, 8.0, 0.0);
 
 	mainGui->addLabel("lResolution","Sample Resolution");
 	auto * dResSl = mainGui->addSlider("RESOLUTION", .01, .5, .1);
@@ -359,6 +359,7 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 	{
 		auto *btn = e.getButton();
 		if(btn->getValue() == true) {
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot); 
 			activateMainGui();
 		}
 	}

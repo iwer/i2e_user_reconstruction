@@ -34,7 +34,7 @@ void Controls::createMainGui()
 	auto * dResSl = mainGui->addSlider("RESOLUTION", .01, .5, .1);
 
 	mainGui->addLabel("lOrgFastMesh","Meshing");
-	auto * trSl = mainGui->addSlider("TRIANGLESIZE", .001, 2, 1.0);
+	auto * trSl = mainGui->addSlider("TRIANGLESIZE", 1, 20, 1.0);
 	//trSl->setIncrement(1);
 
 	auto * normalKSl = mainGui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);

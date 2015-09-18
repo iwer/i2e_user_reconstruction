@@ -11,6 +11,7 @@
 #define RENDER_POINTS 1
 #define RENDER_WIRE 2
 #define RENDER_MESH 3
+#define RENDER_TEXTURE_MESH 4
 
 class Controls
 {

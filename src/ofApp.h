@@ -64,6 +64,8 @@ public:
 	void saveExtrinsicsToCurrentSensor();
 	void loadExtrinsicsFromCurrentSensor();
 	void selectNextCamera();
+
+	void setTexturesEnabled(bool state);
 private:
 	ofEasyCam cam_;
 
@@ -91,4 +93,5 @@ private:
 	bool nextframe;
 
 	ofTexture texture;
+	bool textures_enabled;
 };

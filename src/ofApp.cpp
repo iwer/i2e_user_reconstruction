@@ -178,15 +178,26 @@ void ofApp::drawReconstruction()
 		break;
 	case RENDER_POINTS:
 		ofPushMatrix();
+		outputMesh.disableTextures();
+		outputMesh.enableColors();
 		outputMesh.drawVertices();
 		ofPopMatrix();
 		break;
 	case RENDER_WIRE:
 		ofPushMatrix();
+		outputMesh.enableColors();
+		outputMesh.drawVertices();
 		outputMesh.drawWireframe();
 		ofPopMatrix();
 		break;
 	case RENDER_MESH:
+		ofPushMatrix();
+		outputMesh.enableColors();
+		outputMesh.disableTextures();
+		outputMesh.draw();
+		ofPopMatrix();
+		break;
+	case RENDER_TEXTURE_MESH:
 		ofPushMatrix();
 		outputMesh.disableColors();
 		outputMesh.enableTextures();
@@ -496,3 +507,7 @@ void ofApp::selectNextCamera()
 	loadExtrinsicsFromCurrentSensor();
 }
 
+void ofApp::setTexturesEnabled(bool state)
+{
+	textures_enabled = state;
+}

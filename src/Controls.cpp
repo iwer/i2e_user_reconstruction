@@ -48,6 +48,7 @@ void Controls::createMainGui()
 	names.push_back("POINTS");
 	names.push_back("WIREFRAME");
 	names.push_back("TRIANGLEMESH");
+	names.push_back("TEXTURED MESH");
 	auto * radio = mainGui->addRadio("RENDERMODE", names, OFX_UI_ORIENTATION_VERTICAL);
 
 	mainGui->addSpacer(5);
@@ -83,6 +84,9 @@ void Controls::createMainGui()
 		updateRenderMode(RENDER_MESH);
 	}
 	else if (active == "SOURCES"){
+		updateRenderMode(RENDER_SOURCES);
+	}
+	else if (active == "TEXTURED MESH"){
 		updateRenderMode(RENDER_SOURCES);
 	}
 
@@ -187,6 +191,9 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 		}
 		else if (active == "SOURCES"){
 			updateRenderMode(RENDER_SOURCES);
+		}
+		else if (active == "TEXTURED MESH"){
+			updateRenderMode(RENDER_TEXTURE_MESH);
 		}
 	}
 	else if(name == "MAXDEPTH")

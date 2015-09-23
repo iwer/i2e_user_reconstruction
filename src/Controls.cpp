@@ -34,7 +34,7 @@ void Controls::createMainGui()
 	auto * dResSl = mainGui->addSlider("RESOLUTION", .01, .5, .1);
 
 	mainGui->addLabel("lOrgFastMesh","Meshing");
-	auto * trSl = mainGui->addSlider("TRIANGLESIZE", 1, 20, 1.0);
+	auto * trSl = mainGui->addSlider("TRIANGLESIZE", 1, 20, 5.0);
 	//trSl->setIncrement(1);
 
 	auto * normalKSl = mainGui->addSlider("NORMAL K NEIGHBOURS", 10, 50, 20);
@@ -53,7 +53,7 @@ void Controls::createMainGui()
 
 	mainGui->addSpacer(5);
 	auto *btnConfig = mainGui->addButton("CALIBRATION", false); 
-
+	auto *fovSl = mainGui->addSlider("Ad-Hoc FOV", 200.0, 400.0, 400.0 );
 
 	// register listener callback
 	ofAddListener(mainGui->newGUIEvent, this, &Controls::guiEvent);
@@ -386,6 +386,11 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 		if(btn->getValue() == true) {
 			activateConfigGui();
 		}
+	}
+	else if(name == "Ad-Hoc FOV")
+	{
+		auto *slider = e.getSlider();
+		updateFov(slider->getScaledValue());
 	}
 }
 

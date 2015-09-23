@@ -47,6 +47,7 @@ public:
 	boost::signals2::signal<void (float)> updateSampleResolution;
 	boost::signals2::signal<void (float, float, float, float, float, float)> updateCameraTransformation;
 	boost::signals2::signal<void (void)> nextCamera;
+	boost::signals2::signal<void (float)> updateFov;
 	
 	bool transformSources;
 private:

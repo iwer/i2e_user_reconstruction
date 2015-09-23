@@ -65,10 +65,10 @@ void SensorCalibrationSettings::addIntrinsicsToSettingsFile(ofxXmlSettings &sett
 
 recon::CameraIntrinsics::Ptr SensorCalibrationSettings::getIntrinsicsFromSettingsFile(ofxXmlSettings &settings)
 {
-	float foc_x =    settings.getValue("intrinsics:focallength:x", 0);
-	float foc_y =    settings.getValue("intrinsics:focallength:y", 0);
-	float prin_x =   settings.getValue("intrinsics:principalpoint:x", 320);
-	float prin_y =   settings.getValue("intrinsics:principalpoint:y", 240);
+	float foc_x =    settings.getValue("intrinsics:focallength:x", 0.0);
+	float foc_y =    settings.getValue("intrinsics:focallength:y", 0.0);
+	float prin_x =   settings.getValue("intrinsics:principalpoint:x", 320.0);
+	float prin_y =   settings.getValue("intrinsics:principalpoint:y", 240.0);
 	float s_width =  settings.getValue("intrinsics:sensor:width", 640);
 	float s_height = settings.getValue("intrinsics:sensor:height", 480);
 

@@ -66,6 +66,7 @@ public:
 	void updateGuiTransformation();
 	void loadExtrinsicsFromCurrentSensor();
 	void selectNextCamera();
+	void updateFovOfCurrentCamera(float f);
 
 	void setTexturesEnabled(bool state);
 

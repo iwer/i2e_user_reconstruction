@@ -41,6 +41,7 @@ void ofApp::setup2(){
 	Controls::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
 	Controls::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
 	Controls::getInstance().updateAppMode.connect(boost::bind(&ofApp::setAppmode, this, _1));
+	Controls::getInstance().updateFov.connect(boost::bind(&ofApp::updateFovOfCurrentCamera, this, _1));
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
@@ -275,7 +276,7 @@ void ofApp::drawCalibration()
 			// without next line the frustum points backwards... 
 			mat.postMult(ofToUnityTransformation);
 
-			persp.makePerspectiveMatrix(37, 1.33, .1, 100000);
+			persp.makePerspectiveMatrix(50, 1.33, .1, 100000);
 			mat.postMult(persp);
 			ofMultMatrix(mat.getInverse());
 			ofNoFill();
@@ -418,12 +419,11 @@ ofVec2f* ofApp::calculateTextureCoordinate(ofVec3f &point, int cam_index)
 
 	sourceRotation[cam_index].getRotate(qangle, qaxis);
 
-	mat.translate(-sourceTranslation[cam_index].x*1000, -sourceTranslation[cam_index].y*1000, -sourceTranslation[cam_index].z*1000);
+	mat.translate(sourceTranslation[cam_index].x*1000, sourceTranslation[cam_index].y*1000, sourceTranslation[cam_index].z*1000);
 	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
 	mat.postMult(ofToUnityTransformation);
-
-	persp.makePerspectiveMatrix(intrinsics->getHFov(), intrinsics->getAspectRatio(), .1, 100000);
-	mat.postMult(persp);
+	mat = mat.getInverse();
+	persp.makePerspectiveMatrix(intrinsics->getVFov(), intrinsics->getAspectRatio(), .1, 100000);
 
 	ofVec3f cameraSpacePoint;
 	cameraSpacePoint = point;// * mat.getInverse();
@@ -461,16 +461,16 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 			}
 		}
 	}
-	else
-	{
-		if(!triangles) {
-			std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty triangles" << std::endl;
-		}
-		if(!inputCloud)
-		{
-			std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty output cloud" << std::endl;
-		}
-	}
+	//else
+	//{
+	//	if(!triangles) {
+	//		std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty triangles" << std::endl;
+	//	}
+	//	if(!inputCloud)
+	//	{
+	//		std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty output cloud" << std::endl;
+	//	}
+	//}
 }
 
 //--------------------------------------------------------------
@@ -569,4 +569,9 @@ void ofApp::getNewFrame()
 		currentFrame_->setInputExtrinsics(s->getDepthExtrinsics(), s->getId());
 		currentFrame_->setInputIntrinsics(s->getDepthIntrinsics(), s->getId());
 	}
+}
+
+void ofApp::updateFovOfCurrentCamera(float f)
+{
+	sensors_[selectedCamera]->getDepthIntrinsics()->setFocalLength(f);
 }

@@ -86,6 +86,8 @@ private:
 
 	recon::Frame::Ptr currentFrame_;
 
+	ofMatrix4x4 ofToUnityTransformation;
+
 	float background;
 	int appmode;
 	int rendermode;

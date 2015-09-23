@@ -29,7 +29,7 @@ void ofApp::setup2(){
 	if(n_cams < NCLOUDS)
 	{
 		std::cerr << "Not enough sensors" << std::endl;
-		std::exit(1);
+		ofExit(1);
 	}
 
 	ofEnableDepthTest();
@@ -60,19 +60,19 @@ void ofApp::setup2(){
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
 
-	std::string filenames[4] = {
-		"data/vpscan01.pcd",
-		"data/vpscan02.pcd",
-		"data/vpscan03.pcd",
-		"data/vpscan04.pcd"
-	};
+	//std::string filenames[4] = {
+	//	"data/vpscan01.pcd",
+	//	"data/vpscan02.pcd",
+	//	"data/vpscan03.pcd",
+	//	"data/vpscan04.pcd"
+	//};
 
-	std::string bgFilenames[4] = {
-		"data/vpbackground01.pcd",
-		"data/vpbackground02.pcd",
-		"data/vpbackground03.pcd",
-		"data/vpbackground04.pcd"
-	};
+	//std::string bgFilenames[4] = {
+	//	"data/vpbackground01.pcd",
+	//	"data/vpbackground02.pcd",
+	//	"data/vpbackground03.pcd",
+	//	"data/vpbackground04.pcd"
+	//};
 
 	cloudColors[0].set(255,0,0);
 	cloudColors[1].set(0,255,0);
@@ -110,11 +110,15 @@ void ofApp::setup2(){
 
 	// setup camera
 	std::cout << "Setup camera" << std::endl;
-	cam_.setPosition(ofVec3f(0, 0, 0));
+	cam_.setPosition(ofVec3f(0, -10, 0));
 	cam_.setFov(57);
-	cam_.lookAt(ofVec3f(0, 4000, 0), ofVec3f(0, 0, 1));
+	cam_.lookAt(ofVec3f(0, 0, 0), ofVec3f(0, 0, 1));
 	cam_.setNearClip(.1);
 	cam_.setFarClip(100000000);
+
+	// setup oF to Unity transformation
+	ofToUnityTransformation.rotate(270, 1, 0, 0);
+
 
 	Controls::getInstance().loadSettings();
 
@@ -167,12 +171,13 @@ void ofApp::drawReconstruction()
 			ofPushMatrix();
 			if(Controls::getInstance().transformSources) {
 
-				ofTranslate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
+				ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 
 				ofVec3f qaxis; float qangle;
 				sourceRotation[i].getRotate(qangle, qaxis);
-				ofRotate(qangle, -qaxis.x , -qaxis.y, qaxis.z);
+				ofRotate(qangle, qaxis.x , qaxis.y, qaxis.z);
 			}
+			ofMultMatrix(ofToUnityTransformation);
 			inputMesh[i].enableColors();
 			inputMesh[i].drawVertices();
 			ofPopMatrix();
@@ -183,6 +188,7 @@ void ofApp::drawReconstruction()
 		for(auto &m : outputMesh){
 			m.disableTextures();
 			m.enableColors();
+			ofMultMatrix(ofToUnityTransformation);
 			m.drawVertices();
 		}
 		ofPopMatrix();
@@ -191,7 +197,7 @@ void ofApp::drawReconstruction()
 		ofPushMatrix();
 		for(auto &m : outputMesh){
 			m.enableColors();
-			m.drawVertices();
+			ofMultMatrix(ofToUnityTransformation);
 			m.drawWireframe();
 		}
 		ofPopMatrix();
@@ -201,6 +207,7 @@ void ofApp::drawReconstruction()
 		for(auto &m : outputMesh){
 			m.enableColors();
 			m.disableTextures();
+			ofMultMatrix(ofToUnityTransformation);
 			m.draw();
 		}
 		ofPopMatrix();
@@ -212,6 +219,7 @@ void ofApp::drawReconstruction()
 			m.enableTextures();
 			texture.setTextureWrap(GL_CLAMP,GL_CLAMP);
 			texture.bind();
+			ofMultMatrix(ofToUnityTransformation);
 			m.draw();
 			texture.unbind();
 		}
@@ -237,8 +245,8 @@ void ofApp::drawCalibration()
 		ofVec3f qaxis; float qangle;
 		sourceRotation[i].getRotate(qangle, qaxis);
 		if(Controls::getInstance().transformSources) {
-			ofTranslate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
-			ofRotate(qangle, -qaxis.x , -qaxis.y, qaxis.z);
+			ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
+			ofRotate(qangle, qaxis.x , qaxis.y, qaxis.z);
 		}
 		if (i == selectedCamera) {
 			inputMesh[i].disableColors();
@@ -249,6 +257,7 @@ void ofApp::drawCalibration()
 			inputMesh[i].enableColors();
 		}
 
+		ofMultMatrix(ofToUnityTransformation);
 		inputMesh[i].drawVertices();		
 		ofDrawAxis(100);
 		ofPopMatrix();
@@ -261,8 +270,11 @@ void ofApp::drawCalibration()
 		if (i == selectedCamera) {
 			ofPushMatrix();
 			ofMatrix4x4 mat, persp;
-			mat.translate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, -sourceTranslation[i].z * 1000);
-			mat.rotate(qangle, qaxis.x, qaxis.y, -qaxis.z);
+			mat.translate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, -sourceTranslation[i].z * 1000);
+			mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
+			// without next line the frustum points backwards... 
+			mat.postMult(ofToUnityTransformation);
+
 			persp.makePerspectiveMatrix(37, 1.33, .1, 100000);
 			mat.postMult(persp);
 			ofMultMatrix(mat.getInverse());
@@ -405,13 +417,17 @@ ofVec2f* ofApp::calculateTextureCoordinate(ofVec3f &point, int cam_index)
 	//loadExtrinsicsFromCurrentSensor();
 
 	sourceRotation[cam_index].getRotate(qangle, qaxis);
-	mat.translate(-sourceTranslation[cam_index].x*1000, -sourceTranslation[cam_index].y*1000, sourceTranslation[cam_index].z*1000);
-	mat.rotate(qangle, -qaxis.x, -qaxis.y, qaxis.z);
+
+	mat.translate(-sourceTranslation[cam_index].x*1000, -sourceTranslation[cam_index].y*1000, -sourceTranslation[cam_index].z*1000);
+	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
+	mat.postMult(ofToUnityTransformation);
+
 	persp.makePerspectiveMatrix(intrinsics->getHFov(), intrinsics->getAspectRatio(), .1, 100000);
+	mat.postMult(persp);
 
 	ofVec3f cameraSpacePoint;
 	cameraSpacePoint = point;// * mat.getInverse();
-	ofVec4f projectedPoint = ofVec4f(cameraSpacePoint.x, cameraSpacePoint.y, cameraSpacePoint.z,1) * persp;
+	ofVec4f projectedPoint = persp.postMult(ofVec4f(cameraSpacePoint.x, cameraSpacePoint.y, cameraSpacePoint.z,1));// * persp;
 	projectedPoint.x /= projectedPoint.w;
 	projectedPoint.y /= projectedPoint.w;
 	auto new_x = (projectedPoint.x * width) / (2 * projectedPoint.w) + (width * 0.5);
@@ -436,7 +452,7 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 			// So easy, such style, very beauty, many readable, so wow!
 			for(auto &pointindex : t.vertices){
 				p = inputCloud->at(pointindex);
-				ofVec3f ofp = ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000);
+				ofVec3f ofp = ofVec3f(p.x*1000,p.y*1000,p.z*1000);
 				targetMesh.addVertex(ofp);
 				targetMesh.addColor(ofColor(p.r, p.g, p.b));
 				//TODO: add normals, texturecoordinates
@@ -464,7 +480,7 @@ void ofApp::createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targ
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_POINTS);
 	for(auto &p : inputCloud->points){
-		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
+		targetMesh.addVertex(ofVec3f(p.x*1000,p.y*1000,p.z*1000));
 		targetMesh.addColor(ofColor(p.r,p.g,p.b));
 		//targetMesh.addColor(cloudColors[meshIndex]);
 	}
@@ -479,7 +495,7 @@ void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, 
 		targetMesh.clear();
 		targetMesh.setMode(OF_PRIMITIVE_POINTS);
 		for(auto &p : inputCloud->points){
-			targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
+			targetMesh.addVertex(ofVec3f(p.x*1000,p.y*1000,p.z*1000));
 			targetMesh.addColor(cloudColors[meshIndex]);
 		}
 	}

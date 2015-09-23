@@ -135,22 +135,24 @@ void ofApp::update(){
 	{
 		// Update Framerate in Gui
 		Controls::getInstance().updateFramerate(ofGetFrameRate());
-		pipeline_->processData();
+		//pipeline_->processData();
+		getNewFrame();
+		pipeline_->processData(currentFrame_);
 
-		auto image = sensors_[0]->getCloudSource()->getOutputImage();
+		auto image = currentFrame_->getInputImage(0);
 		if (image)
 		{
 			toOfTexture(image);
 		}
 
-		createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
-		createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
+		//createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
+		//createOfMeshFromPointsAndTriangles(pipeline_->getOutputCloud(), pipeline_->getTriangles(), outputMesh);
 		for(auto i = 0; i < NCLOUDS; i++) 
 		{
-			auto temp_cloud_ = sensors_[i]->getCloudSource()->getOutputCloud();
-			if(temp_cloud_ && temp_cloud_->size() > 0) {
-				createIndexedOfMesh(temp_cloud_, i, inputMesh[i]);
-			}
+
+			createIndexedOfMesh(currentFrame_->getInputCloud(i), i, inputMesh[i]);
+			createOfMeshFromPointsAndTriangles(currentFrame_->getOutputCloud(i), currentFrame_->getOutputTriangles(i), outputMesh[i]);
+
 		}
 	}
 }
@@ -178,38 +180,48 @@ void ofApp::drawReconstruction()
 		break;
 	case RENDER_POINTS:
 		ofPushMatrix();
-		outputMesh.disableTextures();
-		outputMesh.enableColors();
-		outputMesh.drawVertices();
+		for(auto &m : outputMesh){
+			m.disableTextures();
+			m.enableColors();
+			m.drawVertices();
+		}
 		ofPopMatrix();
 		break;
 	case RENDER_WIRE:
 		ofPushMatrix();
-		outputMesh.enableColors();
-		outputMesh.drawVertices();
-		outputMesh.drawWireframe();
+		for(auto &m : outputMesh){
+			m.enableColors();
+			m.drawVertices();
+			m.drawWireframe();
+		}
 		ofPopMatrix();
 		break;
 	case RENDER_MESH:
 		ofPushMatrix();
-		outputMesh.enableColors();
-		outputMesh.disableTextures();
-		outputMesh.draw();
+		for(auto &m : outputMesh){
+			m.enableColors();
+			m.disableTextures();
+			m.draw();
+		}
 		ofPopMatrix();
 		break;
 	case RENDER_TEXTURE_MESH:
 		ofPushMatrix();
-		outputMesh.disableColors();
-		outputMesh.enableTextures();
-		texture.setTextureWrap(GL_CLAMP,GL_CLAMP);
-		texture.bind();
-		outputMesh.draw();
-		texture.unbind();
+		for(auto &m : outputMesh){
+			m.disableColors();
+			m.enableTextures();
+			texture.setTextureWrap(GL_CLAMP,GL_CLAMP);
+			texture.bind();
+			m.draw();
+			texture.unbind();
+		}
 		ofPopMatrix();
 		break;
 	default:
 		ofPushMatrix();
-		outputMesh.drawVertices();
+		for(auto &m : outputMesh){
+			m.drawVertices();
+		}
 		ofPopMatrix();
 		break;
 	}
@@ -390,7 +402,7 @@ ofVec2f* ofApp::calculateTextureCoordinate(ofVec3f &point, int cam_index)
 	auto width = texture.getWidth();
 	auto height = texture.getHeight();
 	auto intrinsics = sensors_[cam_index]->getDepthIntrinsics();
-	loadExtrinsicsFromCurrentSensor();
+	//loadExtrinsicsFromCurrentSensor();
 
 	sourceRotation[cam_index].getRotate(qangle, qaxis);
 	mat.translate(-sourceTranslation[cam_index].x*1000, -sourceTranslation[cam_index].y*1000, sourceTranslation[cam_index].z*1000);
@@ -415,24 +427,34 @@ void ofApp::setRendermode(int mode){
 //--------------------------------------------------------------
 void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, recon::TrianglesPtr triangles, ofMesh &targetMesh)
 {
-
-	// triangle inputMesh
-	targetMesh.clear();
-	targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
-	recon::PointType p;
-	for(auto &t : *triangles) {
-		// So easy, such style, very beauty, many readable, so wow!
-		for(auto &pointindex : t.vertices){
-			p = inputCloud->at(pointindex);
-			ofVec3f ofp = ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000);
-			targetMesh.addVertex(ofp);
-			targetMesh.addColor(ofColor(p.r, p.g, p.b));
-			//TODO: add normals, texturecoordinates
-			ofVec3f source_point = inputMesh[0].getVertex(pointindex);
-			targetMesh.addTexCoord(*calculateTextureCoordinate(source_point, 0));
+	if(triangles && inputCloud) {
+		// triangle inputMesh
+		targetMesh.clear();
+		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+		recon::PointType p;
+		for(auto &t : *triangles) {
+			// So easy, such style, very beauty, many readable, so wow!
+			for(auto &pointindex : t.vertices){
+				p = inputCloud->at(pointindex);
+				ofVec3f ofp = ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000);
+				targetMesh.addVertex(ofp);
+				targetMesh.addColor(ofColor(p.r, p.g, p.b));
+				//TODO: add normals, texturecoordinates
+				ofVec3f source_point = inputMesh[0].getVertex(pointindex);
+				targetMesh.addTexCoord(*calculateTextureCoordinate(source_point, 0));
+			}
 		}
 	}
-
+	else
+	{
+		if(!triangles) {
+			std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty triangles" << std::endl;
+		}
+		if(!inputCloud)
+		{
+			std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty output cloud" << std::endl;
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -452,13 +474,14 @@ void ofApp::createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targ
 //--------------------------------------------------------------
 void ofApp::createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh)
 {
-
-	// triangle inputMesh
-	targetMesh.clear();
-	targetMesh.setMode(OF_PRIMITIVE_POINTS);
-	for(auto &p : inputCloud->points){
-		targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
-		targetMesh.addColor(cloudColors[meshIndex]);
+	if(inputCloud) {
+		// triangle inputMesh
+		targetMesh.clear();
+		targetMesh.setMode(OF_PRIMITIVE_POINTS);
+		for(auto &p : inputCloud->points){
+			targetMesh.addVertex(ofVec3f(-p.x*1000,-p.y*1000,-p.z*1000));
+			targetMesh.addColor(cloudColors[meshIndex]);
+		}
 	}
 }
 
@@ -483,18 +506,24 @@ void ofApp::saveExtrinsicsToCurrentSensor()
 }
 
 //--------------------------------------------------------------
+void ofApp::updateGuiTransformation()
+{
+	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
+	                                                sourceTranslation[selectedCamera].y,
+	                                                sourceTranslation[selectedCamera].z,
+	                                                sourceRotation[selectedCamera].getEuler().x,
+	                                                sourceRotation[selectedCamera].getEuler().y,
+	                                                sourceRotation[selectedCamera].getEuler().z);
+}
+
+//--------------------------------------------------------------
 void ofApp::loadExtrinsicsFromCurrentSensor()
 {
 	auto ext = sensors_[selectedCamera]->getDepthExtrinsics();
 	sourceTranslation[selectedCamera].set(ext->getTranslation()->x(), ext->getTranslation()->y(), ext->getTranslation()->z());
 	sourceRotation[selectedCamera].set(ext->getRotation()->x(), ext->getRotation()->y(), ext->getRotation()->z(), ext->getRotation()->w());
 
-	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
-		sourceTranslation[selectedCamera].y,
-		sourceTranslation[selectedCamera].z,
-		sourceRotation[selectedCamera].getEuler().x,
-		sourceRotation[selectedCamera].getEuler().y,
-		sourceRotation[selectedCamera].getEuler().z);
+	updateGuiTransformation();
 }
 
 //--------------------------------------------------------------
@@ -507,7 +536,21 @@ void ofApp::selectNextCamera()
 	loadExtrinsicsFromCurrentSensor();
 }
 
+//--------------------------------------------------------------
 void ofApp::setTexturesEnabled(bool state)
 {
 	textures_enabled = state;
+}
+
+//--------------------------------------------------------------
+void ofApp::getNewFrame()
+{
+	currentFrame_ = boost::make_shared<recon::Frame>(NCLOUDS);
+	for (auto &s : sensors_)
+	{
+		currentFrame_->setInputCloud(s->getCloudSource()->getOutputCloud(), s->getId());
+		currentFrame_->setInputImage(s->getCloudSource()->getOutputImage(), s->getId());
+		currentFrame_->setInputExtrinsics(s->getDepthExtrinsics(), s->getId());
+		currentFrame_->setInputIntrinsics(s->getDepthIntrinsics(), s->getId());
+	}
 }

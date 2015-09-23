@@ -5,6 +5,7 @@
 #include "Controls.h"
 #include "recon/AbstractProcessingPipeline.h"
 #include "recon/AbstractPointCloudGenerator.h"
+#include <recon/Frame.h>
 
 #include "recon/SensorFactory.h"
 #include "recon/DepthFilePointCloudGenerator.h"
@@ -62,10 +63,13 @@ public:
 
 	void updateCameraTransformation(float xPos,float yPos,float zPos,float xRot,float yRot, float zRot);
 	void saveExtrinsicsToCurrentSensor();
+	void updateGuiTransformation();
 	void loadExtrinsicsFromCurrentSensor();
 	void selectNextCamera();
 
 	void setTexturesEnabled(bool state);
+
+	void getNewFrame();
 private:
 	ofEasyCam cam_;
 
@@ -78,7 +82,9 @@ private:
 	ofPoint sourceTranslation[NCLOUDS];
 	ofQuaternion sourceRotation[NCLOUDS];
 	
-	ofMesh outputMesh;
+	ofMesh outputMesh[NCLOUDS];
+
+	recon::Frame::Ptr currentFrame_;
 
 	float background;
 	int appmode;

@@ -122,6 +122,7 @@ void Controls::createConfigGui()
 	configGui->addSpacer(5);
 	auto *btnNextCam = configGui->addButton("Next Camera", false); 
 	configGui->addSpacer(5);
+	auto *btnReset = configGui->addButton("Reset Calibration", false); 
 	auto *btnDone = configGui->addButton("Calibration Done", false); 
 	configGui->autoSizeToFitWidgets();
 
@@ -370,7 +371,16 @@ void Controls::guiEvent(ofxUIEventArgs &e){
 			activateMainGui();
 		}
 	}
-		else if(name == "CALIBRATION")
+	else if(name == "Reset Calibration")
+	{
+		xPos = yPos = zPos = 0;
+		xRot = yRot = zRot = 0;
+		auto *btn = e.getButton();
+		if(btn->getValue() == true) {
+			updateCameraTransformation(xPos, yPos, zPos, xRot, yRot, zRot); 
+		}
+	}
+	else if(name == "CALIBRATION")
 	{
 		auto *btn = e.getButton();
 		if(btn->getValue() == true) {

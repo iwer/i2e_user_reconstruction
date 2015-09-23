@@ -1,0 +1,45 @@
+%!TEX program = xelatex
+\documentclass{lni}
+
+\IfFileExists{latin1.sty}{\usepackage{latin1}}{\usepackage{isolatin1}}
+
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{listings} %if lstlistings is used
+\usepackage{changepage} %for changing topmargin on first page
+\usepackage[figurename=Abb., tablename=Tab., small]{caption}[2008/04/01]
+\renewcommand{\lstlistingname}{List.}    % Listingname heit nun List. 
+\usepackage{fontspec}
+\usepackage{todonotes}
+\usepackage{float}
+
+%Beginn der Seitenzählung für diesen Beitrag
+\setcounter{page}{1}
+
+%Kopfzeileneinstellungen
+\pagestyle{fancy}
+\fancyhead{} % Lscht alle Kopfzeileneinstellungen
+%\fancyhead[RO]{\small $<$Christian Blank [et. al.]$>$(Hrsg.): $<$Buchtitel$>$, \linebreak Lecture Notes in Informatics (LNI), Gesellschaft fr Informatik, Bonn $<$Jahr$>$ \hspace{5pt} \thepage \hspace{0.05cm}}
+%\fancyfoot{} % Lscht alle Fuzeileneinstellungen
+\renewcommand{\headrulewidth}{0.4pt} %Linie unter Kopfzeile 
+\setcounter{footnote}{0}
+
+\author{Iwer Petersen - $I^2E$ Interactive Immersive Environments}
+\title{Projekt2 - Online User Rekonstruktion}
+\begin{document}
+\maketitle
+%Überschrift des Literaturverzeichnisses
+\renewcommand{\refname}{Literaturverzeichnis}
+\setcounter{footnote}{1} %Auf Anzahl der AutorInnen setzen, damit die weitere Nummerierung der Funoten passt
+
+%\input{abstract}
+\input{sections/iwer}
+
+
+\bibliographystyle{lnig}
+\bibliography{literature}
+
+\end{document}
+
+
+

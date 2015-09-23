@@ -128,9 +128,7 @@ void Controls::createConfigGui()
 
 	// register listener callback
 	ofAddListener(configGui->newGUIEvent, this, &Controls::guiEvent);
-
 	configGui->loadSettings(configFileName);
-
 }
 
 void Controls::activateMainGui()

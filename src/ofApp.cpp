@@ -101,12 +101,7 @@ void ofApp::setup2(){
 
 	// set current cameras calibration in gui
 	loadExtrinsicsFromCurrentSensor();
-	//Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
-	//		sourceTranslation[selectedCamera].y,
-	//		sourceTranslation[selectedCamera].z,
-	//		sourceRotation[selectedCamera].getEuler().x,
-	//		sourceRotation[selectedCamera].getEuler().y,
-	//		sourceRotation[selectedCamera].getEuler().z);
+	updateGuiTransformation();
 
 
 	// setup camera
@@ -273,7 +268,6 @@ void ofApp::drawCalibration()
 			ofMatrix4x4 mat, persp;
 			mat.translate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, -sourceTranslation[i].z * 1000);
 			mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
-			// without next line the frustum points backwards... 
 			mat.postMult(ofToUnityTransformation);
 
 			persp.makePerspectiveMatrix(50, 1.33, .1, 100000);
@@ -571,6 +565,7 @@ void ofApp::getNewFrame()
 	}
 }
 
+//--------------------------------------------------------------
 void ofApp::updateFovOfCurrentCamera(float f)
 {
 	sensors_[selectedCamera]->getDepthIntrinsics()->setFocalLength(f);

@@ -1,4 +1,3 @@
-[submodule "librecon"]
-	path = librecon
-	url = git@intergitlab.informatik.haw-hamburg.de:iwer/librecon.git
-	branch = develop
+[submodule "tools/share/cmake"]
+	path = tools/share/cmake
+	url = git@code.feldschmiederei.de:iwer/CMakeHelpers.git

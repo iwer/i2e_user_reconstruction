@@ -1,3 +1,7 @@
 [submodule "tools/share/cmake"]
 	path = tools/share/cmake
 	url = git@code.feldschmiederei.de:iwer/CMakeHelpers.git
+[submodule "src/librecon"]
+	path = src/librecon
+	url = git@code.feldschmiederei.de:Research/librecon.git
+	branch = develop

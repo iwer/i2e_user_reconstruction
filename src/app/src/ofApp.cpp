@@ -1,4 +1,5 @@
 #include "ofApp.h"
+#include "ControlsOfxGui.h"
 
 void ofApp::toOfTexture(recon::ImagePtr image)
 {
@@ -36,12 +37,12 @@ void ofApp::setup2(){
 
 	// connect control callbacks
 	std::cout << "Connecting App Callbacks" << std::endl;
-	Controls::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
-	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
-	Controls::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
-	Controls::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
-	Controls::getInstance().updateAppMode.connect(boost::bind(&ofApp::setAppmode, this, _1));
-	Controls::getInstance().updateFov.connect(boost::bind(&ofApp::updateFovOfCurrentCamera, this, _1));
+	ControlsOfxGui::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
+	ControlsOfxGui::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
+	ControlsOfxGui::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
+	ControlsOfxGui::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
+	ControlsOfxGui::getInstance().updateAppMode.connect(boost::bind(&ofApp::setAppmode, this, _1));
+	ControlsOfxGui::getInstance().updateFov.connect(boost::bind(&ofApp::updateFovOfCurrentCamera, this, _1));
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
@@ -54,9 +55,9 @@ void ofApp::setup2(){
 	//	&Controls::getInstance().updateMaxNearestNeighbours,
 	//	&Controls::getInstance().updateSampleResolution);
 	pipeline_ = new recon::Pipeline01(
-		&Controls::getInstance().updateMinDepth,
-		&Controls::getInstance().updateMaxDepth,
-		&Controls::getInstance().updateTriangleSize);
+		&ControlsOfxGui::getInstance().updateMinDepth,
+		&ControlsOfxGui::getInstance().updateMaxDepth,
+		&ControlsOfxGui::getInstance().updateTriangleSize);
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
@@ -116,7 +117,7 @@ void ofApp::setup2(){
 	ofToUnityTransformation.rotate(270, 1, 0, 0);
 
 
-	Controls::getInstance().loadSettings();
+	ControlsOfxGui::getInstance().loadSettings();
 
 	this->splashScreen.end();
 	fullyInitialized = true;
@@ -134,7 +135,7 @@ void ofApp::update(){
 	else if (fullyInitialized) 
 	{
 		// Update Framerate in Gui
-		Controls::getInstance().updateFramerate(ofGetFrameRate());
+		ControlsOfxGui::getInstance().updateFramerate(ofGetFrameRate());
 		//pipeline_->processData();
 		getNewFrame();
 		pipeline_->processData(currentFrame_);
@@ -165,7 +166,7 @@ void ofApp::drawReconstruction()
 	case RENDER_SOURCES:
 		for(auto i = 0; i < NCLOUDS; i++) {
 			ofPushMatrix();
-			if(Controls::getInstance().transformSources) {
+			if(ControlsOfxGui::getInstance().transformSources) {
 
 				ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 
@@ -240,7 +241,7 @@ void ofApp::drawCalibration()
 		ofPushMatrix();
 		ofVec3f qaxis; float qangle;
 		sourceRotation[i].getRotate(qangle, qaxis);
-		if(Controls::getInstance().transformSources) {
+		if(ControlsOfxGui::getInstance().transformSources) {
 			ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 			ofRotate(qangle, qaxis.x , qaxis.y, qaxis.z);
 		}
@@ -318,7 +319,7 @@ void ofApp::keyPressed(int key){
 	}
 	if(key == OF_KEY_F1)
 	{
-		Controls::getInstance().setStepHigh(true);
+		ControlsOfxGui::getInstance().setStepHigh(true);
 	}
 }
 
@@ -326,7 +327,7 @@ void ofApp::keyPressed(int key){
 void ofApp::keyReleased(int key){
 	if(key == OF_KEY_F1)
 	{
-		Controls::getInstance().setStepHigh(false);
+		ControlsOfxGui::getInstance().setStepHigh(false);
 	}
 }
 
@@ -334,7 +335,8 @@ void ofApp::keyReleased(int key){
 void ofApp::mouseMoved(int x, int y ){
 
 	// disable cam when mouse on mainGui
-	if(Controls::getInstance().getGui()->getRect()->getMaxX() >= x && Controls::getInstance().getGui()->getRect()->getMaxY() >= y){
+	if(ControlsOfxGui::getInstance().getGui()->getShape().getMaxX() >= x 
+		&& ControlsOfxGui::getInstance().getGui()->getShape().getMaxY() >= y){
 		cam_.disableMouseInput();
 	} else {
 		cam_.enableMouseInput();
@@ -369,7 +371,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 //--------------------------------------------------------------
 void ofApp::exit()
 {
-	Controls::getInstance().saveSettings();
+	ControlsOfxGui::getInstance().saveSettings();
 	//for (auto &cs : cloudSource_) {
 	//	cs->stop();
 	//}
@@ -518,7 +520,7 @@ void ofApp::saveExtrinsicsToCurrentSensor()
 //--------------------------------------------------------------
 void ofApp::updateGuiTransformation()
 {
-	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
+	ControlsOfxGui::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
 	                                                sourceTranslation[selectedCamera].y,
 	                                                sourceTranslation[selectedCamera].z,
 	                                                sourceRotation[selectedCamera].getEuler().x,

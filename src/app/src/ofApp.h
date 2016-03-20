@@ -1,8 +1,14 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxUi.h"
+#include "ofxGui.h"
 #include "Controls.h"
+
+// X defines Status which Oni does too
+#ifdef Status
+#undef Status
+#endif
+
 #include "recon/AbstractProcessingPipeline.h"
 #include "recon/AbstractPointCloudGenerator.h"
 #include <recon/Frame.h>

@@ -1,6 +1,6 @@
 #pragma once
 #include <recon/AbstractSensor.h>
-#include <ofxXmlSettings/src/ofxXmlSettings.h>
+#include <ofxXmlSettings.h>
 
 class SensorCalibrationSettings
 {

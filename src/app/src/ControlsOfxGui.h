@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxUi.h"
+#include "ofxGui.h"
 #include <boost/signals2.hpp>
 
 #define APPMODE_CONFIG 10
@@ -13,27 +13,28 @@
 #define RENDER_MESH 3
 #define RENDER_TEXTURE_MESH 4
 
-class Controls
+class ControlsOfxGui
 {
 public:
-	static Controls& getInstance()
+	static ControlsOfxGui& getInstance()
 	{
-		static Controls    instance;	// Guaranteed to be destroyed.
+		static ControlsOfxGui    instance;	// Guaranteed to be destroyed.
 		// Instantiated on first use.
 		return instance;
 	}
 
-	ofxUICanvas * getGui();
+	ofxPanel * getGui();
 
 	void updateFramerate(float rate);
 
-	void guiEvent(ofxUIEventArgs &e);
+	//void guiEvent(ofxUIEventArgs &e);
 
 	void loadSettings();
 	void saveSettings();
 
 	void setStepHigh(bool state);
 	void setCameraTransformation(float x, float y, float z, float rot_x, float rot_y, float rot_z);
+
 
 	boost::signals2::signal<void (float)> updateBackground;
 	boost::signals2::signal<void (int)>	  updateRenderMode;
@@ -48,18 +49,38 @@ public:
 	boost::signals2::signal<void (float, float, float, float, float, float)> updateCameraTransformation;
 	boost::signals2::signal<void (void)> nextCamera;
 	boost::signals2::signal<void (float)> updateFov;
-	
-	bool transformSources;
+
+	ofParameter<bool> transformSources;
 private:
-	Controls();							// Don't Implement
-	Controls(Controls const&);			// Don't Implement
-	void operator=(Controls const&);	// Don't implement
+	ControlsOfxGui();							// Don't Implement
+	ControlsOfxGui(ControlsOfxGui const&);			// Don't Implement
+	void operator=(ControlsOfxGui const&);	// Don't implement
 
-	ofxUICanvas * mainGui;
-	ofxUICanvas * configGui;
-	ofxUICanvas * currentGui;
+	ofxPanel *mainGui;
+	ofxPanel *configGui;
+	ofxPanel *currentGui;
 
-	ofxUIMovingGraph * fpsMovingGraph;
+	ofxIntSlider backgroundSlider_;
+	ofParameter<int> backgroundColor;
+	ofxToggle fullScreenToggle_;
+	ofParameter<bool> fullScreen;
+	ofxToggle transformSourcesToggle_;
+	ofxFloatSlider maxDepthSlider_;
+	ofParameter<float> maxDepth;
+	ofxFloatSlider minDepthSlider_;
+	ofParameter<float> minDepth;
+	ofxFloatSlider sampleResolutionSlider_;
+	ofParameter<float> sampleResolution;
+	ofxIntSlider triSizeSlider_;
+	ofParameter<int> triSize;
+	ofxIntSlider normalKNeighbourSlider_;
+	ofParameter<int> normalKNeighbour;
+	ofxFloatSlider greedyProhectionMuSlider_;
+	ofParameter<float> greedyProhectionMu;
+	ofxIntSlider meshMaxNeighbourSlider_;
+	ofParameter<int> meshMaxNeighbour;
+
+
 	std::string saveFileName;
 	std::string configFileName;
 
@@ -68,6 +89,9 @@ private:
 
 	void activateMainGui();
 	void activateConfigGui();
+
+	void fullScreenChanged(bool &state);
+	void backgroundChanged(int &color);
 
 	float xPos, yPos, zPos, xRot, yRot, zRot;
 	float step;

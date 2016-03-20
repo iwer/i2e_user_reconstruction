@@ -2,84 +2,25 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 project(myproject VERSION 0.1.0 LANGUAGES CXX)
 
+SET (CMAKE_VERBOSE_MAKEFILE 1)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_BINARY_DIR}/../tools/share/cmake")
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/../bin")
 set(CMAKE_EXE_LINKER_FLAGS "/NODEFAULTLIB:PocoFoundationd.lib /NODEFAULTLIB:atlthunk.lib /NODEFAULTLIB:LIBC.lib /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:MSVCRT" ${CMAKE_EXE_LINKER_FLAGS} )
 
-# Include Boost as an imported target
-if(WIN32)
-	SET(Boost_COMPILER "-vc140")
-endif()
-set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.60" "1.60.0")
-find_package(Boost COMPONENTS "chrono" "date_time" "filesystem" "graph" "iostreams" "program_options" "regex" "serialization" "signals" "system" "thread" "wserialization" REQUIRED)
-add_library(boost-datetime SHARED IMPORTED)
-set_property(TARGET boost-datetime PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-datetime PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_DATE_TIME_LIBRARY_RELEASE})
-set_property(TARGET boost-datetime PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_DATE_TIME_LIBRARY_DEBUG})
-
-add_library(boost-filesystem SHARED IMPORTED)
-set_property(TARGET boost-filesystem PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-filesystem PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_FILESYSTEM_LIBRARY_RELEASE})
-set_property(TARGET boost-filesystem PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_FILESYSTEM_LIBRARY_DEBUG})
-
-add_library(boost-system SHARED IMPORTED)
-set_property(TARGET boost-system PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-system PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_SYSTEM_LIBRARY_RELEASE})
-set_property(TARGET boost-system PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_SYSTEM_LIBRARY_DEBUG})
-
-add_library(boost-chrono SHARED IMPORTED)
-set_property(TARGET boost-chrono PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-chrono PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_CHRONO_LIBRARY_RELEASE})
-set_property(TARGET boost-chrono PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_CHRONO_LIBRARY_DEBUG})
-
-add_library(boost-iostreams SHARED IMPORTED)
-set_property(TARGET boost-iostreams PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-iostreams PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_IOSTREAMS_LIBRARY_RELEASE})
-set_property(TARGET boost-iostreams PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_IOSTREAMS_LIBRARY_DEBUG})
-
-add_library(boost-serialization SHARED IMPORTED)
-set_property(TARGET boost-serialization PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-serialization PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_SERIALIZATION_LIBRARY_RELEASE})
-set_property(TARGET boost-serialization PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_SERIALIZATION_LIBRARY_DEBUG})
-
-add_library(boost-thread SHARED IMPORTED)
-set_property(TARGET boost-thread PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-set_property(TARGET boost-thread PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${Boost_THREAD_LIBRARY_RELEASE})
-set_property(TARGET boost-thread PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${Boost_THREAD_LIBRARY_DEBUG})
+# Include third party libraries as targets
+include(${CMAKE_MODULE_PATH}/TargetsBoostStatic.cmake)
 
 find_package(UnitTestPlusPlus REQUIRED)
-add_library(unittestpp INTERFACE IMPORTED)
+add_library(unittestpp STATIC IMPORTED)
 set_property(TARGET unittestpp PROPERTY
     INTERFACE_INCLUDE_DIRECTORIES ${UnitTestPlusPlus_INCLUDE_DIRS})
+set_property(TARGET unittestpp PROPERTY 
+	IMPORTED_LOCATION_RELEASE ${UnitTestPlusPlus_LIBRARY})
+set_property(TARGET unittestpp PROPERTY 
+	IMPORTED_LOCATION_DEBUG ${UnitTestPlusPlus_LIBRARY_DEBUG})
 
-find_package(PCL 1.7 REQUIRED)
-add_library(pcl INTERFACE IMPORTED)
-set_property(TARGET pcl PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${PCL_INCLUDE_DIRS})
-set_property(TARGET pcl PROPERTY
-	INTERFACE_COMPILE_DEFINITIONS ${PCL_DEFINITIONS})
+include(${CMAKE_MODULE_PATH}/TargetsPCLStatic.cmake)
 	
 # openFrameworks gets added as project
 find_package(openFrameworks REQUIRED)
@@ -98,4 +39,5 @@ target_link_libraries(ofAddons openFrameworks)
 enable_testing()
 add_subdirectory(librecon)
 add_subdirectory(app)
+add_dependencies(app ofAddons)
 add_dependencies(ofAddons openFrameworks)

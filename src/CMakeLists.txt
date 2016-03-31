@@ -1,15 +1,15 @@
 # At LEAST 2.8 but newer is better
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(myproject VERSION 0.1.0 LANGUAGES CXX)
+project(i2e-user-reconstruction VERSION 0.1.0 LANGUAGES CXX)
 
 SET (CMAKE_VERBOSE_MAKEFILE 1)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_BINARY_DIR}/../tools/share/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/../tools/share/cmake")
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/../bin")
 set(CMAKE_EXE_LINKER_FLAGS "/NODEFAULTLIB:PocoFoundationd.lib /NODEFAULTLIB:atlthunk.lib /NODEFAULTLIB:LIBC.lib /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:MSVCRT" ${CMAKE_EXE_LINKER_FLAGS} )
 
 # Include third party libraries as targets
-include(${CMAKE_MODULE_PATH}/TargetsBoostStatic.cmake)
+include(TargetsBoostStatic)
 
 find_package(UnitTestPlusPlus REQUIRED)
 add_library(unittestpp STATIC IMPORTED)
@@ -20,7 +20,7 @@ set_property(TARGET unittestpp PROPERTY
 set_property(TARGET unittestpp PROPERTY 
 	IMPORTED_LOCATION_DEBUG ${UnitTestPlusPlus_LIBRARY_DEBUG})
 
-include(${CMAKE_MODULE_PATH}/TargetsPCLStatic.cmake)
+include(TargetsPCLStatic)
 	
 # openFrameworks gets added as project
 find_package(openFrameworks REQUIRED)
@@ -38,6 +38,9 @@ target_link_libraries(ofAddons openFrameworks)
 # Targets that we develop
 enable_testing()
 add_subdirectory(librecon)
+add_subdirectory(of-pcl-bridge)
 add_subdirectory(app)
+add_subdirectory(recorder)
 add_dependencies(app ofAddons)
+add_dependencies(recorder ofAddons)
 add_dependencies(ofAddons openFrameworks)

@@ -16,5 +16,6 @@ add_executable(app
 target_link_libraries(app 
     openFrameworks 
 	ofAddons 
-	librecon 
+	librecon
+	of-pcl-bridge
 )

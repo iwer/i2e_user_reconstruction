@@ -19,25 +19,25 @@
 #include "recon/Pipeline01.h"
 #include "recon/Pipeline02.h"
 
-#include "ofxSplashScreen.h"
+//#include "ofxSplashScreen.h"
 #include "SensorCalibrationSettings.h"
 
 #include <pcl/common/time.h> //fps calculations
 #include <pcl/common/angles.h>
 #include <pcl/io/openni2_grabber.h>
 
-
 #include "recon/typedefs.h"
+#include "of-pcl-bridge/of-pcl-bridge.h"
 
 #define NCLOUDS 1
 
 class ofApp : public ofBaseApp{
 public:
-	ofApp()
-	{
-		fullyInitialized = false;
-	}
-	void setup2();
+	//ofApp()
+	//{
+	//	fullyInitialized = false;
+	//}
+	void setup();
 
 	void update() override;
 
@@ -65,7 +65,7 @@ public:
 	void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh);
 	void createIndexedOfMesh(recon::CloudConstPtr inputCloud, int meshIndex, ofMesh &targetMesh);
 
-	void toOfTexture(recon::ImagePtr image);
+	//void toOfTexture(recon::ImagePtr image);
 
 	void updateCameraTransformation(float xPos,float yPos,float zPos,float xRot,float yRot, float zRot);
 	void saveExtrinsicsToCurrentSensor();
@@ -102,11 +102,11 @@ private:
 
 	recon::CloudConstPtr tmpCloud;
 
-	ofxSplashScreen splashScreen;
+	//ofxSplashScreen splashScreen;
 
 	bool fullyInitialized;
 	bool nextframe;
 
-	ofTexture texture;
+	ofTexture texture_;
 	bool textures_enabled;
 };

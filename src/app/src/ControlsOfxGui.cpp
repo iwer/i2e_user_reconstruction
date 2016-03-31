@@ -27,8 +27,12 @@ void ControlsOfxGui::loadSettings()
 
 void ControlsOfxGui::saveSettings()
 {
-	mainGui->saveToFile(saveFileName);
-	configGui->saveToFile(configFileName);
+	if (mainGui != nullptr) {
+		mainGui->saveToFile(saveFileName);
+	}
+	if (configGui != nullptr) {
+		configGui->saveToFile(configFileName);
+	}
 }
 
 void ControlsOfxGui::setStepHigh(bool state)

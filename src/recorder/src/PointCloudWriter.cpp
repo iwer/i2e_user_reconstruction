@@ -12,6 +12,9 @@ PointCloudWriter::PointCloudWriter()
 
 PointCloudWriter::~PointCloudWriter()
 {
+	if (running_) {
+		stop();
+	}
 }
 
 void PointCloudWriter::setBaseFileName(std::string & filename)
@@ -26,19 +29,20 @@ void PointCloudWriter::setSensorDetails(recon::AbstractSensor::Ptr sensor)
 
 void PointCloudWriter::enquePointcloudForWriting(recon::CloudConstPtr cloud)
 {
-	//std::lock_guard<std::mutex> lock(queue_lock_);
+	std::lock_guard<std::mutex> lock(queue_lock_);
 	cloud_queue_.push(cloud);
 }
 
 void PointCloudWriter::start()
 {
 	running_ = true;
-	std::thread write_thread_(&PointCloudWriter::writeThreadFunction, this);
+	write_thread_ = new std::thread(&PointCloudWriter::writeThreadFunction, this);
 }
 
 void PointCloudWriter::stop()
 {
 	running_ = false;
+	write_thread_->join();
 }
 
 int PointCloudWriter::getQueueLength()
@@ -54,21 +58,24 @@ std::string PointCloudWriter::fileNumber() {
 
 void PointCloudWriter::writeThreadFunction()
 {
+	std::cout << "Starting writeThread" << std::endl;
 	while (running_) {
 		if (!cloud_queue_.empty()) {
-			//std::lock_guard<std::mutex> lock(queue_lock_);
+			std::lock_guard<std::mutex> lock(queue_lock_);
 			if (!cloud_queue_.empty()) {
 				std::string name = base_filename_ + std::string("s")
-					+ std::to_string(sensor_ID_) + std::string("_") + fileNumber();
+					+ std::to_string(sensor_ID_) + std::string("_") + fileNumber() + std::string(".pcd");
 				std::cout << "Writing: " << name << std::endl;
 
 				recon::CloudConstPtr c = cloud_queue_.front();
 				cloud_queue_.pop();
-				file_writer_.writeBinary(name, *c.get());
+				if (c->size() > 0) {
+					pcl::io::savePCDFileBinary(name, *c.get());
+				}
 				++writeIndex_;
 			}
 			else {
-				std::this_thread::sleep_for(10ms);
+				std::this_thread::sleep_for(100ms);
 			}
 		}
 	}

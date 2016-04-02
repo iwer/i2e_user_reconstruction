@@ -25,7 +25,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 
 		std::list<recon::AbstractSensor::Ptr> sensor_list_;
-		std::list<ofTexture> sensor_images_;
+		std::map<int, ofTexture> sensor_images_;
 		
 		std::map<int, PointCloudWriter*> writer_list_;
 };

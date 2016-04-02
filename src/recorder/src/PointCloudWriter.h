@@ -32,7 +32,7 @@ private:
 	std::queue<recon::CloudConstPtr> cloud_queue_;
 	std::mutex queue_lock_;
 
-	pcl::PCDWriter file_writer_;
+	std::thread * write_thread_;
 
 	void writeThreadFunction();
 	std::string fileNumber();

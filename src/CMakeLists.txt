@@ -35,6 +35,8 @@ target_link_libraries(ofAddons openFrameworks)
 # External 3rd party libs that we include
 #add_subdirectory(libs/extlib EXCLUDE_FROM_ALL)
  
+add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT )
+
 # Targets that we develop
 enable_testing()
 add_subdirectory(librecon)

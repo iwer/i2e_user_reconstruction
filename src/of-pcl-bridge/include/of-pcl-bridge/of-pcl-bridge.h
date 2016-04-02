@@ -5,3 +5,4 @@
 
 
 void toOfTexture(recon::ImagePtr image, ofTexture & texture);
+void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh);

@@ -47,6 +47,7 @@ void PointCloudWriter::stop()
 
 int PointCloudWriter::getQueueLength()
 {
+	std::lock_guard<std::mutex> lock(queue_lock_);
 	return cloud_queue_.size();
 }
 

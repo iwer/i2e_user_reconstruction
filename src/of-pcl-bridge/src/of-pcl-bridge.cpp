@@ -12,3 +12,14 @@ void toOfTexture(recon::ImagePtr image, ofTexture & texture)
 		texture.loadData(data, width, height, GL_RGB);
 	}
 }
+
+void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
+{
+	targetMesh.clear();
+	targetMesh.setMode(OF_PRIMITIVE_POINTS);
+	for (auto &p : inputCloud->points) {
+		targetMesh.addVertex(ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000));
+		targetMesh.addColor(ofColor(p.r, p.g, p.b));
+		//targetMesh.addColor(cloudColors[meshIndex]);
+	}
+}

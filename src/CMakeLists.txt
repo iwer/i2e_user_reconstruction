@@ -28,10 +28,12 @@ find_package(openFrameworks REQUIRED)
 include(${openFrameworks_DIR}/addons/ofxGui/ofxGui.cmake)
 include(${openFrameworks_DIR}/addons/ofxXmlSettings/ofxXmlSettings.cmake)
 include(${openFrameworks_DIR}/addons/ofxSplashScreen/ofxSplashScreen.cmake)
+
 add_library(ofAddons ${ADDONS_SOURCES})
 set_property(TARGET ofAddons PROPERTY
 	INTERFACE_INCLUDE_DIRECTORIES ${ADDONS_INCLUDE_DIRS})
 target_link_libraries(ofAddons openFrameworks)	
+
 # External 3rd party libs that we include
 #add_subdirectory(libs/extlib EXCLUDE_FROM_ALL)
  
@@ -43,6 +45,9 @@ add_subdirectory(librecon)
 add_subdirectory(of-pcl-bridge)
 add_subdirectory(app)
 add_subdirectory(recorder)
-add_dependencies(app ofAddons)
-add_dependencies(recorder ofAddons)
+add_subdirectory(player)
+
 add_dependencies(ofAddons openFrameworks)
+add_dependencies(app ofAddons openFrameworks)
+add_dependencies(recorder ofAddons openFrameworks)
+add_dependencies(player ofAddons openFrameworks)

@@ -49,7 +49,7 @@ void ofApp::update(){
 		}
 		auto cloud = sensor->getCloudSource()->getOutputCloud();
 		if (cloud != nullptr) {
-			//writer_list_[sensor->getId()]->enquePointcloudForWriting(cloud);
+			writer_list_[sensor->getId()]->enquePointcloudForWriting(cloud);
 		}
 	}
 }

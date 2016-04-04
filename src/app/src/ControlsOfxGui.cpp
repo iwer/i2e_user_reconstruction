@@ -16,13 +16,16 @@ ControlsOfxGui::ControlsOfxGui()
 	createConfigGui();
 	activateMainGui();
 
-
 }
 
 void ControlsOfxGui::loadSettings()
 {
-	mainGui->loadFromFile(saveFileName);
-	configGui->loadFromFile(configFileName);
+	if (mainGui != nullptr) {
+		mainGui->loadFromFile(saveFileName);
+	}
+	if (configGui != nullptr) {
+		configGui->loadFromFile(configFileName);
+	}
 }
 
 void ControlsOfxGui::saveSettings()
@@ -62,7 +65,7 @@ void ControlsOfxGui::createMainGui()
 	saveFileName = "mainGuiSettings.xml";
 	transformSources = true;
 	mainGui = new ofxPanel();
-	mainGui->setup();
+	mainGui->setup("mainGui");
 
 
 	backgroundColor.addListener(this, &ControlsOfxGui::backgroundChanged);
@@ -79,6 +82,8 @@ void ControlsOfxGui::createMainGui()
 	mainGui->add(greedyProhectionMuSlider_.setup(greedyProhectionMu));
 	mainGui->add(meshMaxNeighbourSlider_.setup(meshMaxNeighbour));
 
+	mainGui->setTextColor(ofColor(255));
+	
 }
 
 void ControlsOfxGui::createConfigGui()
@@ -115,3 +120,8 @@ ofxPanel* ControlsOfxGui::getGui()
 void ControlsOfxGui::updateFramerate(float rate)
 {
 }
+
+void ControlsOfxGui::draw() {
+	currentGui->draw();
+}
+

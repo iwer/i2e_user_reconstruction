@@ -64,7 +64,7 @@ void PointCloudWriter::writeThreadFunction()
 		if (!cloud_queue_.empty()) {
 			std::lock_guard<std::mutex> lock(queue_lock_);
 			if (!cloud_queue_.empty()) {
-				std::string name = base_filename_ + std::string("s")
+				std::string name = base_filename_ + std::string("_s")
 					+ std::to_string(sensor_ID_) + std::string("_") + fileNumber() + std::string(".pcd");
 				std::cout << "Writing: " << name << std::endl;
 

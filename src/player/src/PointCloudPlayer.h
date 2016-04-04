@@ -13,6 +13,7 @@ public:
 	~PointCloudPlayer();
 
 	void setBasePath(std::string path);
+	void setSensorIndex(int index);
 	void setFramesPerSecond(int fps);
 	int getNumberFrames();
 
@@ -23,6 +24,8 @@ public:
 private:
 	bool running_;
 	int fps_;
+
+	int sensor_index_;
 	int readIndex_;
 	int numberOfFiles_;
 
@@ -33,7 +36,7 @@ private:
 	std::thread * read_thread_;
 
 	std::string fileNumber();
-	int count_files(std::string directory, std::string ext);
+	int count_files();
 	void readThreadFunction();
 };
 

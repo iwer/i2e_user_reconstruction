@@ -1,10 +1,6 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxGui.h"
-#include "PointCloudPlayer.h"
-#include "recon/typedefs.h"
-#include "of-pcl-bridge/of-pcl-bridge.h"
 
 class ofApp : public ofBaseApp{
 
@@ -25,18 +21,4 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
-		ofEasyCam cam_;
-		PointCloudPlayer player_;
-
-		ofxPanel ui_;
-		ofxIntSlider fpsSlider_;
-		ofxIntSlider sensorIndexSlider_;
-		
-		int frameNumber_;
-		recon::CloudPtr cloud_;
-		ofMesh mesh;
-
-		void cloudCallback(int frameNumber, recon::CloudPtr cloud);
-		void updateFps(int &fps);
-		void changeSensor(int &sensor);
 };

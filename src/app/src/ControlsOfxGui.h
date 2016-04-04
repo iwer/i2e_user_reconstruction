@@ -25,6 +25,8 @@ public:
 
 	ofxPanel * getGui();
 
+	void draw();
+
 	void updateFramerate(float rate);
 
 	//void guiEvent(ofxUIEventArgs &e);

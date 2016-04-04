@@ -41,13 +41,11 @@ add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT )
 
 # Targets that we develop
 enable_testing()
-add_subdirectory(librecon)
 add_subdirectory(of-pcl-bridge)
+add_subdirectory(librecon)
 add_subdirectory(app)
 add_subdirectory(recorder)
 add_subdirectory(player)
+add_subdirectory(calibrator)
 
-add_dependencies(ofAddons openFrameworks)
-add_dependencies(app ofAddons openFrameworks)
-add_dependencies(recorder ofAddons openFrameworks)
-add_dependencies(player ofAddons openFrameworks)
+#add_dependencies(ofAddons openFrameworks)

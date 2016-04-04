@@ -1,18 +1,6 @@
 #include "ofApp.h"
 #include "ControlsOfxGui.h"
 
-//void ofApp::toOfTexture(recon::ImagePtr image)
-//{
-//	auto width = image->getWidth();
-//	auto height = image->getHeight();
-//	auto encoding = image->getEncoding();
-//
-//	if(encoding == pcl::io::Image::Encoding::RGB)
-//	{
-//		auto data = static_cast<const unsigned char *>(image->getData());
-//		texture.loadData(data, width, height, GL_RGB);
-//	}
-//}
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -62,19 +50,20 @@ void ofApp::setup(){
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
+	boost::filesystem::path full_path(boost::filesystem::current_path());
 
 	std::string filenames[4] = {
-		"data/vpscan01.pcd",
-		"data/vpscan02.pcd",
-		"data/vpscan03.pcd",
-		"data/vpscan04.pcd"
+		full_path.generic_string() + std::string("/data/vpscan01.pcd"),
+		full_path.generic_string() + std::string("/data/vpscan02.pcd"),
+		full_path.generic_string() + std::string("/data/vpscan03.pcd"),
+		full_path.generic_string() + std::string("/data/vpscan04.pcd")
 	};
 
 	std::string bgFilenames[4] = {
-		"data/vpbackground01.pcd",
-		"data/vpbackground02.pcd",
-		"data/vpbackground03.pcd",
-		"data/vpbackground04.pcd"
+		full_path.generic_string() + std::string("/data/vpbackground01.pcd"),
+		full_path.generic_string() + std::string("/data/vpbackground02.pcd"),
+		full_path.generic_string() + std::string("/data/vpbackground03.pcd"),
+		full_path.generic_string() + std::string("/data/vpbackground04.pcd")
 	};
 
 	cloudColors[0].set(255,0,0);
@@ -122,6 +111,7 @@ void ofApp::setup(){
 
 	ControlsOfxGui::getInstance().loadSettings();
 
+	setBackground(127);
 	//this->splashScreen.end();
 	fullyInitialized = true;
 }
@@ -142,7 +132,7 @@ void ofApp::update(){
 		//ControlsOfxGui::getInstance().updateFramerate(ofGetFrameRate());
 		//pipeline_->processData();
 		getNewFrame();
-		pipeline_->processData(currentFrame_);
+		//pipeline_->processData(currentFrame_);
 
 		auto image = currentFrame_->getInputImage(0);
 		if (image)
@@ -170,6 +160,7 @@ void ofApp::drawReconstruction()
 	case RENDER_SOURCES:
 		for(auto i = 0; i < NCLOUDS; i++) {
 			ofPushMatrix();
+			ofPushStyle();
 			if(ControlsOfxGui::getInstance().transformSources) {
 
 				ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
@@ -182,10 +173,12 @@ void ofApp::drawReconstruction()
 			inputMesh[i].enableColors();
 			inputMesh[i].drawVertices();
 			ofPopMatrix();
+			ofPopStyle();
 		}
 		break;
 	case RENDER_POINTS:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.disableTextures();
 			m.enableColors();
@@ -193,18 +186,22 @@ void ofApp::drawReconstruction()
 			m.drawVertices();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	case RENDER_WIRE:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.enableColors();
 			ofMultMatrix(ofToUnityTransformation);
 			m.drawWireframe();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	case RENDER_MESH:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.enableColors();
 			m.disableTextures();
@@ -212,9 +209,11 @@ void ofApp::drawReconstruction()
 			m.draw();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	case RENDER_TEXTURE_MESH:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.disableColors();
 			m.enableTextures();
@@ -225,13 +224,16 @@ void ofApp::drawReconstruction()
 			texture_.unbind();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	default:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.drawVertices();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	}
 
@@ -243,6 +245,7 @@ void ofApp::drawCalibration()
 {
 	for(auto i = 0; i < NCLOUDS; i++) {
 		ofPushMatrix();
+		ofPushStyle();
 		ofVec3f qaxis; float qangle;
 		sourceRotation[i].getRotate(qangle, qaxis);
 		if(ControlsOfxGui::getInstance().transformSources) {
@@ -262,6 +265,7 @@ void ofApp::drawCalibration()
 		inputMesh[i].drawVertices();		
 		ofDrawAxis(100);
 		ofPopMatrix();
+		ofPopStyle();
 
 		//ofPushMatrix();
 		//outputMesh.drawVertices();
@@ -270,6 +274,7 @@ void ofApp::drawCalibration()
 		// camera frustum on active cam
 		if (i == selectedCamera) {
 			ofPushMatrix();
+			ofPushStyle();
 			ofMatrix4x4 mat, persp;
 			mat.translate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, -sourceTranslation[i].z * 1000);
 			mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
@@ -281,6 +286,7 @@ void ofApp::drawCalibration()
 			ofNoFill();
 			ofDrawBox(0, 0, 0, 2.0f);
 			ofPopMatrix();
+			ofPopStyle();
 		}
 	}
 }
@@ -294,7 +300,9 @@ void ofApp::draw(){
 
 	cam_.begin();
 	ofPushMatrix();
+	ofPushStyle();
 	ofDrawAxis(1000);
+
 	if (appmode == APPMODE_RECON)
 	{
 		drawReconstruction();
@@ -308,12 +316,17 @@ void ofApp::draw(){
 	cam_.end();
 
 	ofPushMatrix();
+	ofPopStyle();
 	auto aspect =  texture_.getWidth() / texture_.getHeight();
 	auto screenWidth = ofGetWidth()/8;
 	auto screenHeight = screenWidth / aspect;
 	//                                                             vvv to flip image
 	//texture.draw(ofPoint(screenWidth,ofGetHeight() - screenHeight), -screenWidth, screenHeight);
 	ofPopMatrix();
+
+	ofDisableDepthTest();
+	ControlsOfxGui::getInstance().draw();
+	ofEnableDepthTest();
 }
 
 //--------------------------------------------------------------

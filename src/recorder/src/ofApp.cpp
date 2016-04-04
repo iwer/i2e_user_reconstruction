@@ -18,6 +18,7 @@ void ofApp::setup(){
 		writer_list_[sensor_list_.back()->getId()]->start();
 	}
 	
+	ofSetFrameRate(30);
 }
 
 //--------------------------------------------------------------

@@ -2,45 +2,17 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	boost::filesystem::path full_path(boost::filesystem::current_path());
-	std::cout << "Current path is : " << full_path << std::endl;
 
-	boost::filesystem::path recorder_data_path("/data/recorder");
-
-	ui_.setup();
-	fpsSlider_.addListener(this, &ofApp::updateFps);
-	sensorIndexSlider_.addListener(this, &ofApp::changeSensor);
-
-	ui_.add(fpsSlider_.setup("FPS", 1, 1, 60));
-	ui_.add(sensorIndexSlider_.setup("SensorIndex", 0, 0, 2));
-
-
-
-	player_.setBasePath(full_path.generic_string() + recorder_data_path.generic_string());
-	player_.callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2));
-	player_.start();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	if (cloud_) {
-		createOfMeshFromPoints(cloud_, mesh);
-	}
+
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-	ofBackground(0);
-	ofDrawBitmapString(std::to_string(frameNumber_) + std::string("/") + std::to_string(player_.getNumberFrames()), ofGetWidth() - 100, 10);
-	ofEnableDepthTest();
 
-	cam_.begin();
-	ofSetColor(255, 255, 255);
-	mesh.drawVertices();
-	cam_.end();
-
-	ofDisableDepthTest();
-	ui_.draw();
 }
 
 //--------------------------------------------------------------
@@ -91,22 +63,6 @@ void ofApp::windowResized(int w, int h){
 //--------------------------------------------------------------
 void ofApp::gotMessage(ofMessage msg){
 
-}
-
-void ofApp::cloudCallback(int frameNumber, recon::CloudPtr cloud)
-{
-	frameNumber_ = frameNumber;
-	cloud_.swap(cloud);
-}
-
-void ofApp::updateFps(int &fps)
-{
-	player_.setFramesPerSecond(fps);
-}
-
-void ofApp::changeSensor(int & sensor)
-{
-	player_.setSensorIndex(sensor);
 }
 
 //--------------------------------------------------------------

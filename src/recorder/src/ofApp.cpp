@@ -17,6 +17,18 @@ void ofApp::setup(){
 		writer_list_[sensor_list_.back()->getId()]->setSensorDetails(sensor_list_.back());
 		writer_list_[sensor_list_.back()->getId()]->start();
 	}
+
+	switch (nSensors) {
+	case 1:
+		imageLayout_.push_back(ofRectangle(0, 0, ofGetWidth(), ofGetHeight()));
+	case 2:
+	case 3:
+	case 4:
+		imageLayout_.push_back(ofRectangle(0, 0, ofGetWidth()/2, ofGetHeight()/2));
+		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, 0, ofGetWidth() / 2, ofGetHeight() / 2));
+		imageLayout_.push_back(ofRectangle(0, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
+		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
+	}
 	
 	ofSetFrameRate(30);
 }
@@ -37,7 +49,7 @@ void ofApp::update(){
 		}
 		auto cloud = sensor->getCloudSource()->getOutputCloud();
 		if (cloud != nullptr) {
-			writer_list_[sensor->getId()]->enquePointcloudForWriting(cloud);
+			//writer_list_[sensor->getId()]->enquePointcloudForWriting(cloud);
 		}
 	}
 }
@@ -45,7 +57,7 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	for (auto &sensor : sensor_list_) {
-		sensor_images_[sensor->getId()].draw(0, 0, ofGetWidth(), ofGetHeight());
+		sensor_images_[sensor->getId()].draw(imageLayout_[sensor->getId()]);
 		ofDrawBitmapString(std::string("Write Queue Length: ") + std::to_string(writer_list_[sensor->getId()]->getQueueLength()), 10, 10);
 	}
 }

@@ -28,4 +28,6 @@ class ofApp : public ofBaseApp{
 		std::map<int, ofTexture> sensor_images_;
 		
 		std::map<int, PointCloudWriter*> writer_list_;
+
+		std::vector<ofRectangle> imageLayout_;
 };

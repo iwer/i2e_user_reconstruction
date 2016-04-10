@@ -9,9 +9,9 @@ void ofApp::setup(){
 	auto nSensors = sensorFac.checkConnectedDevices(true);
 	for (int i = 0; i < nSensors; i++) {
 		sensor_list_.push_back(sensorFac.createPclOpenNI2Grabber());
+		detected_sphere_[sensor_list_.back()->getId()].setResolution(6);
 	}
 
-	detected_sphere_.setResolution(6);
 
 
 
@@ -70,7 +70,7 @@ void ofApp::update(){
 				extract.setIndices(inliers);
 				extract.setNegative(false);
 				extract.filter(*in_cloud);
-				createOfMeshFromPoints(in_cloud, ofColor(0, 255, 0, 255), inliers_mesh_);
+				createOfMeshFromPoints(in_cloud, ofColor(0, 255, 0, 255), inliers_mesh_[sensor->getId()]);
 
 				recon::CloudPtr out_cloud(new recon::Cloud());
 				extract.setNegative(true);
@@ -85,17 +85,17 @@ void ofApp::update(){
 				ransac.getModelCoefficients(s_param);
 
 				// make ofSpherePrimitive
-				sphere_detected_ = true;
-				meanR_ = approxRollingAverage(meanR_, s_param[3] * 1000, meanSamples_);
-				detected_sphere_.setRadius(meanR_);
+				sphere_detected_[sensor->getId()] = true;
+				meanR_[sensor->getId()] = approxRollingAverage(meanR_[sensor->getId()], s_param[3] * 1000, meanSamples_);
+				detected_sphere_[sensor->getId()].setRadius(meanR_[sensor->getId()]);
 				
-				meanX_ = approxRollingAverage(meanX_, s_param[0] * 1000, meanSamples_);
-				meanY_ = approxRollingAverage(meanY_, s_param[1] * 1000, meanSamples_);
-				meanZ_ = approxRollingAverage(meanZ_, s_param[2] * 1000, meanSamples_);
-				detected_sphere_location_.set(meanX_, meanY_, meanZ_);
+				meanX_[sensor->getId()] = approxRollingAverage(meanX_[sensor->getId()], s_param[0] * 1000, meanSamples_);
+				meanY_[sensor->getId()] = approxRollingAverage(meanY_[sensor->getId()], s_param[1] * 1000, meanSamples_);
+				meanZ_[sensor->getId()] = approxRollingAverage(meanZ_[sensor->getId()], s_param[2] * 1000, meanSamples_);
+				detected_sphere_location_[sensor->getId()].set(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
 			}
 			else {
-				sphere_detected_ = false;
+				sphere_detected_[sensor->getId()] = false;
 				// make ofMesh for displaying
 				ofMesh mesh;
 				createOfMeshFromPoints(cloud_wo_back, ofColor(255, 255, 255, 64), mesh);
@@ -116,16 +116,19 @@ void ofApp::draw(){
 	ofEnableDepthTest();
 	for (auto &sensor : sensor_list_) {
 		mesh_map_[sensor->getId()].drawVertices();
+		if (sphere_detected_[sensor->getId()]) {
+			inliers_mesh_[sensor->getId()].draw();
+			ofSetColor(255, 0, 0);
+			ofPushMatrix();
+			ofTranslate(detected_sphere_location_[sensor->getId()]);
+			detected_sphere_[sensor->getId()].drawWireframe();
+			ofPopMatrix();
+		}
 	}
 
 
 
-	if (sphere_detected_) {
-		inliers_mesh_.draw();
-		ofSetColor(255,0,0);
-		ofTranslate(detected_sphere_location_);
-		detected_sphere_.drawWireframe();
-	}
+
 	cam_.end();
 
 	ofDisableDepthTest();

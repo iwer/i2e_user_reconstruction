@@ -48,18 +48,18 @@ class ofApp : public ofBaseApp{
 		ofEasyCam cam_;
 
 		std::map<int, ofMesh> mesh_map_;
-		ofMesh inliers_mesh_;
+		std::map<int, ofMesh> inliers_mesh_;
 
 		pcl::SampleConsensusModelSphere<recon::PointType>::Ptr sphere_model_;
 
-		bool sphere_detected_;
-		float meanX_;
-		float meanY_;
-		float meanZ_;
-		float meanR_;
+		std::map<int, bool> sphere_detected_;
+		std::map<int, float> meanX_;
+		std::map<int, float> meanY_;
+		std::map<int, float> meanZ_;
+		std::map<int, float> meanR_;
 
-		ofVec3f detected_sphere_location_;
-		ofSpherePrimitive detected_sphere_;
+		std::map<int, ofVec3f> detected_sphere_location_;
+		std::map<int, ofSpherePrimitive> detected_sphere_;
 
 		ofParameter<float> min_;
 		ofParameter<float> max_;

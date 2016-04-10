@@ -20,6 +20,19 @@ void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
 	for (auto &p : inputCloud->points) {
 		targetMesh.addVertex(ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000));
 		targetMesh.addColor(ofColor(p.r, p.g, p.b));
-		//targetMesh.addColor(cloudColors[meshIndex]);
 	}
 }
+
+void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofColor color, ofMesh &targetMesh)
+{
+	if (inputCloud) {
+		// triangle inputMesh
+		targetMesh.clear();
+		targetMesh.setMode(OF_PRIMITIVE_POINTS);
+		for (auto &p : inputCloud->points) {
+			targetMesh.addVertex(ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000));
+			targetMesh.addColor(color);
+		}
+	}
+}
+

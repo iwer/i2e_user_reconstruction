@@ -47,5 +47,6 @@ add_subdirectory(app)
 add_subdirectory(recorder)
 add_subdirectory(player)
 add_subdirectory(calibrator)
+add_subdirectory(autocalibrator)
 
 #add_dependencies(ofAddons openFrameworks)

@@ -1,30 +1,42 @@
 #include "ofApp.h"
 #include <of-pcl-bridge/of-pcl-bridge.h>
 
+ofApp::ofApp()
+	: xTrans_("X Translation", 0, -5, 5)
+	, yTrans_("Y Translation", 0, -5, 5)
+	, zTrans_("Z Translation", 0, -5, 5)
+	, xRot_("X Rotation", 0, -180, 180)
+	, yRot_("Y Rotation", 0, -180, 180)
+	, zRot_("Z Rotation", 0, -180, 180)
+{}
 //--------------------------------------------------------------
 void ofApp::setup(){
 	recon::SensorFactory sensorFac;
-	selected_sensor_ = -1;
+	selected_sensor_id_ = 0;
 	ofColor cloudColors[4];
 	cloudColors[0].set(255, 0, 0);
 	cloudColors[1].set(0, 255, 0);
 	cloudColors[2].set(0, 0, 255);
 	cloudColors[3].set(255, 255, 0);
 
-	auto nSensors = sensorFac.checkConnectedDevices(true);
-	for (int i = 0; i < nSensors; i++) {
-		sensor_list_.push_back(sensorFac.createPclOpenNI2Grabber());
-		cloudColor_[sensor_list_.back()->getId()] = cloudColors[i];
+
+	sensorCount_ = sensorFac.checkConnectedDevices(true);
+	for (int i = 0; i < sensorCount_; i++) {
+		auto sensor = sensorFac.createPclOpenNI2Grabber();
+		sensorIds_.push_back(sensor->getId());
+		sensor_list_[sensor->getId()] = sensor;
+		cloudColor_[sensor->getId()] = cloudColors[i];
+		sensor_extrinsics_[sensor->getId()] = ofMatrix4x4();
 		loadExtrinsicsFromCurrentSensor();
 	}
-	sensor_list_it_ = sensor_list_.begin();
 
+	// setup ui
 	ui_.setup();
 	xTrans_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	yTrans_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	zTrans_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	xRot_.addListener(this, &ofApp::guiUpdatedExtrinsics);
-	yRot_.addListener(this, &ofApp::guiUpdatedExtrinsics); 
+	yRot_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	zRot_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	
 	ui_.add(nextCamBtm_.setup("Next Camera"));
@@ -40,11 +52,11 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
 	for (auto &sensor : sensor_list_) {
-		auto cloud = sensor->getCloudSource()->getOutputCloud();
+		auto cloud = sensor.second->getCloudSource()->getOutputCloud();
 		if (cloud != nullptr) {
 			ofMesh mesh;
-			createOfMeshFromPoints(cloud, cloudColor_[sensor->getId()], mesh);
-			mesh_map_[sensor->getId()] = mesh;
+			createOfMeshFromPoints(cloud, cloudColor_[sensor.second->getId()], mesh);
+			mesh_map_[sensor.second->getId()] = mesh;
 		}
 	}
 }
@@ -61,18 +73,18 @@ void ofApp::draw(){
 
 	
 	for (auto &sensor : sensor_list_) {
-		if(sensor->getId() == selected_sensor_)
+		if(sensor.second->getId() == sensorIds_[selected_sensor_id_])
 		{
-			mesh_map_[sensor->getId()].disableColors();
+			mesh_map_[sensor.second->getId()].disableColors();
 		}
 		else
 		{
-			mesh_map_[sensor->getId()].enableColors();
+			mesh_map_[sensor.second->getId()].enableColors();
 		}
 		ofPushMatrix();
-		ofMultMatrix(sensor_extrinsics_[sensor->getId()]);
+		ofMultMatrix(sensor_extrinsics_[sensor.second->getId()]);
 
-		mesh_map_[sensor->getId()].drawVertices();
+		mesh_map_[sensor.second->getId()].drawVertices();
 		ofPopMatrix();
 	}
 	cam_.end();
@@ -138,66 +150,57 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 
 void ofApp::selectNextCamera()
 {
-	saveExtrinsicsToCurrentSensor();
-	++sensor_list_it_;
-	if(sensor_list_it_ == sensor_list_.end())
-	{
-		sensor_list_it_ = sensor_list_.begin();
-	}
-	selected_sensor_ = sensor_list_it_->get()->getId();
-	loadExtrinsicsFromCurrentSensor();
+		saveExtrinsicsToCurrentSensor();
+		selected_sensor_id_ = (selected_sensor_id_ + 1) % sensorCount_;
+		loadExtrinsicsFromCurrentSensor();
 }
 
 void ofApp::selectPreviousCamera()
 {
-	saveExtrinsicsToCurrentSensor();
-	if(sensor_list_it_ == sensor_list_.begin())
-	{
-		sensor_list_it_ = sensor_list_.end();
-	}
-	--sensor_list_it_;
-	selected_sensor_ = sensor_list_it_->get()->getId();
-	loadExtrinsicsFromCurrentSensor();
+		saveExtrinsicsToCurrentSensor();
+		selected_sensor_id_ = (sensorCount_ + selected_sensor_id_ - 1) % sensorCount_;
+		loadExtrinsicsFromCurrentSensor();
 }
 
 void ofApp::saveExtrinsicsToCurrentSensor()
 {
-	auto m = sensor_extrinsics_[selected_sensor_];
-	auto t = m.getTranslation();
-	auto q = m.getRotate();
-	Eigen::Vector4f tE;
-	Eigen::Quaternionf qE;
-	toEigenVector4f(t, tE);
-	toEigenQuaternionf(q, qE);
-	recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(tE, qE));
-	(*sensor_list_it_)->setDepthExtrinsics(ext);
+		auto m = sensor_extrinsics_[sensorIds_[selected_sensor_id_]];
+		auto t = m.getTranslation();
+		auto q = m.getRotate();
+		Eigen::Vector4f tE;
+		Eigen::Quaternionf qE;
+		toEigenVector4f(t, tE);
+		toEigenQuaternionf(q, qE);
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(tE, qE));
+		sensor_list_[sensorIds_[selected_sensor_id_]]->setDepthExtrinsics(ext);
 }
 
 void ofApp::loadExtrinsicsFromCurrentSensor()
 {
-	auto ext = (*sensor_list_it_)->getDepthExtrinsics();
-	ofVec3f t;
-	ofQuaternion q;
-	toOfVector3(*ext->getTranslation(), t);
-	toOfQuaternion(*ext->getRotation(), q);
+		auto ext = sensor_list_[sensorIds_[selected_sensor_id_]]->getDepthExtrinsics();
+		ofVec3f t;
+		ofQuaternion q;
+		toOfVector3(*ext->getTranslation(), t);
+		toOfQuaternion(*ext->getRotation(), q);
 
-	ofMatrix4x4 m;
-	m.translate(t);
-	m.rotate(q);
+		ofMatrix4x4 m;
+		m.translate(t);
+		m.rotate(q);
 
-	sensor_extrinsics_[selected_sensor_] = m;
-	xTrans_ = t.x;
-	yTrans_ = t.y;
-	zTrans_ = t.z;
-	xRot_ = q.getEuler().x;
-	yRot_ = q.getEuler().y;
-	zRot_ = q.getEuler().z;
+		sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
+		xTrans_ = t.x;
+		yTrans_ = t.y;
+		zTrans_ = t.z;
+		xRot_ = q.getEuler().x;
+		yRot_ = q.getEuler().y;
+		zRot_ = q.getEuler().z;
 }
 
-void ofApp::guiUpdatedExtrinsics()
+void ofApp::guiUpdatedExtrinsics(float &dummy)
 {
 	ofVec3f x(1, 0, 0), y(0, 1, 0), z(0, 0, 1);
-	ofVec3f v(xTrans_, yTrans_, zTrans_);
+	// gui is in meters, oF scale is mm
+	ofVec3f v(xTrans_ * 1000, yTrans_ * 1000, zTrans_ * 1000);
 	ofQuaternion q;
 	ofMatrix4x4 m;
 
@@ -206,5 +209,5 @@ void ofApp::guiUpdatedExtrinsics()
 	m.translate(v);
 	m.rotate(q);
 
-	sensor_extrinsics_[selected_sensor_] = m;
+	sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
 }

@@ -7,14 +7,7 @@
 class ofApp : public ofBaseApp{
 
 	public:
-		ofApp()
-			: xTrans_("X Translation", 0, -5, 5)
-			, yTrans_("Y Translation", 0, -5, 5)
-			, zTrans_("Z Translation", 0, -5, 5)
-			, xRot_("X Rotation", 0, -180, 180)
-			, yRot_("Y Rotation", 0, -180, 180)
-			, zRot_("Z Rotation", 0, -180, 180)
-		{}
+		ofApp();
 		void setup();
 		void update();
 		void draw();
@@ -35,17 +28,18 @@ class ofApp : public ofBaseApp{
 		void selectPreviousCamera();
 		void saveExtrinsicsToCurrentSensor();
 		void loadExtrinsicsFromCurrentSensor();
-		void guiUpdatedExtrinsics();
+		void guiUpdatedExtrinsics(float &dummy);
 
-		std::list<recon::AbstractSensor::Ptr> sensor_list_;
-		std::list<recon::AbstractSensor::Ptr>::iterator sensor_list_it_;
+		int sensorCount_;
+		std::vector<int> sensorIds_;
+		std::map<int, recon::AbstractSensor::Ptr> sensor_list_;
 
 		ofEasyCam cam_;
 
 		std::map<int, ofMesh> mesh_map_;
 		std::map<int, ofColor> cloudColor_;
 		std::map<int, ofMatrix4x4> sensor_extrinsics_;
-		int selected_sensor_;
+		int selected_sensor_id_;
 
 
 		ofxPanel ui_;

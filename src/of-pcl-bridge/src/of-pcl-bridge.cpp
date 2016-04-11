@@ -1,6 +1,6 @@
 #include "of-pcl-bridge/of-pcl-bridge.h"
 
-void toOfTexture(recon::ImagePtr image, ofTexture & texture)
+void toOfTexture(boost::shared_ptr<pcl::io::Image> image, ofTexture & texture)
 {
 	auto width = image->getWidth();
 	auto height = image->getHeight();
@@ -13,7 +13,7 @@ void toOfTexture(recon::ImagePtr image, ofTexture & texture)
 	}
 }
 
-void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
+void createOfMeshFromPoints(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr inputCloud, ofMesh &targetMesh)
 {
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_POINTS);
@@ -23,7 +23,7 @@ void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofMesh &targetMesh)
 	}
 }
 
-void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofColor color, ofMesh &targetMesh)
+void createOfMeshFromPoints(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr inputCloud, ofColor color, ofMesh &targetMesh)
 {
 	if (inputCloud) {
 		// triangle inputMesh
@@ -34,6 +34,34 @@ void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofColor color, ofMe
 			targetMesh.addColor(color);
 		}
 	}
+}
+
+Eigen::Vector4f toEigenVector4f(ofVec3f& ofVec)
+{
+	Eigen::Vector4f ret;
+	toEigenVector4f(ofVec, ret);
+	return ret;
+}
+
+Eigen::Quaternionf toEigenQuaternionf(ofQuaternion& ofQuat)
+{
+	Eigen::Quaternionf ret;
+	toEigenQuaternionf(ofQuat, ret);
+	return ret;
+}
+
+ofVec3f toOfVector3(Eigen::Vector4f& pclVec)
+{
+	ofVec3f ret;
+	toOfVector3(pclVec, ret);
+	return ret;
+}
+
+ofQuaternion toOfQuaternion(Eigen::Quaternionf& pclQuat)
+{
+	ofQuaternion ret;
+	toOfQuaternion(pclQuat, ret);
+	return  ret;
 }
 
 void toEigenVector4f(ofVec3f &ofVec, Eigen::Vector4f &pclVec)

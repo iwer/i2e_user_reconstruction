@@ -23,20 +23,10 @@ target_compile_features(of-pcl-bridge
 
 # Depend on a library that we defined in the top-level file
 target_link_libraries(of-pcl-bridge
-	boost-datetime 
-	boost-filesystem 
-	boost-system 
-	boost-chrono
-	boost-iostreams
-	boost-serialization
-	boost-thread
 	openFrameworks
-	librecon
 	pcl-common 
-	pcl-search
 	pcl-io
-	pcl-filters
-	pcl-surface)
+)
 
 # 'make install' to the correct location
 install(TARGETS of-pcl-bridge

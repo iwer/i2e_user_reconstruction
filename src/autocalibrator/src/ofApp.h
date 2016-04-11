@@ -40,8 +40,14 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
-		float approxRollingAverage(float avg, float new_sample, int window);
 		void reset_calibration();
+		float approxRollingAverage(float avg, float new_sample, int window);
+		void downsample(recon::CloudConstPtr cloud, recon::CloudPtr cloud_downsampled);
+		void removeBackground(recon::CloudPtr src, recon::CloudPtr trgt);
+		void findSphere(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, Eigen::VectorXf &sphereParam);
+		void extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, recon::CloudPtr in_cloud, recon::CloudPtr out_cloud);
+		
+		ofColor cloudColors[4];
 		std::list<recon::AbstractSensor::Ptr> sensor_list_;
 
 		ofEasyCam cam_;

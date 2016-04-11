@@ -167,11 +167,7 @@ void ofApp::saveExtrinsicsToCurrentSensor()
 		auto m = sensor_extrinsics_[sensorIds_[selected_sensor_id_]];
 		auto t = m.getTranslation();
 		auto q = m.getRotate();
-		Eigen::Vector4f tE;
-		Eigen::Quaternionf qE;
-		toEigenVector4f(t, tE);
-		toEigenQuaternionf(q, qE);
-		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(tE, qE));
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(toEigenVector4f(t), toEigenQuaternionf(q)));
 		sensor_list_[sensorIds_[selected_sensor_id_]]->setDepthExtrinsics(ext);
 }
 

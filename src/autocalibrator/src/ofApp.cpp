@@ -2,20 +2,29 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/registration/icp.h>
+
 //--------------------------------------------------------------
-void ofApp::setup(){
-	std::chrono::seconds five_sec(5);
+void ofApp::setup()
+{
+	std::chrono::seconds five_sec(3);
 	static_time_to_snapshot_ = five_sec;
-	
+	cloudColors[0].set(255, 0, 0);
+	cloudColors[1].set(0, 255, 0);
+	cloudColors[2].set(0, 0, 255);
+	cloudColors[3].set(255, 255, 0);
+
+	// sensor setup
 	recon::SensorFactory sensorFac;
 
 	auto nSensors = sensorFac.checkConnectedDevices(true);
-	for (int i = 0; i < nSensors; i++) {
+	for (int i = 0; i < nSensors; i++)
+	{
 		sensor_list_.push_back(sensorFac.createPclOpenNI2Grabber());
 		detected_sphere_[sensor_list_.back()->getId()].setResolution(6);
 	}
 
-
+	// ui setup
 	calibResetBtn_.addListener(this, &ofApp::reset_calibration);
 
 	ui_.setup();
@@ -29,146 +38,145 @@ void ofApp::setup(){
 	ui_.add(percentSl_.setup(percent_));
 	ui_.add(meanSampleSl_.setup(meanSamples_));
 	ui_.add(calibResetBtn_.setup("Reset Calibration"));
+
+	cam_.rotate(180, 1, 0, 0);
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){
+void ofApp::update()
+{
 	bool take_snapshot = true;
-	for (auto &sensor : sensor_list_) {
+	// for each sensor
+	for (auto& sensor : sensor_list_)
+	{
+		// get current point cloud
 		auto cloud = sensor->getCloudSource()->getOutputCloud();
-		if (cloud != nullptr) {
+		if (cloud != nullptr)
+		{
 			// downsample cloud for searching sphere
 			recon::CloudPtr cloud_downsampled(new recon::Cloud());
-			pcl::VoxelGrid<recon::PointType> sor;
-			sor.setInputCloud(cloud);
-			sor.setLeafSize(resolution_, resolution_, resolution_);
-			sor.filter(*cloud_downsampled);
+			downsample(cloud, cloud_downsampled);
 
 			// remove background
 			recon::CloudPtr cloud_wo_back(new recon::Cloud());
-			pcl::PassThrough<recon::PointType> pass;
-			pass.setFilterFieldName("z");
-			pass.setFilterLimits(passMin_, passMax_);
-			pass.setInputCloud(cloud_downsampled);
-			pass.filter(*cloud_wo_back);
+			removeBackground(cloud_downsampled, cloud_wo_back);
 
 			// find sphere
-			sphere_model_.reset(new pcl::SampleConsensusModelSphere<recon::PointType>(cloud_wo_back));
-			sphere_model_->setRadiusLimits(min_, max_);
-			pcl::RandomSampleConsensus<recon::PointType> ransac(sphere_model_);
-			
-			ransac.setDistanceThreshold(error_);
-			ransac.setMaxIterations(samples_);
-			ransac.setProbability(percent_);
-			ransac.computeModel();
-			
 			pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-			ransac.getInliers(inliers->indices);
+			Eigen::VectorXf s_param;
 
-			if (inliers->indices.size() > 0) {
-				recon::CloudPtr in_cloud(new recon::Cloud());
-				pcl::ExtractIndices<recon::PointType> extract;
-				extract.setInputCloud(cloud_wo_back);
-				extract.setIndices(inliers);
-				extract.setNegative(false);
-				extract.filter(*in_cloud);
-				createOfMeshFromPoints(in_cloud, ofColor(0, 255, 0, 255), inliers_mesh_[sensor->getId()]);
+			findSphere(cloud_wo_back, inliers, s_param);
+			auto sphere_r = s_param.w();
+			auto sphere_x = s_param.x();
+			auto sphere_y = s_param.y();
+			auto sphere_z = s_param.z();
 
-				recon::CloudPtr out_cloud(new recon::Cloud());
-				extract.setNegative(true);
-				extract.filter(*out_cloud);
-				ofMesh mesh;
-				createOfMeshFromPoints(out_cloud, ofColor(255, 255, 255, 64), mesh);
-				mesh_map_.erase(sensor->getId());
-				mesh_map_.insert(std::pair<int, ofMesh>(sensor->getId(), mesh));
-
-				// get sphere coeffincients
-				Eigen::VectorXf s_param;
-				ransac.getModelCoefficients(s_param);
-
-				// calculate mean position of calib target
+			if (inliers->indices.size() > 0)
+			{
 				sphere_detected_[sensor->getId()] = true;
-				meanR_[sensor->getId()] = approxRollingAverage(meanR_[sensor->getId()], s_param[3] * 1000, meanSamples_);
+
+				// get in- and outlier cloud
+				recon::CloudPtr in_cloud(new recon::Cloud());
+				recon::CloudPtr out_cloud(new recon::Cloud());
+				extractInOutliers(cloud_wo_back, inliers, in_cloud, out_cloud);
+				createOfMeshFromPoints(in_cloud, ofColor(0, 255, 0, 255), inliers_mesh_[sensor->getId()]);
+				auto c = cloudColors[sensor->getId()];
+				c.a = 64;
+				createOfMeshFromPoints(out_cloud, c, mesh_map_[sensor->getId()]);
+
+				// calculate mean radius of calib target
+				meanR_[sensor->getId()] = approxRollingAverage(meanR_[sensor->getId()], sphere_r * 1000, meanSamples_);
 				detected_sphere_[sensor->getId()].setRadius(meanR_[sensor->getId()]);
-				
+
 				// remember last mean position
 				last_mean_pos_[sensor->getId()] = ofVec3f(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
 				// calculate new mean position
-				meanX_[sensor->getId()] = approxRollingAverage(meanX_[sensor->getId()], s_param[0] * 1000, meanSamples_);
-				meanY_[sensor->getId()] = approxRollingAverage(meanY_[sensor->getId()], s_param[1] * 1000, meanSamples_);
-				meanZ_[sensor->getId()] = approxRollingAverage(meanZ_[sensor->getId()], s_param[2] * 1000, meanSamples_);
+				meanX_[sensor->getId()] = approxRollingAverage(meanX_[sensor->getId()], sphere_x * 1000, meanSamples_);
+				meanY_[sensor->getId()] = approxRollingAverage(meanY_[sensor->getId()], sphere_y * 1000, meanSamples_);
+				meanZ_[sensor->getId()] = approxRollingAverage(meanZ_[sensor->getId()], sphere_z * 1000, meanSamples_);
 				detected_sphere_location_[sensor->getId()].set(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
 			}
-			else {
+			else
+			{
 				sphere_detected_[sensor->getId()] = false;
 				// make ofMesh for displaying
 				ofMesh mesh;
-				createOfMeshFromPoints(cloud_wo_back, ofColor(255, 255, 255, 64), mesh);
+				auto c = cloudColors[sensor->getId()];
+				c.a = 64;
+				createOfMeshFromPoints(cloud_wo_back, c, mesh);
 				mesh_map_.erase(sensor->getId());
 				mesh_map_.insert(std::pair<int, ofMesh>(sensor->getId(), mesh));
 			}
 
-			// check if detected positions have moved much
-			for(auto &sensor : sensor_list_)
+			// when tracking target has moved more than a cm in one of the directions
+			if (std::fabs(last_mean_pos_[sensor->getId()].x - meanX_[sensor->getId()]) >= 15
+				|| std::fabs(last_mean_pos_[sensor->getId()].y - meanY_[sensor->getId()]) >= 15
+				|| std::fabs(last_mean_pos_[sensor->getId()].z - meanZ_[sensor->getId()]) >= 15)
 			{
-				// when tracking target has moved more than a cm in one of the directions
-				if(std::abs(last_mean_pos_[sensor->getId()].x - meanX_[sensor->getId()]) >= 0.001
-					|| std::abs(last_mean_pos_[sensor->getId()].y - meanY_[sensor->getId()]) >= 0.001
-					|| std::abs(last_mean_pos_[sensor->getId()].z - meanZ_[sensor->getId()]) >= 0.001)
-				{
-					take_snapshot = false;
-					static_since_ = std::chrono::steady_clock::now();
-				} 
-				// else check elapsed time in static pose
-				else
-				{
-					auto now = std::chrono::steady_clock::now();
-					auto elapsed = now - static_since_;
-					// if bigger than time to snapshot, do not snapshot
-					if(elapsed < static_time_to_snapshot_)
-					{
-						take_snapshot = false;
-					}
-				}
+				take_snapshot = false;
 			}
-
+			
 		}
 	}
 	// take snapshot of conditions where met
-	if (take_snapshot) {
-		for (auto &sensor : sensor_list_) {
-			pcl::PointXYZ calib_point(detected_sphere_location_[sensor->getId()].x,
-				detected_sphere_location_[sensor->getId()].y,
-				detected_sphere_location_[sensor->getId()].z);
-			calib_positions_[sensor->getId()].push_back(calib_point);
+	if (take_snapshot)
+	{
+		// check elapsed time in static pose
+		auto now = std::chrono::steady_clock::now();
+		auto elapsed = now - static_since_;
+		// if bigger than time to snapshot, do snapshot
+		if (elapsed >= static_time_to_snapshot_)
+		{
+			for (auto& sensor : sensor_list_)
+			{
+				pcl::PointXYZ calib_point(detected_sphere_location_[sensor->getId()].x,
+					detected_sphere_location_[sensor->getId()].y,
+					detected_sphere_location_[sensor->getId()].z);
+				calib_positions_[sensor->getId()].push_back(calib_point);
+			}
 		}
 	}
+	else
+	{
+		// reset timer
+		static_since_ = std::chrono::steady_clock::now();
+	}
 
-	// perform icp on calib_position pointcloud
-
+	// perform icp on calib_position pointclouds
 }
 
 //--------------------------------------------------------------
-void ofApp::draw(){
+void ofApp::draw()
+{
 	ofBackground(0);
 
 	ofDrawBitmapString("fps: " + std::to_string(ofGetFrameRate()) + " calpos: " + std::to_string(calib_positions_[0].size()), 10, 10);
 
 	cam_.begin();
 	ofEnableDepthTest();
-	for (auto &sensor : sensor_list_) {
+	for (auto& sensor : sensor_list_)
+	{
 		mesh_map_[sensor->getId()].drawVertices();
-		if (sphere_detected_[sensor->getId()]) {
+		if (sphere_detected_[sensor->getId()])
+		{
 			inliers_mesh_[sensor->getId()].draw();
-			ofSetColor(255, 0, 0);
 			ofPushMatrix();
+			ofPushStyle();
+			ofSetColor(255, 0, 0);
 			ofTranslate(detected_sphere_location_[sensor->getId()]);
 			detected_sphere_[sensor->getId()].drawWireframe();
 			ofPopMatrix();
+			ofPopStyle();
+		}
+
+		for (auto& p : calib_positions_[sensor->getId()])
+		{
+			ofPushStyle();
+			ofSetColor(cloudColors[sensor->getId()]);
+			ofDrawBox(p.x, p.y, p.z, 30);
+			ofPopStyle();
 		}
 	}
-
-
 
 
 	cam_.end();
@@ -178,72 +186,118 @@ void ofApp::draw(){
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key){
-
+void ofApp::keyPressed(int key)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::keyReleased(int key){
-
+void ofApp::keyReleased(int key)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-
+void ofApp::mouseMoved(int x, int y)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button){
-
+void ofApp::mouseDragged(int x, int y, int button)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button){
-
+void ofApp::mousePressed(int x, int y, int button)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button){
-
+void ofApp::mouseReleased(int x, int y, int button)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y){
-
+void ofApp::mouseEntered(int x, int y)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y){
-
+void ofApp::mouseExited(int x, int y)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::windowResized(int w, int h){
-
+void ofApp::windowResized(int w, int h)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-
+void ofApp::gotMessage(ofMessage msg)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+void ofApp::dragEvent(ofDragInfo dragInfo)
+{
 }
 
 void ofApp::reset_calibration()
 {
-	for(auto &sensor : sensor_list_)
+	for (auto& sensor : sensor_list_)
 	{
 		calib_positions_[sensor->getId()].clear();
 	}
 }
 
-float ofApp::approxRollingAverage(float avg, float new_sample, int window) {
-
+float ofApp::approxRollingAverage(float avg, float new_sample, int window)
+{
 	avg -= avg / window;
 	avg += new_sample / window;
 
 	return avg;
 }
+
+void ofApp::downsample(recon::CloudConstPtr src, recon::CloudPtr trgt)
+{
+	pcl::VoxelGrid<recon::PointType> sor;
+	sor.setInputCloud(src);
+	sor.setLeafSize(resolution_, resolution_, resolution_);
+	sor.filter(*trgt);
+}
+
+void ofApp::removeBackground(recon::CloudPtr src, recon::CloudPtr trgt)
+{
+	pcl::PassThrough<recon::PointType> pass;
+	pass.setFilterFieldName("z");
+	pass.setFilterLimits(passMin_, passMax_);
+	pass.setInputCloud(src);
+	pass.filter(*trgt);
+}
+
+void ofApp::findSphere(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, Eigen::VectorXf& sphereParam)
+{
+	sphere_model_.reset(new pcl::SampleConsensusModelSphere<recon::PointType>(src));
+	sphere_model_->setRadiusLimits(min_, max_);
+	pcl::RandomSampleConsensus<recon::PointType> ransac(sphere_model_);
+
+	ransac.setDistanceThreshold(error_);
+	ransac.setMaxIterations(samples_);
+	ransac.setProbability(percent_);
+	ransac.computeModel();
+
+	ransac.getInliers(inliers->indices);
+
+	ransac.getModelCoefficients(sphereParam);
+}
+
+void ofApp::extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, recon::CloudPtr in_cloud, recon::CloudPtr out_cloud)
+{
+	pcl::ExtractIndices<recon::PointType> extract;
+	extract.setInputCloud(src);
+	extract.setIndices(inliers);
+	extract.setNegative(false);
+	extract.filter(*in_cloud);
+
+	extract.setNegative(true);
+	extract.filter(*out_cloud);
+}
+

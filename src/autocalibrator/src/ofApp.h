@@ -7,8 +7,7 @@
 #include "recon/typedefs.h"
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
-
-
+#include <chrono>
 
 class ofApp : public ofBaseApp{
 
@@ -19,9 +18,9 @@ class ofApp : public ofBaseApp{
 			, error_("Modell Error", .01, .001, .2)
 			, percent_("Inlier %", .99, .2, 1)
 			, resolution_("Resolution", .03, .005, .1)
-			, samples_("# Samples", 1000, 10, 5000)
+			, samples_("# Samples", 2500, 10, 5000)
 			, passMin_("Z Min", .01, .01, 8)
-			, passMax_("Z Max", 2, .01, 8)
+			, passMax_("Z Max", 2.5, .01, 8)
 			, meanSamples_("Smoothing Frame", 1, 1, 60)
 		{}
 
@@ -42,7 +41,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 		float approxRollingAverage(float avg, float new_sample, int window);
-
+		void reset_calibration();
 		std::list<recon::AbstractSensor::Ptr> sensor_list_;
 
 		ofEasyCam cam_;
@@ -58,9 +57,17 @@ class ofApp : public ofBaseApp{
 		std::map<int, float> meanZ_;
 		std::map<int, float> meanR_;
 
+		std::map<int, ofVec3f> last_mean_pos_;
+
 		std::map<int, ofVec3f> detected_sphere_location_;
 		std::map<int, ofSpherePrimitive> detected_sphere_;
 
+		std::map<int, pcl::PointCloud<pcl::PointXYZ>> calib_positions_;
+
+		std::chrono::duration<long long, std::nano> static_time_to_snapshot_;
+		std::chrono::time_point<std::chrono::steady_clock> static_since_;
+
+		// gui stuff
 		ofParameter<float> min_;
 		ofParameter<float> max_;
 		ofParameter<float> error_;
@@ -81,4 +88,5 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider passMinSl_;
 		ofxFloatSlider passMaxSl_;
 		ofxIntSlider meanSampleSl_;
+		ofxButton calibResetBtn_;
 };

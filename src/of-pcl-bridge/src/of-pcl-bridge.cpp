@@ -36,3 +36,26 @@ void createOfMeshFromPoints(recon::CloudConstPtr inputCloud, ofColor color, ofMe
 	}
 }
 
+void toEigenVector4f(ofVec3f &ofVec, Eigen::Vector4f &pclVec)
+{
+	pclVec.x() = ofVec.x;
+	pclVec.y() = ofVec.y;
+	pclVec.z() = ofVec.z;
+	pclVec.w() = 0;
+}
+void toEigenQuaternionf(ofQuaternion &ofQuat, Eigen::Quaternionf & pclQuat)
+{
+	pclQuat.w() = ofQuat.w();
+	pclQuat.x() = ofQuat.x();
+	pclQuat.y() = ofQuat.y();
+	pclQuat.z() = ofQuat.z();
+}
+
+void toOfVector3(Eigen::Vector4f &pclVec, ofVec3f &ofVec)
+{
+	ofVec.set(pclVec.x(), pclVec.y(), pclVec.z());
+}
+void toOfQuaternion(Eigen::Quaternionf & pclQuat, ofQuaternion &ofQuat)
+{
+	ofQuat.set(pclQuat.x(), pclQuat.y(), pclQuat.z(), pclQuat.w());
+}

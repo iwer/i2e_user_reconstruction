@@ -28,6 +28,7 @@ void ofApp::setup()
 	calibResetBtn_.addListener(this, &ofApp::reset_calibration);
 
 	ui_.setup();
+	ui_.add(bgSl_.setup(background_));
 	ui_.add(resolutionSl_.setup(resolution_));
 	ui_.add(passMinSl_.setup(passMin_));
 	ui_.add(passMaxSl_.setup(passMax_));
@@ -90,6 +91,7 @@ void ofApp::update()
 
 				// remember last mean position
 				last_mean_pos_[sensor->getId()] = ofVec3f(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
+
 				// calculate new mean position
 				meanX_[sensor->getId()] = approxRollingAverage(meanX_[sensor->getId()], sphere_x * 1000, meanSamples_);
 				meanY_[sensor->getId()] = approxRollingAverage(meanY_[sensor->getId()], sphere_y * 1000, meanSamples_);
@@ -118,14 +120,17 @@ void ofApp::update()
 			
 		}
 	}
-	// take snapshot of conditions where met
+	// take snapshot if conditions where met
 	if (take_snapshot)
 	{
 		// check elapsed time in static pose
 		auto now = std::chrono::steady_clock::now();
-		auto elapsed = now - static_since_;
+		auto time_static = now - static_since_;
+		auto time_since_last_snap = now - last_snap_;
+//		std::cout << "Static time: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_static).count()
+//			<< "Time since last snap: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_since_last_snap).count() << std::endl;
 		// if bigger than time to snapshot, do snapshot
-		if (elapsed >= static_time_to_snapshot_)
+		if (time_static >= static_time_to_snapshot_ && time_since_last_snap >= static_time_to_snapshot_)
 		{
 			for (auto& sensor : sensor_list_)
 			{
@@ -133,6 +138,7 @@ void ofApp::update()
 					detected_sphere_location_[sensor->getId()].y,
 					detected_sphere_location_[sensor->getId()].z);
 				calib_positions_[sensor->getId()].push_back(calib_point);
+				last_snap_ = std::chrono::steady_clock::now();
 			}
 		}
 	}
@@ -143,12 +149,27 @@ void ofApp::update()
 	}
 
 	// perform icp on calib_position pointclouds
+	for(auto &sensor1 : sensor_list_)
+	{
+		for(auto &sensor2 : sensor_list_)
+		{
+			//TODO: design icp 
+			if(sensor1 != sensor2)
+			{
+				//pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+				//recon::CloudPtr cloud1 = std::make_shared(calib_positions_[sensor1->getId()]);
+				//icp.setInputCloud(cloud1);
+				//icp.setInputTarget(cloud_out);
+			}
+		}
+	}
+
 }
 
 //--------------------------------------------------------------
 void ofApp::draw()
 {
-	ofBackground(0);
+	ofBackground(background_);
 
 	ofDrawBitmapString("fps: " + std::to_string(ofGetFrameRate()) + " calpos: " + std::to_string(calib_positions_[0].size()), 10, 10);
 

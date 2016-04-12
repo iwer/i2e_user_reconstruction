@@ -22,6 +22,7 @@ class ofApp : public ofBaseApp{
 			, passMin_("Z Min", .01, .01, 8)
 			, passMax_("Z Max", 2.5, .01, 8)
 			, meanSamples_("Smoothing Frame", 1, 1, 60)
+			, background_("Background", 127, 0, 255)
 		{}
 
 		void setup();
@@ -72,8 +73,10 @@ class ofApp : public ofBaseApp{
 
 		std::chrono::duration<long long, std::nano> static_time_to_snapshot_;
 		std::chrono::time_point<std::chrono::steady_clock> static_since_;
+		std::chrono::time_point<std::chrono::steady_clock> last_snap_;
 
 		// gui stuff
+		ofParameter<float> background_;
 		ofParameter<float> min_;
 		ofParameter<float> max_;
 		ofParameter<float> error_;
@@ -85,6 +88,7 @@ class ofApp : public ofBaseApp{
 		ofParameter<int> meanSamples_;
 
 		ofxPanel ui_;
+		ofxFloatSlider bgSl_;
 		ofxFloatSlider minSl_;
 		ofxFloatSlider maxSl_;
 		ofxFloatSlider errorSl_;

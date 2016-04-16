@@ -3,6 +3,7 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/registration/icp.h>
+#include <pcl/registration/ia_ransac.h>
 
 //--------------------------------------------------------------
 void ofApp::setup()
@@ -22,10 +23,12 @@ void ofApp::setup()
 	{
 		sensor_list_.push_back(sensorFac.createPclOpenNI2Grabber());
 		detected_sphere_[sensor_list_.back()->getId()].setResolution(6);
+		calib_positions_[sensor_list_.back()->getId()] = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>(pcl::PointCloud<pcl::PointXYZ>());
 	}
 
 	// ui setup
 	calibResetBtn_.addListener(this, &ofApp::reset_calibration);
+	performEstimBtn_.addListener(this, &ofApp::performICPTransformationEstimation);
 
 	ui_.setup();
 	ui_.add(bgSl_.setup(background_));
@@ -39,8 +42,10 @@ void ofApp::setup()
 	ui_.add(percentSl_.setup(percent_));
 	ui_.add(meanSampleSl_.setup(meanSamples_));
 	ui_.add(calibResetBtn_.setup("Reset Calibration"));
+	ui_.add(performEstimBtn_.setup("Perform Calibration"));
 
 	cam_.rotate(180, 1, 0, 0);
+	cam_.setFarClip(100000);
 }
 
 //--------------------------------------------------------------
@@ -117,7 +122,6 @@ void ofApp::update()
 			{
 				take_snapshot = false;
 			}
-			
 		}
 	}
 	// take snapshot if conditions where met
@@ -127,18 +131,19 @@ void ofApp::update()
 		auto now = std::chrono::steady_clock::now();
 		auto time_static = now - static_since_;
 		auto time_since_last_snap = now - last_snap_;
-//		std::cout << "Static time: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_static).count()
-//			<< "Time since last snap: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_since_last_snap).count() << std::endl;
+		//		std::cout << "Static time: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_static).count()
+		//			<< "Time since last snap: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_since_last_snap).count() << std::endl;
 		// if bigger than time to snapshot, do snapshot
 		if (time_static >= static_time_to_snapshot_ && time_since_last_snap >= static_time_to_snapshot_)
 		{
 			for (auto& sensor : sensor_list_)
 			{
 				pcl::PointXYZ calib_point(detected_sphere_location_[sensor->getId()].x,
-					detected_sphere_location_[sensor->getId()].y,
-					detected_sphere_location_[sensor->getId()].z);
-				calib_positions_[sensor->getId()].push_back(calib_point);
+				                          detected_sphere_location_[sensor->getId()].y,
+				                          detected_sphere_location_[sensor->getId()].z);
+				calib_positions_[sensor->getId()]->push_back(calib_point);
 				last_snap_ = std::chrono::steady_clock::now();
+				performICPTransformationEstimation();
 			}
 		}
 	}
@@ -147,23 +152,6 @@ void ofApp::update()
 		// reset timer
 		static_since_ = std::chrono::steady_clock::now();
 	}
-
-	// perform icp on calib_position pointclouds
-	for(auto &sensor1 : sensor_list_)
-	{
-		for(auto &sensor2 : sensor_list_)
-		{
-			//TODO: design icp 
-			if(sensor1 != sensor2)
-			{
-				//pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-				//recon::CloudPtr cloud1 = std::make_shared(calib_positions_[sensor1->getId()]);
-				//icp.setInputCloud(cloud1);
-				//icp.setInputTarget(cloud_out);
-			}
-		}
-	}
-
 }
 
 //--------------------------------------------------------------
@@ -171,16 +159,28 @@ void ofApp::draw()
 {
 	ofBackground(background_);
 
-	ofDrawBitmapString("fps: " + std::to_string(ofGetFrameRate()) + " calpos: " + std::to_string(calib_positions_[0].size()), 10, 10);
+	ofDrawBitmapString("fps: " + std::to_string(ofGetFrameRate()) + " calpos: " + std::to_string(calib_positions_[0]->size()), 10, 10);
 
 	cam_.begin();
 	ofEnableDepthTest();
 	for (auto& sensor : sensor_list_)
 	{
+		ofPushMatrix();
+		auto ext = sensor->getDepthExtrinsics();
+		auto translation = toOfVector3(*ext->getTranslation());
+		auto rotation = toOfQuaternion(*ext->getRotation());
+		ofVec3f qaxis;
+		float qangle;
+		rotation.getRotate(qangle, qaxis);
+		ofTranslate(translation);
+		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
+
 		mesh_map_[sensor->getId()].drawVertices();
+
 		if (sphere_detected_[sensor->getId()])
 		{
 			inliers_mesh_[sensor->getId()].draw();
+
 			ofPushMatrix();
 			ofPushStyle();
 			ofSetColor(255, 0, 0);
@@ -190,13 +190,14 @@ void ofApp::draw()
 			ofPopStyle();
 		}
 
-		for (auto& p : calib_positions_[sensor->getId()])
+		for (auto& p : *calib_positions_[sensor->getId()])
 		{
 			ofPushStyle();
 			ofSetColor(cloudColors[sensor->getId()]);
 			ofDrawBox(p.x, p.y, p.z, 30);
 			ofPopStyle();
 		}
+		ofPopMatrix();
 	}
 
 
@@ -265,7 +266,7 @@ void ofApp::reset_calibration()
 {
 	for (auto& sensor : sensor_list_)
 	{
-		calib_positions_[sensor->getId()].clear();
+		calib_positions_[sensor->getId()]->clear();
 	}
 }
 
@@ -321,4 +322,41 @@ void ofApp::extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inlier
 	extract.setNegative(true);
 	extract.filter(*out_cloud);
 }
+
+void ofApp::performICPTransformationEstimation()
+{
+	// perform icp on calib_position pointclouds
+	std::list<recon::AbstractSensor::Ptr>::iterator it;
+	std::list<recon::AbstractSensor::Ptr>::iterator ref = sensor_list_.begin();
+	for (it = sensor_list_.begin(); it != sensor_list_.end(); ++it)
+	{
+		auto sensor1 = *ref;
+		auto sensor2 = *it;
+		if (sensor1 != sensor2)
+		{
+			auto cloud1 = calib_positions_[sensor1->getId()];
+			auto cloud2 = calib_positions_[sensor2->getId()];
+
+			pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+			icp.setInputCloud(cloud2);
+			icp.setInputTarget(cloud1);
+			icp.setMaxCorrespondenceDistance(1000);
+			icp.setMaximumIterations(100);
+			pcl::PointCloud<pcl::PointXYZ> cloud_reg;
+			icp.align(cloud_reg);
+
+
+			auto trans = Eigen::Affine3f(icp.getFinalTransformation());
+			Eigen::Vector4f t(trans.translation().x()/1000, trans.translation().y() / 1000, trans.translation().z() / 1000, 0);
+			Eigen::Quaternionf r = Eigen::Quaternionf(trans.rotation());
+			recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(t, r));
+
+			sensor2->setDepthExtrinsics(ext);
+		}
+	}
+}
+
+
+
+
 

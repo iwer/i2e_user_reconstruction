@@ -15,5 +15,6 @@ target_link_libraries(autocalibrator
 	pcl-io
 	pcl-sample-consensus
 	pcl-filters
+	pcl-registration
 	of-pcl-bridge
 )

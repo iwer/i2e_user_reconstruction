@@ -48,6 +48,8 @@ class ofApp : public ofBaseApp{
 		void findSphere(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, Eigen::VectorXf &sphereParam);
 		void extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, recon::CloudPtr in_cloud, recon::CloudPtr out_cloud);
 		
+		void performICPTransformationEstimation();
+		
 		ofColor cloudColors[4];
 		std::list<recon::AbstractSensor::Ptr> sensor_list_;
 
@@ -69,7 +71,7 @@ class ofApp : public ofBaseApp{
 		std::map<int, ofVec3f> detected_sphere_location_;
 		std::map<int, ofSpherePrimitive> detected_sphere_;
 
-		std::map<int, pcl::PointCloud<pcl::PointXYZ>> calib_positions_;
+		std::map<int, pcl::PointCloud<pcl::PointXYZ>::Ptr> calib_positions_;
 
 		std::chrono::duration<long long, std::nano> static_time_to_snapshot_;
 		std::chrono::time_point<std::chrono::steady_clock> static_since_;
@@ -86,7 +88,7 @@ class ofApp : public ofBaseApp{
 		ofParameter<float> passMin_;
 		ofParameter<float> passMax_;
 		ofParameter<int> meanSamples_;
-
+		
 		ofxPanel ui_;
 		ofxFloatSlider bgSl_;
 		ofxFloatSlider minSl_;
@@ -99,4 +101,5 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider passMaxSl_;
 		ofxIntSlider meanSampleSl_;
 		ofxButton calibResetBtn_;
+		ofxButton performEstimBtn_;
 };

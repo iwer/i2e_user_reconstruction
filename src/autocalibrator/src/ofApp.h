@@ -7,6 +7,7 @@
 #include "recon/typedefs.h"
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_sphere.h>
+#include "common/SensorCalibrationSettings.h"
 #include <chrono>
 
 class ofApp : public ofBaseApp{
@@ -15,6 +16,7 @@ class ofApp : public ofBaseApp{
 		ofApp()
 			: min_("Min Radius", .1, .01, 1)
 			, max_("Max Radius", .3, .1, 1)
+			, trackingEnabled_("Enable Tracking", false)
 			, error_("Modell Error", .01, .001, .2)
 			, percent_("Inlier %", .99, .2, 1)
 			, resolution_("Resolution", .03, .005, .1)
@@ -41,6 +43,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
+		
 		void reset_calibration();
 		float approxRollingAverage(float avg, float new_sample, int window);
 		void downsample(recon::CloudConstPtr cloud, recon::CloudPtr cloud_downsampled);
@@ -50,14 +53,16 @@ class ofApp : public ofBaseApp{
 		
 		void performICPTransformationEstimation();
 		
-		ofColor cloudColors[4];
-		std::list<recon::AbstractSensor::Ptr> sensor_list_;
 
 		ofEasyCam cam_;
 
+		// sensor stuff
+		ofColor cloudColors[4];
+		std::list<recon::AbstractSensor::Ptr> sensor_list_;
 		std::map<int, ofMesh> mesh_map_;
 		std::map<int, ofMesh> inliers_mesh_;
 
+		// sphere tracking stuff
 		pcl::SampleConsensusModelSphere<recon::PointType>::Ptr sphere_model_;
 
 		std::map<int, bool> sphere_detected_;
@@ -65,14 +70,14 @@ class ofApp : public ofBaseApp{
 		std::map<int, float> meanY_;
 		std::map<int, float> meanZ_;
 		std::map<int, float> meanR_;
-
-		std::map<int, ofVec3f> last_mean_pos_;
-
+				std::map<int, ofVec3f> last_mean_pos_;
 		std::map<int, ofVec3f> detected_sphere_location_;
 		std::map<int, ofSpherePrimitive> detected_sphere_;
 
+		// calibration snapshots off sphere position
 		std::map<int, pcl::PointCloud<pcl::PointXYZ>::Ptr> calib_positions_;
 
+		// time variables for snapshot intervallometer
 		std::chrono::duration<long long, std::nano> static_time_to_snapshot_;
 		std::chrono::time_point<std::chrono::steady_clock> static_since_;
 		std::chrono::time_point<std::chrono::steady_clock> last_snap_;
@@ -81,6 +86,7 @@ class ofApp : public ofBaseApp{
 		ofParameter<float> background_;
 		ofParameter<float> min_;
 		ofParameter<float> max_;
+		ofParameter<bool> trackingEnabled_;
 		ofParameter<float> error_;
 		ofParameter<float> percent_;
 		ofParameter<float> resolution_;
@@ -93,6 +99,7 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider bgSl_;
 		ofxFloatSlider minSl_;
 		ofxFloatSlider maxSl_;
+		ofxToggle enableTrackingBtn_;
 		ofxFloatSlider errorSl_;
 		ofxFloatSlider percentSl_;
 		ofxFloatSlider resolutionSl_;

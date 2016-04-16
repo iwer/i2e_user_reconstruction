@@ -42,6 +42,7 @@ add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT )
 # Targets that we develop
 enable_testing()
 add_subdirectory(of-pcl-bridge)
+add_subdirectory(common)
 add_subdirectory(librecon)
 add_subdirectory(app)
 add_subdirectory(recorder)

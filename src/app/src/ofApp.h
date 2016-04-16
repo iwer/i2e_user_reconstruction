@@ -20,7 +20,7 @@
 #include "recon/Pipeline02.h"
 
 //#include "ofxSplashScreen.h"
-#include "SensorCalibrationSettings.h"
+#include "common/SensorCalibrationSettings.h"
 
 #include <pcl/common/time.h> //fps calculations
 #include <pcl/common/angles.h>

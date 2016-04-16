@@ -35,6 +35,7 @@ void ofApp::setup()
 	ui_.add(resolutionSl_.setup(resolution_));
 	ui_.add(passMinSl_.setup(passMin_));
 	ui_.add(passMaxSl_.setup(passMax_));
+	ui_.add(enableTrackingBtn_.setup(trackingEnabled_));
 	ui_.add(minSl_.setup(min_));
 	ui_.add(maxSl_.setup(max_));
 	ui_.add(samplesSl_.setup(samples_));
@@ -69,39 +70,62 @@ void ofApp::update()
 
 			// find sphere
 			pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-			Eigen::VectorXf s_param;
-
-			findSphere(cloud_wo_back, inliers, s_param);
-			auto sphere_r = s_param.w();
-			auto sphere_x = s_param.x();
-			auto sphere_y = s_param.y();
-			auto sphere_z = s_param.z();
-
-			if (inliers->indices.size() > 0)
+			if (trackingEnabled_)
 			{
-				sphere_detected_[sensor->getId()] = true;
+				Eigen::VectorXf s_param;
 
-				// get in- and outlier cloud
-				recon::CloudPtr in_cloud(new recon::Cloud());
-				recon::CloudPtr out_cloud(new recon::Cloud());
-				extractInOutliers(cloud_wo_back, inliers, in_cloud, out_cloud);
-				createOfMeshFromPoints(in_cloud, ofColor(0, 255, 0, 255), inliers_mesh_[sensor->getId()]);
-				auto c = cloudColors[sensor->getId()];
-				c.a = 64;
-				createOfMeshFromPoints(out_cloud, c, mesh_map_[sensor->getId()]);
+				findSphere(cloud_wo_back, inliers, s_param);
+				auto sphere_r = s_param.w();
+				auto sphere_x = s_param.x();
+				auto sphere_y = s_param.y();
+				auto sphere_z = s_param.z();
 
-				// calculate mean radius of calib target
-				meanR_[sensor->getId()] = approxRollingAverage(meanR_[sensor->getId()], sphere_r * 1000, meanSamples_);
-				detected_sphere_[sensor->getId()].setRadius(meanR_[sensor->getId()]);
+				if (inliers->indices.size() > 0)
+				{
+					sphere_detected_[sensor->getId()] = true;
 
-				// remember last mean position
-				last_mean_pos_[sensor->getId()] = ofVec3f(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
+					// get in- and outlier cloud
+					recon::CloudPtr in_cloud(new recon::Cloud());
+					recon::CloudPtr out_cloud(new recon::Cloud());
+					extractInOutliers(cloud_wo_back, inliers, in_cloud, out_cloud);
+					createOfMeshFromPoints(in_cloud, ofColor(0, 255, 0, 255), inliers_mesh_[sensor->getId()]);
+					auto c = cloudColors[sensor->getId()];
+					c.a = 64;
+					createOfMeshFromPoints(out_cloud, c, mesh_map_[sensor->getId()]);
 
-				// calculate new mean position
-				meanX_[sensor->getId()] = approxRollingAverage(meanX_[sensor->getId()], sphere_x * 1000, meanSamples_);
-				meanY_[sensor->getId()] = approxRollingAverage(meanY_[sensor->getId()], sphere_y * 1000, meanSamples_);
-				meanZ_[sensor->getId()] = approxRollingAverage(meanZ_[sensor->getId()], sphere_z * 1000, meanSamples_);
-				detected_sphere_location_[sensor->getId()].set(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
+					// calculate mean radius of calib target
+					meanR_[sensor->getId()] = approxRollingAverage(meanR_[sensor->getId()], sphere_r * 1000, meanSamples_);
+					detected_sphere_[sensor->getId()].setRadius(meanR_[sensor->getId()]);
+
+					// remember last mean position
+					last_mean_pos_[sensor->getId()] = ofVec3f(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
+
+					// calculate new mean position
+					meanX_[sensor->getId()] = approxRollingAverage(meanX_[sensor->getId()], sphere_x * 1000, meanSamples_);
+					meanY_[sensor->getId()] = approxRollingAverage(meanY_[sensor->getId()], sphere_y * 1000, meanSamples_);
+					meanZ_[sensor->getId()] = approxRollingAverage(meanZ_[sensor->getId()], sphere_z * 1000, meanSamples_);
+					detected_sphere_location_[sensor->getId()].set(meanX_[sensor->getId()], meanY_[sensor->getId()], meanZ_[sensor->getId()]);
+				}
+
+				else
+				{
+					sphere_detected_[sensor->getId()] = false;
+					// make ofMesh for displaying
+					ofMesh mesh;
+					auto c = cloudColors[sensor->getId()];
+					c.a = 64;
+					createOfMeshFromPoints(cloud_wo_back, c, mesh);
+					mesh_map_.erase(sensor->getId());
+					mesh_map_.insert(std::pair<int, ofMesh>(sensor->getId(), mesh));
+				}
+
+				// when tracking target has moved more than a cm in one of the directions
+				if (std::fabs(last_mean_pos_[sensor->getId()].x - meanX_[sensor->getId()]) >= 15
+					|| std::fabs(last_mean_pos_[sensor->getId()].y - meanY_[sensor->getId()]) >= 15
+					|| std::fabs(last_mean_pos_[sensor->getId()].z - meanZ_[sensor->getId()]) >= 15)
+				{
+					take_snapshot = false;
+				}
 			}
 			else
 			{
@@ -114,25 +138,16 @@ void ofApp::update()
 				mesh_map_.erase(sensor->getId());
 				mesh_map_.insert(std::pair<int, ofMesh>(sensor->getId(), mesh));
 			}
-
-			// when tracking target has moved more than a cm in one of the directions
-			if (std::fabs(last_mean_pos_[sensor->getId()].x - meanX_[sensor->getId()]) >= 15
-				|| std::fabs(last_mean_pos_[sensor->getId()].y - meanY_[sensor->getId()]) >= 15
-				|| std::fabs(last_mean_pos_[sensor->getId()].z - meanZ_[sensor->getId()]) >= 15)
-			{
-				take_snapshot = false;
-			}
 		}
 	}
 	// take snapshot if conditions where met
-	if (take_snapshot)
+	if (take_snapshot && trackingEnabled_)
 	{
 		// check elapsed time in static pose
 		auto now = std::chrono::steady_clock::now();
 		auto time_static = now - static_since_;
 		auto time_since_last_snap = now - last_snap_;
-		//		std::cout << "Static time: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_static).count()
-		//			<< "Time since last snap: " << std::chrono::duration_cast<std::chrono::seconds, long long, std::nano>(time_since_last_snap).count() << std::endl;
+
 		// if bigger than time to snapshot, do snapshot
 		if (time_static >= static_time_to_snapshot_ && time_since_last_snap >= static_time_to_snapshot_)
 		{
@@ -177,25 +192,28 @@ void ofApp::draw()
 
 		mesh_map_[sensor->getId()].drawVertices();
 
-		if (sphere_detected_[sensor->getId()])
+		if (trackingEnabled_)
 		{
-			inliers_mesh_[sensor->getId()].draw();
+			if (sphere_detected_[sensor->getId()])
+			{
+				inliers_mesh_[sensor->getId()].draw();
 
-			ofPushMatrix();
-			ofPushStyle();
-			ofSetColor(255, 0, 0);
-			ofTranslate(detected_sphere_location_[sensor->getId()]);
-			detected_sphere_[sensor->getId()].drawWireframe();
-			ofPopMatrix();
-			ofPopStyle();
-		}
+				ofPushMatrix();
+				ofPushStyle();
+				ofSetColor(255, 0, 0);
+				ofTranslate(detected_sphere_location_[sensor->getId()]);
+				detected_sphere_[sensor->getId()].drawWireframe();
+				ofPopMatrix();
+				ofPopStyle();
+			}
 
-		for (auto& p : *calib_positions_[sensor->getId()])
-		{
-			ofPushStyle();
-			ofSetColor(cloudColors[sensor->getId()]);
-			ofDrawBox(p.x, p.y, p.z, 30);
-			ofPopStyle();
+			for (auto& p : *calib_positions_[sensor->getId()])
+			{
+				ofPushStyle();
+				ofSetColor(cloudColors[sensor->getId()]);
+				ofDrawBox(p.x, p.y, p.z, 30);
+				ofPopStyle();
+			}
 		}
 		ofPopMatrix();
 	}
@@ -347,7 +365,7 @@ void ofApp::performICPTransformationEstimation()
 
 
 			auto trans = Eigen::Affine3f(icp.getFinalTransformation());
-			Eigen::Vector4f t(trans.translation().x()/1000, trans.translation().y() / 1000, trans.translation().z() / 1000, 0);
+			Eigen::Vector4f t(trans.translation().x() / 1000, trans.translation().y() / 1000, trans.translation().z() / 1000, 0);
 			Eigen::Quaternionf r = Eigen::Quaternionf(trans.rotation());
 			recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(t, r));
 
@@ -355,8 +373,4 @@ void ofApp::performICPTransformationEstimation()
 		}
 	}
 }
-
-
-
-
 

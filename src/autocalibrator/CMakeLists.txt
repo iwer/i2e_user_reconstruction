@@ -10,7 +10,8 @@ add_executable(autocalibrator
 target_link_libraries(autocalibrator 
     openFrameworks 
 	ofAddons 
-	librecon 
+	librecon
+	common
 	pcl-common
 	pcl-io
 	pcl-sample-consensus

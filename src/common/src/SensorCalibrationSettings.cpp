@@ -1,4 +1,4 @@
-#include "SensorCalibrationSettings.h"
+#include "common/SensorCalibrationSettings.h"
 #include <ofxXmlSettings.h>
 
 

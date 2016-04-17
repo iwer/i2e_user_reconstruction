@@ -5,3 +5,7 @@
 	path = src/librecon
 	url = git@code.feldschmiederei.de:Research/librecon.git
 	branch = develop
+[submodule "src/of-pcl-bridge"]
+	path = src/of-pcl-bridge
+	url = git@code.feldschmiederei.de:openFrameworks/of-pcl-bridge.git
+	branch = master

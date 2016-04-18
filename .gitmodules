@@ -9,3 +9,6 @@
 	path = src/of-pcl-bridge
 	url = git@code.feldschmiederei.de:openFrameworks/of-pcl-bridge.git
 	branch = master
+[submodule "src/autocalibrator"]
+	path = src/autocalibrator
+	url = git@code.feldschmiederei.de:I2E/KinectAutoCalibration.git

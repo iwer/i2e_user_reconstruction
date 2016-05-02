@@ -126,7 +126,7 @@ void PointCloudPlayer::readThreadFunction()
 			if (!err) {
 				if (cloud.size() > 0) {
 					recon::CloudPtr cloudPtr = boost::make_shared<recon::Cloud>(cloud);
-					callback(readIndex_, cloudPtr);
+					callback(readIndex_, sensor_index_, cloudPtr);
 
 					auto sleeptime = frameTime_ - avgReadFromDiskTime_;
 					std::this_thread::sleep_for(sleeptime);

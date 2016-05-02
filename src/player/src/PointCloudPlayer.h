@@ -9,6 +9,8 @@
 class PointCloudPlayer
 {
 public:
+	typedef boost::shared_ptr<PointCloudPlayer> Ptr;
+
 	PointCloudPlayer();
 	PointCloudPlayer(std::string path, int index, int fps);
 	~PointCloudPlayer();
@@ -22,7 +24,7 @@ public:
 	void start();
 	void stop();
 
-	boost::signals2::signal<void (int, recon::CloudPtr)> callback;
+	boost::signals2::signal<void (int, int, recon::CloudPtr)> callback;
 private:
 	bool running_;
 	int fps_;

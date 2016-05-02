@@ -1,4 +1,6 @@
 #include "ofApp.h"
+#include <recon/SensorFactory.h>
+#include <common/SensorCalibrationSettings.h>
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -13,32 +15,53 @@ void ofApp::setup(){
 
 	ui_.add(fpsSlider_.setup("FPS", 1, 1, 60));
 	ui_.add(sensorIndexSlider_.setup("SensorIndex", 0, 0, 2));
+	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
+	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
 
+	recon::SensorFactory sensorFac;
 
+	for(int i = 0; i < 2 ; i++)
+	{
+		sensors_.push_back(sensorFac.createDummySensor());
+		player_[sensors_.back()->getId()] = PointCloudPlayer::Ptr(new PointCloudPlayer(full_path.generic_string() + recorder_data_path.generic_string(),
+			sensors_.back()->getId(), 1));
+		player_[sensors_.back()->getId()]->callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2, _3));
+	}
 
-	player_.setBasePath(full_path.generic_string() + recorder_data_path.generic_string());
-	player_.callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2));
-	player_.start();
+	for (auto &s : sensors_) {
+		player_[s->getId()]->start();
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	if (cloud_) {
-		createOfMeshFromPoints(cloud_, mesh);
+	for (auto &s : sensors_) {
+		if (cloud_[s->getId()]) {
+			createOfMeshFromPoints(cloud_[s->getId()], mesh[s->getId()]);
+		}
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofBackground(0);
-	ofDrawBitmapString(std::to_string(frameNumber_) + std::string("/") + std::to_string(player_.getNumberFrames()), ofGetWidth() - 100, 10);
+	ofDrawBitmapString(std::to_string(frameNumber_[0]) + std::string("/") + std::to_string(player_[0]->getNumberFrames()), ofGetWidth() - 100, 10);
 	ofEnableDepthTest();
 
-	cam_.begin();
-	ofSetColor(255, 255, 255);
-	mesh.drawVertices();
-	cam_.end();
+	for (auto &s : sensors_) {
+		cam_.begin();
+		auto ext = s->getDepthExtrinsics();
+		auto translation = toOfVector3(*ext->getTranslation());
+		auto rotation = toOfQuaternion(*ext->getRotation());
+		ofVec3f qaxis;
+		float qangle;
+		rotation.getRotate(qangle, qaxis);
+		ofTranslate(translation);
+		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 
+		mesh[s->getId()].drawVertices();
+		cam_.end();
+	}
 	ofDisableDepthTest();
 	ui_.draw();
 }
@@ -93,23 +116,34 @@ void ofApp::gotMessage(ofMessage msg){
 
 }
 
-void ofApp::cloudCallback(int frameNumber, recon::CloudPtr cloud)
+void ofApp::cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud)
 {
-	frameNumber_ = frameNumber;
-	cloud_.swap(cloud);
+	frameNumber_[sensorIndex] = frameNumber;
+	cloud_[sensorIndex].swap(cloud);
 }
 
 void ofApp::updateFps(int &fps)
 {
-	player_.setFramesPerSecond(fps);
+	for (auto &s : sensors_) {
+		player_[s->getId()]->setFramesPerSecond(fps);
+	}
 }
 
 void ofApp::changeSensor(int & sensor)
 {
-	player_.setSensorIndex(sensor);
+	//player_.setSensorIndex(sensor);
 }
 
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+void ofApp::loadCalibrationFromFile()
+{
+	SensorCalibrationSettings set;
+	for (auto& s : sensors_)
+	{
+		set.loadCalibration(s, s->getId());
+	}
 }

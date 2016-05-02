@@ -13,6 +13,7 @@ target_link_libraries(player
     openFrameworks 
 	ofAddons 
 	librecon 
+	common
 	pcl-common
 	pcl-io
 	of-pcl-bridge

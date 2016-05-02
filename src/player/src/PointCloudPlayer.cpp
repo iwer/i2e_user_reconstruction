@@ -12,6 +12,14 @@ PointCloudPlayer::PointCloudPlayer()
 	setFramesPerSecond(1);
 }
 
+PointCloudPlayer::PointCloudPlayer(std::string path, int index, int fps)
+	: running_(false)
+	, readIndex_(0)
+	, sensor_index_(index)
+	, basepath_(path)
+{
+	setFramesPerSecond(fps);
+}
 
 PointCloudPlayer::~PointCloudPlayer()
 {
@@ -43,6 +51,7 @@ int PointCloudPlayer::count_files()
 			std::cout << iter->path().generic_string() << std::endl;
 			if (boost::regex_match(iter->path().generic_string(), e1))
 				++Nb_ext;
+			
 		}
 	}
 	std::cout << "Files for sensor " << sensor_index_ << " : " << Nb_ext;
@@ -54,6 +63,27 @@ void PointCloudPlayer::setFramesPerSecond(int fps)
 	fps_ = fps;
 	std::chrono::milliseconds sec(1000);
 	frameTime_ = sec / fps_;
+}
+
+int PointCloudPlayer::getNumberSensors(std::string path)
+{
+	boost::filesystem::path Path(path);
+	boost::regex e1(path + std::string("/capture_s") + std::string("(\\d+)_[0-9]{5}.pcd"));
+	boost::match_results<boost::filesystem::directory_iterator> what;
+	boost::filesystem::directory_iterator end_iter; // Default constructor for an iterator is the end iterator
+	
+	if (boost::filesystem::is_directory(Path)) {
+		boost::filesystem::directory_iterator iter(Path);
+		//boost::regex_search(iter, end_iter, what, e1, boost::match_default);
+
+		//std::cout << what.length() << std::endl;
+		//for (auto &r : what)
+		//{
+		//	std::cout << r << std::endl;
+		//}
+		
+	}
+	return 0;
 }
 
 int PointCloudPlayer::getNumberFrames()

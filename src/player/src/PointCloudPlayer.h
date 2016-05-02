@@ -10,11 +10,13 @@ class PointCloudPlayer
 {
 public:
 	PointCloudPlayer();
+	PointCloudPlayer(std::string path, int index, int fps);
 	~PointCloudPlayer();
 
 	void setBasePath(std::string path);
 	void setSensorIndex(int index);
 	void setFramesPerSecond(int fps);
+	static int getNumberSensors(std::string path);
 	int getNumberFrames();
 
 	void start();

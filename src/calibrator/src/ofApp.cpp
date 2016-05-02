@@ -1,5 +1,6 @@
 #include "ofApp.h"
 #include <of-pcl-bridge/of-pcl-bridge.h>
+#include <common/SensorCalibrationSettings.h>
 
 ofApp::ofApp()
 	: xTrans_("X Translation", 0, -5, 5)
@@ -38,6 +39,8 @@ void ofApp::setup(){
 	xRot_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	yRot_.addListener(this, &ofApp::guiUpdatedExtrinsics);
 	zRot_.addListener(this, &ofApp::guiUpdatedExtrinsics);
+	saveCalibrationBtn_.addListener(this, &ofApp::saveCalibrationToFile);
+	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
 	
 	ui_.add(nextCamBtm_.setup("Next Camera"));
 	ui_.add(prevCamBtm_.setup("Previous Camera"));
@@ -47,6 +50,9 @@ void ofApp::setup(){
 	ui_.add(xRotSl_.setup(xRot_));
 	ui_.add(yRotSl_.setup(yRot_));
 	ui_.add(zRotSl_.setup(zRot_));
+
+	ui_.add(saveCalibrationBtn_.setup("Save calibration"));
+	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
 }
 
 //--------------------------------------------------------------
@@ -82,7 +88,14 @@ void ofApp::draw(){
 			mesh_map_[sensor.second->getId()].enableColors();
 		}
 		ofPushMatrix();
-		ofMultMatrix(sensor_extrinsics_[sensor.second->getId()]);
+		auto ext = sensor.second->getDepthExtrinsics();
+		auto translation = toOfVector3(*ext->getTranslation());
+		auto rotation = toOfQuaternion(*ext->getRotation());
+		ofVec3f qaxis;
+		float qangle;
+		rotation.getRotate(qangle, qaxis);
+		ofTranslate(translation);
+		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 
 		mesh_map_[sensor.second->getId()].drawVertices();
 		ofPopMatrix();
@@ -206,4 +219,39 @@ void ofApp::guiUpdatedExtrinsics(float &dummy)
 	m.rotate(q);
 
 	sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
+}
+
+void ofApp::loadCalibrationFromFile()
+{
+	SensorCalibrationSettings set;
+	for (auto& s : sensor_list_)
+	{
+		set.loadCalibration(s.second, s.second->getId());
+		auto ext = sensor_list_[sensorIds_[s.second->getId()]]->getDepthExtrinsics();
+		ofVec3f t;
+		ofQuaternion q;
+		toOfVector3(*ext->getTranslation(), t);
+		toOfQuaternion(*ext->getRotation(), q);
+
+		ofMatrix4x4 m;
+		m.translate(t);
+		m.rotate(q);
+
+		sensor_extrinsics_[sensorIds_[s.second->getId()]] = m;
+	}
+}
+
+void ofApp::saveCalibrationToFile()
+{
+	SensorCalibrationSettings set;
+
+	for (auto& s : sensor_list_)
+	{
+		auto m = sensor_extrinsics_[sensorIds_[s.second->getId()]];
+		auto t = m.getTranslation();
+		auto q = m.getRotate();
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(toEigenVector4f(t), toEigenQuaternionf(q)));
+		sensor_list_[sensorIds_[s.second->getId()]]->setDepthExtrinsics(ext);
+		set.saveCalibration(s.second, s.second->getId());
+	}
 }

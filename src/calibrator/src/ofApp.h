@@ -30,6 +30,9 @@ class ofApp : public ofBaseApp{
 		void loadExtrinsicsFromCurrentSensor();
 		void guiUpdatedExtrinsics(float &dummy);
 
+		void loadCalibrationFromFile();
+		void saveCalibrationToFile();
+
 		int sensorCount_;
 		std::vector<int> sensorIds_;
 		std::map<int, recon::AbstractSensor::Ptr> sensor_list_;
@@ -52,6 +55,8 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider xRotSl_;
 		ofxFloatSlider yRotSl_;
 		ofxFloatSlider zRotSl_;
+		ofxButton saveCalibrationBtn_;
+		ofxButton loadCalibrationBtn_;
 
 		ofParameter<float> xTrans_;
 		ofParameter<float> yTrans_;

@@ -11,6 +11,7 @@ target_link_libraries(calibrator
     openFrameworks 
 	ofAddons 
 	librecon 
+	common
 	pcl-common
 	pcl-io
 	of-pcl-bridge

@@ -46,7 +46,9 @@ class ofApp : public ofBaseApp{
 		std::map<int, ofMesh> mesh;
 		std::list<recon::AbstractSensor::Ptr> sensors_;
 
+		std::mutex mapLock_;
 		void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud);
+		
 		void updateFps(int &fps);
 		void changeSensor(int &sensor);
 };

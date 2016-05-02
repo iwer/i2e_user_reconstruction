@@ -12,10 +12,6 @@ void ofApp::setup(){
 		//sensor_list_.push_back(sensorFac.createFilePointCloudGenerator(full_path.generic_string() + std::string("/data/vpscan01.pcd"), 
 		//	full_path.generic_string() + std::string("/data/vpbackground01.pcd")));
 		sensor_list_.push_back(sensorFac.createPclOpenNI2Grabber());
-		writer_list_.insert(std::pair<int, PointCloudWriter*>(sensor_list_.back()->getId(), new PointCloudWriter()));
-		writer_list_[sensor_list_.back()->getId()]->setBaseFileName(std::string("./data/recorder/capture"));
-		writer_list_[sensor_list_.back()->getId()]->setSensorDetails(sensor_list_.back());
-		writer_list_[sensor_list_.back()->getId()]->start();
 	}
 
 	switch (nSensors) {
@@ -49,7 +45,7 @@ void ofApp::update(){
 		}
 		auto cloud = sensor->getCloudSource()->getOutputCloud();
 		if (cloud != nullptr) {
-			writer_list_[sensor->getId()]->enquePointcloudForWriting(cloud);
+			writer_.enquePointcloudForWriting(sensor->getId(), cloud);
 		}
 	}
 }
@@ -58,7 +54,7 @@ void ofApp::update(){
 void ofApp::draw(){
 	for (auto &sensor : sensor_list_) {
 		sensor_images_[sensor->getId()].draw(imageLayout_[sensor->getId()]);
-		ofDrawBitmapString(std::string("Write Queue Length: ") + std::to_string(writer_list_[sensor->getId()]->getQueueLength()), 10, 10);
+		ofDrawBitmapString(std::string("Write Queue Length: ") + std::to_string(writer_.getQueueLength()), 10, 10);
 	}
 }
 

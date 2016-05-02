@@ -14,8 +14,7 @@ public:
 	~PointCloudWriter();
 
 	void setBaseFileName(std::string & filename);
-	void setSensorDetails(recon::AbstractSensor::Ptr sensor);
-	void enquePointcloudForWriting(recon::CloudConstPtr cloud);
+	void enquePointcloudForWriting(int sensorId, recon::CloudConstPtr cloud);
 
 	void start();
 	void stop();
@@ -23,13 +22,12 @@ public:
 	int getQueueLength();
 private:
 	bool running_;
-	int sensor_ID_;
 	Eigen::Vector4f sensor_translation_;
 	Eigen::Quaternionf sensor_rotation_;
 
 	int writeIndex_;
 	std::string base_filename_;
-	std::queue<recon::CloudConstPtr> cloud_queue_;
+	std::queue<std::pair<int, recon::CloudConstPtr>> cloud_queue_;
 	std::mutex queue_lock_;
 
 	std::thread * write_thread_;

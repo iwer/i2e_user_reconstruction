@@ -27,7 +27,7 @@ class ofApp : public ofBaseApp{
 		std::list<recon::AbstractSensor::Ptr> sensor_list_;
 		std::map<int, ofTexture> sensor_images_;
 		
-		std::map<int, PointCloudWriter*> writer_list_;
+		PointCloudWriter writer_;
 
 		std::vector<ofRectangle> imageLayout_;
 };

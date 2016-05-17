@@ -118,7 +118,7 @@ void ofApp::gotMessage(ofMessage msg){
 
 void ofApp::cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud)
 {
-	std::lock_guard<std::mutex> lock(mapLock_);
+	//std::lock_guard<std::mutex> lock(mapLock_);
 	frameNumber_[sensorIndex] = frameNumber;
 	cloud_[sensorIndex].swap(cloud);
 }

@@ -2,6 +2,7 @@
 
 add_library(common
     # Source files
+	src/common.cpp
 	src/SensorCalibrationSettings.cpp
 	# Header files (to be able to edit in VS et. al.)
 	include/common/common.h
@@ -26,6 +27,7 @@ target_compile_features(common
 target_link_libraries(common
 	openFrameworks
 	ofAddons
+	of-pcl-bridge
 	librecon
 )
 

@@ -1,18 +1,19 @@
 # Define an executable
-add_executable(recorder
+add_executable(sensorsync
     src/ofApp.cpp
     src/main.cpp
-	src/PointCloudWriter.cpp
 	# Headers
 	src/ofApp.h
-	src/PointCloudWriter.h
 	)
 
 # Define the libraries this project depends upon
-target_link_libraries(recorder 
+target_link_libraries(sensorsync 
     openFrameworks 
 	ofAddons 
 	librecon 
 	common
+	pcl-common
+	pcl-io
 	of-pcl-bridge
+	boost-regex
 )

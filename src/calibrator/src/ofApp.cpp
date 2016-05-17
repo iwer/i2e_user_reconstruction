@@ -1,6 +1,7 @@
 #include "ofApp.h"
 #include <of-pcl-bridge/of-pcl-bridge.h>
 #include <common/SensorCalibrationSettings.h>
+#include <common/common.h>
 
 ofApp::ofApp()
 	: xTrans_("X Translation", 0, -5, 5)
@@ -53,6 +54,8 @@ void ofApp::setup(){
 
 	ui_.add(saveCalibrationBtn_.setup("Save calibration"));
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
+
+	cam_.setFarClip(100000);
 }
 
 //--------------------------------------------------------------
@@ -98,6 +101,8 @@ void ofApp::draw(){
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 
 		mesh_map_[sensor.second->getId()].drawVertices();
+
+		drawCameraFrustum(sensor.second);
 		ofPopMatrix();
 	}
 	cam_.end();
@@ -219,6 +224,7 @@ void ofApp::guiUpdatedExtrinsics(float &dummy)
 	m.rotate(q);
 
 	sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
+	saveExtrinsicsToCurrentSensor();
 }
 
 void ofApp::loadCalibrationFromFile()

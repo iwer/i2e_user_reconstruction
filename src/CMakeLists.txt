@@ -50,5 +50,6 @@ add_subdirectory(player)
 add_subdirectory(calibrator)
 add_subdirectory(autocalibrator)
 add_subdirectory(sensorsync)
+add_subdirectory(texturemapping)
 
 #add_dependencies(ofAddons openFrameworks)

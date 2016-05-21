@@ -463,7 +463,6 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 		recon::PointType p;
 		for(auto &t : *triangles) {
-			// So easy, such style, very beauty, many readable, so wow!
 			for(auto &pointindex : t.vertices){
 				p = inputCloud->at(pointindex);
 				ofVec3f ofp = ofVec3f(p.x*1000,p.y*1000,p.z*1000);

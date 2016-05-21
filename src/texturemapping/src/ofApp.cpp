@@ -34,12 +34,12 @@ void ofApp::update(){
 
 	for (auto &sensor : sensor_list_) {
 		auto image = sensor->getCloudSource()->getOutputImage();
-		
+		ofTexture tex;
+
 		if (image != nullptr) {
-			ofTexture t;
-			toOfTexture(image, t);
+			toOfTexture(image, tex);
 			sensor_images_.erase(sensor->getId());
-			sensor_images_.insert(std::pair<int, ofTexture>(sensor->getId(), t));
+			sensor_images_.insert(std::pair<int, ofTexture>(sensor->getId(), tex));
 		}
 		else {
 			std::cerr << "Got no image from sensor " << sensor->getId() << std::endl;
@@ -48,21 +48,18 @@ void ofApp::update(){
 		auto cloud = sensor->getCloudSource()->getOutputCloud();
 		if(cloud != nullptr)
 		{
-			// downsample cloud for searching sphere
-			//recon::CloudPtr cloud_downsampled(new recon::Cloud());
-			//downsample(cloud, cloud_downsampled, resolution_);
-
 			// remove back- and foreground
 			recon::CloudPtr cloud_wo_back(new recon::Cloud());
 			removeBackground(cloud, cloud_wo_back, passMin_, passMax_);
 
 			// fast triangulation
 			recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
-			organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
+			organizedFastMesh(cloud, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
 
 
 			ofMesh m;
-			createOfMeshFromPointsAndTriangles(cloud_wo_back,tris, m);
+			//createOfMeshFromPointsAndTriangles(cloud,tris, m);
+			createOfMeshWithTexCoords(cloud, tris, tex, sensor, m);
 			//createOfMeshFromPoints(cloud, m);
 			sensor_meshes_.erase(sensor->getId());
 			sensor_meshes_.insert(std::pair<int, ofMesh>(sensor->getId(), m));
@@ -96,9 +93,11 @@ void ofApp::draw(){
 		rotation.getRotate(qangle, qaxis);
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-
+		sensor_images_[sensor->getId()].bind();
 		sensor_meshes_[sensor->getId()].draw();
-		drawCameraFrustum(sensor);
+		sensor_images_[sensor->getId()].unbind(); 
+
+		//drawCameraFrustum(sensor);
 		ofPopMatrix();
 
 	}

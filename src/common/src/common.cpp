@@ -83,11 +83,12 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 	auto transl = toOfVector3(*sensor->getDepthExtrinsics()->getTranslation());
 	auto rotate = toOfQuaternion(*sensor->getDepthExtrinsics()->getRotation());
 
-	mat.translate(transl.x, transl.y, transl.z);
 
 	ofVec3f qaxis; float qangle;
 	rotate.getRotate(qangle, qaxis);
-	mat.rotate(qangle, qaxis.x, qaxis.y, qaxis.z);
+	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
+	mat.rotate(180, 1, 0, 0);
+	mat.translate(-transl.x, transl.y, transl.z);
 
 	auto fov = sensor->getDepthIntrinsics()->getVFov();
 	auto aspect = sensor->getDepthIntrinsics()->getAspectRatio();
@@ -117,8 +118,9 @@ ofVec2f* calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::
 
 	rotate.getRotate(qangle, qaxis);
 
-	mat.rotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-	mat.translate(transl.x * 1000, transl.y * 1000, transl.z * 1000);
+	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
+	mat.rotate(180, 1, 0, 0);
+	mat.translate(-transl.x * 1000, transl.y * 1000, transl.z * 1000);
 
 	persp.makePerspectiveMatrix(intrinsics->getVFov(), intrinsics->getAspectRatio(), 10, 100000);
 	mat.postMult(persp);

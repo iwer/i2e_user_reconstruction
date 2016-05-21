@@ -54,12 +54,12 @@ void ofApp::update(){
 
 			// fast triangulation
 			recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
-			organizedFastMesh(cloud, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
+			organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
 
 
 			ofMesh m;
 			//createOfMeshFromPointsAndTriangles(cloud,tris, m);
-			createOfMeshWithTexCoords(cloud, tris, tex, sensor, m);
+			createOfMeshWithTexCoords(cloud_wo_back, tris, tex, sensor, m);
 			//createOfMeshFromPoints(cloud, m);
 			sensor_meshes_.erase(sensor->getId());
 			sensor_meshes_.insert(std::pair<int, ofMesh>(sensor->getId(), m));
@@ -97,8 +97,8 @@ void ofApp::draw(){
 		sensor_meshes_[sensor->getId()].draw();
 		sensor_images_[sensor->getId()].unbind(); 
 
-		//drawCameraFrustum(sensor);
 		ofPopMatrix();
+		drawCameraFrustum(sensor);
 
 	}
 	cam_.end();

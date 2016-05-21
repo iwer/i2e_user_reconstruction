@@ -102,8 +102,8 @@ void ofApp::draw(){
 
 		mesh_map_[sensor.second->getId()].drawVertices();
 
-		drawCameraFrustum(sensor.second);
 		ofPopMatrix();
+		drawCameraFrustum(sensor.second);
 	}
 	cam_.end();
 

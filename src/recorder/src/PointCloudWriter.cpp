@@ -1,5 +1,7 @@
 #include "PointCloudWriter.h"
 #include <chrono>
+#include <pcl/io/file_io.h>
+#include <pcl/io/lzf_image_io.h>
 
 using namespace std::chrono_literals;
 
@@ -23,10 +25,10 @@ void PointCloudWriter::setBaseFileName(std::string & filename)
 }
 
 
-void PointCloudWriter::enquePointcloudForWriting(int sensorId, recon::CloudConstPtr cloud)
+void PointCloudWriter::enquePointcloudForWriting(int sensorId, recon::CloudConstPtr cloud, recon::ImagePtr image)
 {
 	std::lock_guard<std::mutex> lock(queue_lock_);
-	cloud_queue_.push(std::pair<int, recon::CloudConstPtr>(sensorId, cloud));
+	queue_.push(SaveTriplet(sensorId, cloud, image));
 }
 
 void PointCloudWriter::start()
@@ -44,7 +46,7 @@ void PointCloudWriter::stop()
 int PointCloudWriter::getQueueLength()
 {
 	std::lock_guard<std::mutex> lock(queue_lock_);
-	return cloud_queue_.size();
+	return queue_.size();
 }
 
 std::string PointCloudWriter::fileNumber() {
@@ -57,21 +59,35 @@ void PointCloudWriter::writeThreadFunction()
 {
 	std::cout << "Starting writeThread" << std::endl;
 	while (running_) {
-		if (!cloud_queue_.empty()) {
+		if (!queue_.empty()) {
 			std::lock_guard<std::mutex> lock(queue_lock_);
-			if (!cloud_queue_.empty()) {
-				int id = cloud_queue_.front().first;
-				recon::CloudConstPtr c = cloud_queue_.front().second;
+			if (!queue_.empty()) {
+				auto id = queue_.front().id_;
+				auto c = queue_.front().cloud_;
+				auto i = queue_.front().image_;
 
-				std::string name = base_filename_ + std::string("_s")
+				std::string cloud_name = base_filename_ + std::string("_s")
 					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".pcd");
-				std::cout << "Writing: " << name << std::endl;
+				std::cout << "Writing: " << cloud_name << std::endl;
+				std::string image_name = base_filename_ + std::string("_s")
+					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".pclzf");
 
-
-				cloud_queue_.pop();
 				if (c->size() > 0) {
-					pcl::io::savePCDFileBinary(name, *c.get());
+					pcl::io::savePCDFileBinary(cloud_name, *c.get());
 				}
+				if(i->getDataSize() > 0)
+				{
+					auto data = static_cast<const char *>(i->getData());
+					pcl::io::LZFRGB24ImageWriter writer;
+					
+					if(!writer.write(data, i->getWidth(), i->getHeight(), image_name))
+					{
+						std::cout << "Could not write image" << std::endl;
+					}
+				}
+
+
+				queue_.pop();
 				++writeIndex_;
 			}
 			else {

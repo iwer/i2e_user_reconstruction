@@ -4,6 +4,7 @@
 #include "recon/SensorFactory.h"
 #include "of-pcl-bridge/of-pcl-bridge.h"
 #include "PointCloudWriter.h"
+#include <ofxGui.h>
 
 class ofApp : public ofBaseApp{
 
@@ -30,4 +31,7 @@ class ofApp : public ofBaseApp{
 		PointCloudWriter writer_;
 
 		std::vector<ofRectangle> imageLayout_;
+
+		ofxPanel ui_;
+		ofxToggle record_;
 };

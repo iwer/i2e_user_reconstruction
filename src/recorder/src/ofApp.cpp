@@ -27,6 +27,12 @@ void ofApp::setup(){
 	}
 	
 	ofSetFrameRate(30);
+
+
+	ui_.setup();
+	ui_.add(record_.setup("Record", false));
+	writer_.setBaseFileName(std::string("data/recorder/capture"));
+	writer_.start();
 }
 
 //--------------------------------------------------------------
@@ -35,18 +41,19 @@ void ofApp::update(){
 	for (auto &sensor : sensor_list_) {
 		ofTexture t;
 		auto image = sensor->getCloudSource()->getOutputImage();
+		auto cloud = sensor->getCloudSource()->getOutputCloud();
 		if (image != nullptr) {
 			toOfTexture(image, t);
 			sensor_images_.erase(sensor->getId());
 			sensor_images_.insert(std::pair<int, ofTexture>(sensor->getId(), t));
+			if (cloud != nullptr && record_) {
+				writer_.enquePointcloudForWriting(sensor->getId(), cloud, image);
+			}
 		}
 		else {
 			std::cerr << "Got no image from sensor " << sensor->getId() << std::endl;
 		}
-		auto cloud = sensor->getCloudSource()->getOutputCloud();
-		if (cloud != nullptr) {
-			writer_.enquePointcloudForWriting(sensor->getId(), cloud);
-		}
+
 	}
 }
 
@@ -56,6 +63,8 @@ void ofApp::draw(){
 		sensor_images_[sensor->getId()].draw(imageLayout_[sensor->getId()]);
 		ofDrawBitmapString(std::string("Write Queue Length: ") + std::to_string(writer_.getQueueLength()), 10, 10);
 	}
+
+	ui_.draw();
 }
 
 //--------------------------------------------------------------

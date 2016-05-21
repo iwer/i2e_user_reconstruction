@@ -18,6 +18,6 @@ void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr &triangles,
 void drawCameraFrustum(recon::AbstractSensor::Ptr sensor);
 
 
-ofVec2f* calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::AbstractSensor::Ptr sensor);
+ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::AbstractSensor::Ptr sensor);
 void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src, boost::shared_ptr<std::vector<pcl::Vertices>> triangles, ofTexture & texture, recon::AbstractSensor::Ptr sensor, ofMesh &targetMesh);
 

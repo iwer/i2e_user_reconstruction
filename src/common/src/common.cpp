@@ -106,7 +106,7 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 }
 
 
-ofVec2f* calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::AbstractSensor::Ptr sensor)
+ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::AbstractSensor::Ptr sensor)
 {
 	ofVec3f qaxis; float qangle;
 	ofMatrix4x4 mat, persp;
@@ -133,7 +133,7 @@ ofVec2f* calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::
 	// scale to 0, width
 	auto new_x = (projectedPoint.x + 1) * .5 * width;
 	auto new_y = (projectedPoint.y + 1) * .5 * height;
-	return new ofVec2f(new_x, new_y);
+	return ofVec2f(new_x, new_y);
 }
 
 void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src, 
@@ -154,7 +154,7 @@ void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
 				ofVec3f ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 				targetMesh.addVertex(ofp);
 
-				targetMesh.addTexCoord(*calculateTextureCoordinate(ofp, texture, sensor));
+				targetMesh.addTexCoord(calculateTextureCoordinate(ofp, texture, sensor));
 			}
 		}
 	}

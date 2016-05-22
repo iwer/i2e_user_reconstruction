@@ -120,13 +120,12 @@ ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::A
 
 	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
 	mat.rotate(180, 1, 0, 0);
-	mat.translate(-transl.x * 1000, transl.y * 1000, transl.z * 1000);
+	mat.translate(-transl.x, transl.y, transl.z);
 
 	persp.makePerspectiveMatrix(intrinsics->getVFov(), intrinsics->getAspectRatio(), 10, 100000);
 	mat.postMult(persp);
-	//mat = mat.getInverse();
 
-	ofVec4f projectedPoint = ofVec4f(point.x, point.y, point.z, 1) * mat;// persp.postMult(ofVec4f(point.x, point.y, point.z, 1));
+	ofVec4f projectedPoint = ofVec4f(point.x, point.y, point.z, 1) * mat;
 	// scale to -1, 1
 	projectedPoint.x /= projectedPoint.w;
 	projectedPoint.y /= projectedPoint.w;

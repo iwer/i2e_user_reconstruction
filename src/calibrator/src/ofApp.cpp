@@ -10,6 +10,11 @@ ofApp::ofApp()
 	, xRot_("X Rotation", 0, -180, 180)
 	, yRot_("Y Rotation", 0, -180, 180)
 	, zRot_("Z Rotation", 0, -180, 180)
+	, passMin_("Z Min", .01, .01, 8)
+	, passMax_("Z Max", 2.5, .01, 8)
+	, triEdgeLength_("Triangle Edge Length", 5, 1, 50)
+	, angleTolerance_("Angle Tolerance", 15, 1, 180)
+	, distanceTolerance_("Distance Tolerance", .2, .001, .5)
 {}
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -52,6 +57,12 @@ void ofApp::setup(){
 	ui_.add(yRotSl_.setup(yRot_));
 	ui_.add(zRotSl_.setup(zRot_));
 
+	ui_.add(passMinSl_.setup(passMin_));
+	ui_.add(passMaxSl_.setup(passMax_));
+	ui_.add(triEdgeLengthSl_.setup(triEdgeLength_));
+	ui_.add(angleToleranceSl_.setup(angleTolerance_));
+	ui_.add(distanceToleranceSl_.setup(distanceTolerance_));
+
 	ui_.add(saveCalibrationBtn_.setup("Save calibration"));
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
 
@@ -61,10 +72,32 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
 	for (auto &sensor : sensor_list_) {
+		auto image = sensor.second->getCloudSource()->getOutputImage();
+		ofTexture tex;
+
+		if (image != nullptr) {
+			toOfTexture(image, tex);
+			image_map_.erase(sensor.second->getId());
+			image_map_.insert(std::pair<int, ofTexture>(sensor.second->getId(), tex));
+		}
+		else {
+			std::cerr << "Got no image from sensor " << sensor.second->getId() << std::endl;
+		}
+
 		auto cloud = sensor.second->getCloudSource()->getOutputCloud();
 		if (cloud != nullptr) {
+			// remove back- and foreground
+			recon::CloudPtr cloud_wo_back(new recon::Cloud());
+			removeBackground(cloud, cloud_wo_back, passMin_, passMax_);
+
+			// fast triangulation
+			recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
+			organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
+
 			ofMesh mesh;
-			createOfMeshFromPoints(cloud, cloudColor_[sensor.second->getId()], mesh);
+			//createOfMeshFromPoints(cloud, cloudColor_[sensor.second->getId()], mesh);
+			createOfMeshWithTexCoords(cloud_wo_back, tris, tex, sensor.second, mesh);
+			mesh_map_.erase(sensor.second->getId());
 			mesh_map_[sensor.second->getId()] = mesh;
 		}
 	}
@@ -100,7 +133,9 @@ void ofApp::draw(){
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 
-		mesh_map_[sensor.second->getId()].drawVertices();
+		image_map_[sensor.second->getId()].bind();
+		mesh_map_[sensor.second->getId()].draw();
+		image_map_[sensor.second->getId()].unbind();
 
 		ofPopMatrix();
 		drawCameraFrustum(sensor.second);
@@ -233,7 +268,7 @@ void ofApp::loadCalibrationFromFile()
 	for (auto& s : sensor_list_)
 	{
 		set.loadCalibration(s.second, s.second->getId());
-		auto ext = sensor_list_[sensorIds_[s.second->getId()]]->getDepthExtrinsics();
+		auto ext = s.second->getDepthExtrinsics();
 		ofVec3f t;
 		ofQuaternion q;
 		toOfVector3(*ext->getTranslation(), t);

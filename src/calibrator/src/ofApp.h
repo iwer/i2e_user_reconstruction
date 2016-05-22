@@ -40,6 +40,7 @@ class ofApp : public ofBaseApp{
 		ofEasyCam cam_;
 
 		std::map<int, ofMesh> mesh_map_;
+		std::map<int, ofTexture> image_map_;
 		std::map<int, ofColor> cloudColor_;
 		std::map<int, ofMatrix4x4> sensor_extrinsics_;
 		int selected_sensor_id_;
@@ -55,6 +56,11 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider xRotSl_;
 		ofxFloatSlider yRotSl_;
 		ofxFloatSlider zRotSl_;
+		ofxFloatSlider passMinSl_;
+		ofxFloatSlider passMaxSl_;
+		ofxIntSlider triEdgeLengthSl_;
+		ofxFloatSlider angleToleranceSl_;
+		ofxFloatSlider distanceToleranceSl_;
 		ofxButton saveCalibrationBtn_;
 		ofxButton loadCalibrationBtn_;
 
@@ -64,4 +70,9 @@ class ofApp : public ofBaseApp{
 		ofParameter<float> xRot_;
 		ofParameter<float> yRot_;
 		ofParameter<float> zRot_;
+		ofParameter<float> passMin_;
+		ofParameter<float> passMax_;
+		ofParameter<int> triEdgeLength_;
+		ofParameter<float> angleTolerance_;
+		ofParameter<float> distanceTolerance_;
 };

@@ -32,6 +32,8 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
+		void loadCalibrationFromFile();
+
 		int selected_sensor_;
 
 		ofEasyCam cam_;
@@ -57,6 +59,7 @@ class ofApp : public ofBaseApp{
 		ofxIntSlider triEdgeLengthSl_;
 		ofxFloatSlider angleToleranceSl_;
 		ofxFloatSlider distanceToleranceSl_;
+		ofxButton loadCalibrationBtn_;
 
 		ofxPanel ui_;
 

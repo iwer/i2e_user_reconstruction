@@ -2,6 +2,7 @@
 #include <recon/SensorFactory.h>
 #include <of-pcl-bridge/of-pcl-bridge.h>
 #include <common/common.h>
+#include <common/SensorCalibrationSettings.h>
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -19,6 +20,8 @@ void ofApp::setup(){
 	cam_.setFarClip(10000);
 
 	// gui
+	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
+	
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
 	ui_.add(passMinSl_.setup(passMin_));
@@ -27,6 +30,8 @@ void ofApp::setup(){
 	ui_.add(triEdgeLengthSl_.setup(triEdgeLength_));
 	ui_.add(angleToleranceSl_.setup(angleTolerance_));
 	ui_.add(distanceToleranceSl_.setup(distanceTolerance_));
+	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
+
 }
 
 //--------------------------------------------------------------
@@ -160,4 +165,13 @@ void ofApp::gotMessage(ofMessage msg){
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
 
+}
+
+void ofApp::loadCalibrationFromFile()
+{
+	SensorCalibrationSettings set;
+	for (auto& s : sensor_list_)
+	{
+		set.loadCalibration(s, s->getId());
+	}
 }

@@ -31,6 +31,7 @@ void ofApp::setup(){
 	ui_.add(angleToleranceSl_.setup(angleTolerance_));
 	ui_.add(distanceToleranceSl_.setup(distanceTolerance_));
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
+	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 
 }
 
@@ -55,7 +56,7 @@ void ofApp::update(){
 		{
 			// remove back- and foreground
 			recon::CloudPtr cloud_wo_back(new recon::Cloud());
-			removeBackground(cloud, cloud_wo_back, passMin_, passMax_);
+			removeBackground(cloud, cloud_wo_back, passMin_, passMax_, true);
 
 			// fast triangulation
 			recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
@@ -99,7 +100,12 @@ void ofApp::draw(){
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 		sensor_images_[sensor->getId()].bind();
-		sensor_meshes_[sensor->getId()].draw();
+		if (fillWireFrameTgl_) {
+			sensor_meshes_[sensor->getId()].draw();
+		} else
+		{
+			sensor_meshes_[sensor->getId()].drawWireframe();
+		}
 		sensor_images_[sensor->getId()].unbind(); 
 
 		ofPopMatrix();

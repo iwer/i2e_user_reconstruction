@@ -60,6 +60,7 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider angleToleranceSl_;
 		ofxFloatSlider distanceToleranceSl_;
 		ofxButton loadCalibrationBtn_;
+		ofxToggle fillWireFrameTgl_;
 
 		ofxPanel ui_;
 

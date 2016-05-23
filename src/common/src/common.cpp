@@ -22,22 +22,22 @@ void downsample(recon::CloudConstPtr src, recon::CloudPtr trgt, float resolution
 	auto indices = sor.getIndices();
 }
 
-void removeBackground(recon::CloudConstPtr src, recon::CloudPtr trgt, float min, float max)
+void removeBackground(recon::CloudConstPtr src, recon::CloudPtr trgt, float min, float max, bool keepOrganized)
 {
 	pcl::PassThrough<recon::PointType> pass;
 	pass.setFilterFieldName("z");
 	pass.setFilterLimits(min, max);
-	pass.setKeepOrganized(true);
+	pass.setKeepOrganized(keepOrganized);
 	pass.setInputCloud(src);
 	pass.filter(*trgt);
 }
 
-void removeBackground(recon::CloudPtr src, recon::CloudPtr trgt, float min, float max)
+void removeBackground(recon::CloudPtr src, recon::CloudPtr trgt, float min, float max, bool keepOrganized)
 {
 	pcl::PassThrough<recon::PointType> pass;
 	pass.setFilterFieldName("z");
 	pass.setFilterLimits(min, max);
-	pass.setKeepOrganized(true);
+	pass.setKeepOrganized(keepOrganized);
 	pass.setInputCloud(src);
 	pass.filter(*trgt);
 }
@@ -116,7 +116,7 @@ ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::A
 	// counter pcl s positive z-direction
 	mat.rotate(180, 1, 0, 0);
 
-	// create View Matrix
+	// create ViewProjection Matrix
 	persp.makePerspectiveMatrix(intrinsics->getVFov(), intrinsics->getAspectRatio(), 10, 100000);
 	mat.postMult(persp);
 

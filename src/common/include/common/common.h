@@ -6,8 +6,12 @@ float approxRollingAverage(float avg, float new_sample, int window);
 
 void downsample(recon::CloudConstPtr cloud, recon::CloudPtr cloud_downsampled, float resolution);
 
-void removeBackground(recon::CloudPtr src, recon::CloudPtr trgt, float min, float max);
-void removeBackground(recon::CloudConstPtr src, recon::CloudPtr trgt, float min, float max);
+/**
+* A simple Depth threshold filter. keepOrganized should be set to true if for example the resrult should be meshed using OrganizedFastMesh.
+* Ransac however is much faster when keepOrganized is set to false. That is because organized Pointclouds keep removed Points as placeholders
+*/
+void removeBackground(recon::CloudPtr src, recon::CloudPtr trgt, float min, float max, bool keepOrganized);
+void removeBackground(recon::CloudConstPtr src, recon::CloudPtr trgt, float min, float max, bool keepOrganized);
 
 void extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, recon::CloudPtr in_cloud, recon::CloudPtr out_cloud);
 

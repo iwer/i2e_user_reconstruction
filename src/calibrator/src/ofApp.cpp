@@ -88,7 +88,7 @@ void ofApp::update(){
 		if (cloud != nullptr) {
 			// remove back- and foreground
 			recon::CloudPtr cloud_wo_back(new recon::Cloud());
-			removeBackground(cloud, cloud_wo_back, passMin_, passMax_);
+			removeBackground(cloud, cloud_wo_back, passMin_, passMax_, true);
 
 			// fast triangulation
 			recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());

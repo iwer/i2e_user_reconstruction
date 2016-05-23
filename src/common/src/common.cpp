@@ -108,23 +108,19 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 
 ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::AbstractSensor::Ptr sensor)
 {
-	ofVec3f qaxis; float qangle;
 	ofMatrix4x4 mat, persp;
 	auto width = texture.getWidth();
 	auto height = texture.getHeight();
 	auto intrinsics = sensor->getDepthIntrinsics();
-	auto transl = toOfVector3(*sensor->getDepthExtrinsics()->getTranslation());
-	auto rotate = toOfQuaternion(*sensor->getDepthExtrinsics()->getRotation());
 
-	rotate.getRotate(qangle, qaxis);
-
-	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
+	// counter pcl s positive z-direction
 	mat.rotate(180, 1, 0, 0);
-	mat.translate(-transl.x, transl.y, transl.z);
 
+	// create View Matrix
 	persp.makePerspectiveMatrix(intrinsics->getVFov(), intrinsics->getAspectRatio(), 10, 100000);
 	mat.postMult(persp);
 
+	// project 3d point to 2d camera plane to obtain texcoords
 	ofVec4f projectedPoint = ofVec4f(point.x, point.y, point.z, 1) * mat;
 	// scale to -1, 1
 	projectedPoint.x /= projectedPoint.w;

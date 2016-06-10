@@ -140,6 +140,8 @@ void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
 	if (triangles && src) {
 		// triangle inputMesh
 		targetMesh.clear();
+		targetMesh.enableColors();
+		
 		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 		pcl::PointXYZRGB p;
 
@@ -148,7 +150,7 @@ void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
 				p = src->at(pointindex);
 				ofVec3f ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 				targetMesh.addVertex(ofp);
-
+				targetMesh.addColor(ofColor(p.r, p.g, p.b));
 				targetMesh.addTexCoord(calculateTextureCoordinate(ofp, texture, sensor));
 			}
 		}

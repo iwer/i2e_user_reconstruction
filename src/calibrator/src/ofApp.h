@@ -62,6 +62,7 @@ class ofApp : public ofBaseApp{
 		ofxFloatSlider angleToleranceSl_;
 		ofxFloatSlider distanceToleranceSl_;
 		ofxToggle perPixelColor_;
+		ofxToggle showFrustum_;
 		ofxButton saveCalibrationBtn_;
 		ofxButton loadCalibrationBtn_;
 

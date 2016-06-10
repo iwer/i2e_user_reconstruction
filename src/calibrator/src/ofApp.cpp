@@ -63,7 +63,8 @@ void ofApp::setup(){
 	ui_.add(angleToleranceSl_.setup(angleTolerance_));
 	ui_.add(distanceToleranceSl_.setup(distanceTolerance_));
 
-	ui_.add(perPixelColor_.setup(false));
+	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
+	ui_.add(showFrustum_.setup("Show Frustum", false));
 
 	ui_.add(saveCalibrationBtn_.setup("Save calibration"));
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
@@ -98,12 +99,8 @@ void ofApp::update(){
 
 			ofMesh mesh;
 			
-			if (perPixelColor_) {
-				createOfMeshWithTexCoords(cloud_wo_back, tris, tex, sensor.second, mesh);
-			} else
-			{
-				createOfMeshFromPoints(cloud, mesh);
-			}
+			createOfMeshWithTexCoords(cloud_wo_back, tris, tex, sensor.second, mesh);
+
 			mesh_map_.erase(sensor.second->getId());
 			mesh_map_[sensor.second->getId()] = mesh;
 		}
@@ -118,17 +115,17 @@ void ofApp::draw(){
 
 	cam_.begin();
 	ofEnableDepthTest();
-	ofDrawAxis(1000);
+	ofDrawAxis(10);
 
 	
 	for (auto &sensor : sensor_list_) {
-		if(sensor.second->getId() == sensorIds_[selected_sensor_id_])
+		if (sensor.second->getId() == sensorIds_[selected_sensor_id_])
 		{
-			mesh_map_[sensor.second->getId()].disableColors();
+			mesh_map_[sensor.second->getId()].enableColors();
 		}
 		else
 		{
-			mesh_map_[sensor.second->getId()].enableColors();
+			mesh_map_[sensor.second->getId()].disableColors();
 		}
 		ofPushMatrix();
 		auto ext = sensor.second->getDepthExtrinsics();
@@ -140,15 +137,23 @@ void ofApp::draw(){
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 
-		image_map_[sensor.second->getId()].bind();
-		mesh_map_[sensor.second->getId()].draw();
-		image_map_[sensor.second->getId()].unbind();
+		if (perPixelColor_){
+			image_map_[sensor.second->getId()].bind();
+			mesh_map_[sensor.second->getId()].disableColors();
+			mesh_map_[sensor.second->getId()].enableTextures();
+			mesh_map_[sensor.second->getId()].draw();
+			image_map_[sensor.second->getId()].unbind();
+		}
+		else {
+			mesh_map_[sensor.second->getId()].draw();
+		}
 
 		ofPopMatrix();
-		drawCameraFrustum(sensor.second);
+		if(showFrustum_)
+			drawCameraFrustum(sensor.second);
 	}
 	cam_.end();
-
+	ofEnableSetupScreen();
 	ofDisableDepthTest();
 	ui_.draw();
 }

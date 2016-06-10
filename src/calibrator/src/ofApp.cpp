@@ -63,6 +63,8 @@ void ofApp::setup(){
 	ui_.add(angleToleranceSl_.setup(angleTolerance_));
 	ui_.add(distanceToleranceSl_.setup(distanceTolerance_));
 
+	ui_.add(perPixelColor_.setup(false));
+
 	ui_.add(saveCalibrationBtn_.setup("Save calibration"));
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
 
@@ -95,8 +97,13 @@ void ofApp::update(){
 			organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
 
 			ofMesh mesh;
-			//createOfMeshFromPoints(cloud, cloudColor_[sensor.second->getId()], mesh);
-			createOfMeshWithTexCoords(cloud_wo_back, tris, tex, sensor.second, mesh);
+			
+			if (perPixelColor_) {
+				createOfMeshWithTexCoords(cloud_wo_back, tris, tex, sensor.second, mesh);
+			} else
+			{
+				createOfMeshFromPoints(cloud, mesh);
+			}
 			mesh_map_.erase(sensor.second->getId());
 			mesh_map_[sensor.second->getId()] = mesh;
 		}

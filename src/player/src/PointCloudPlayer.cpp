@@ -3,6 +3,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/regex.hpp>
+#include <pcl/io/image_rgb24.h>
+#include <pcl/io/lzf_image_io.h>
 
 PointCloudPlayer::PointCloudPlayer()
 	: running_(false)
@@ -119,11 +121,19 @@ void PointCloudPlayer::readThreadFunction()
 		if (boost::filesystem::is_regular_file(boost::filesystem::path(filePath))) {
 			recon::Cloud cloud;
 			auto start = std::chrono::high_resolution_clock::now();
-			int err = pcl::io::loadPCDFile(filePath, cloud);
+			int cerr = pcl::io::loadPCDFile(filePath, cloud);
 			auto end = std::chrono::high_resolution_clock::now();
 			auto elapsed_time = end - start;
 			avgReadFromDiskTime_ = avgReadFromDiskTime_ + ((elapsed_time - avgReadFromDiskTime_) / (readIndex_ + 1));
-			if (!err) {
+			
+			//pcl::io::ImageRGB24 image;
+			//pcl::io::LZFRGB24ImageReader reader;
+
+			//int ierr = reader.
+
+			
+			
+			if (!cerr) {
 				if (cloud.size() > 0) {
 					recon::CloudPtr cloudPtr = boost::make_shared<recon::Cloud>(cloud);
 					callback(readIndex_, sensor_index_, cloudPtr);

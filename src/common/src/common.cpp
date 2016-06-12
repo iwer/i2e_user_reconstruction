@@ -140,8 +140,6 @@ void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
 	if (triangles && src) {
 		// triangle inputMesh
 		targetMesh.clear();
-		targetMesh.enableColors();
-		
 		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 		pcl::PointXYZRGB p;
 

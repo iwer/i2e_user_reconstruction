@@ -1,7 +1,8 @@
 #include "PointCloudWriter.h"
 #include <chrono>
 #include <pcl/io/file_io.h>
-#include <pcl/io/lzf_image_io.h>
+#include <ofTexture.h>
+#include <of-pcl-bridge/of-pcl-bridge.h>
 
 using namespace std::chrono_literals;
 
@@ -70,20 +71,17 @@ void PointCloudWriter::writeThreadFunction()
 					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".pcd");
 				std::cout << "Writing: " << cloud_name << std::endl;
 				std::string image_name = base_filename_ + std::string("_s")
-					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".pclzf");
+					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".png");
 
 				if (c->size() > 0) {
 					pcl::io::savePCDFileBinary(cloud_name, *c.get());
 				}
 				if(i->getDataSize() > 0)
 				{
-					auto data = static_cast<const char *>(i->getData());
-					pcl::io::LZFRGB24ImageWriter writer;
-					
-					if(!writer.write(data, i->getWidth(), i->getHeight(), image_name))
-					{
-						std::cout << "Could not write image" << std::endl;
-					}
+					ofImage t;
+					toOfTexture(i, t.getTextureReference());
+
+					t.save(image_name);
 				}
 
 

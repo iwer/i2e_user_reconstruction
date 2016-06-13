@@ -5,6 +5,7 @@
 #include <chrono>
 #include <boost/signals2.hpp>
 #include "recon/typedefs.h"
+#include <ofImage.h>
 
 class PointCloudPlayer
 {
@@ -24,7 +25,7 @@ public:
 	void start();
 	void stop();
 
-	boost::signals2::signal<void (int, int, recon::CloudPtr)> callback;
+	boost::signals2::signal<void (int, int, recon::CloudPtr, std::shared_ptr<ofImage>)> callback;
 private:
 	bool running_;
 	int fps_;

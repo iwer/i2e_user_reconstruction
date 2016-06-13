@@ -7,7 +7,7 @@ void ofApp::setup(){
 	boost::filesystem::path full_path(boost::filesystem::current_path());
 	std::cout << "Current path is : " << full_path << std::endl;
 
-	boost::filesystem::path recorder_data_path("/data/recorder");
+	boost::filesystem::path recorder_data_path("./data/recorder");
 
 	ui_.setup();
 	fpsSlider_.addListener(this, &ofApp::updateFps);
@@ -18,18 +18,35 @@ void ofApp::setup(){
 	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
 
+	int sensorCount = PointCloudPlayer::getNumberSensors(full_path.generic_string() + recorder_data_path.generic_string());
+	std::cout << "Sensor count: " << sensorCount << std::endl;
+
 	recon::SensorFactory sensorFac;
 
-	for(int i = 0; i < 2 ; i++)
+	for(int i = 0; i < sensorCount; i++)
 	{
 		sensors_.push_back(sensorFac.createDummySensor());
 		player_[sensors_.back()->getId()] = PointCloudPlayer::Ptr(new PointCloudPlayer(full_path.generic_string() + recorder_data_path.generic_string(),
 			sensors_.back()->getId(), 1));
-		player_[sensors_.back()->getId()]->callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2, _3));
+		player_[sensors_.back()->getId()]->callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2, _3, _4));
 	}
 
 	for (auto &s : sensors_) {
 		player_[s->getId()]->start();
+		image_[s->getId()].reset(new ofImage());
+	}
+
+
+	switch (sensorCount) {
+	case 1:
+		imageLayout_.push_back(ofRectangle(0, 0, ofGetWidth(), ofGetHeight()));
+	case 2:
+	case 3:
+	case 4:
+		imageLayout_.push_back(ofRectangle(0, 0, ofGetWidth() / 2, ofGetHeight() / 2));
+		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, 0, ofGetWidth() / 2, ofGetHeight() / 2));
+		imageLayout_.push_back(ofRectangle(0, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
+		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
 	}
 }
 
@@ -61,9 +78,18 @@ void ofApp::draw(){
 
 		mesh[s->getId()].drawVertices();
 		cam_.end();
+		if (image_[s->getId()]->isAllocated()) {
+			//ofPushMatrix();
+			//ofTranslate(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3);
+			//ofScale(.25, .25, .25);
+			image_[s->getId()]->getTexture().draw(imageLayout_[s->getId()]);
+			//ofPopMatrix();
+		}
 	}
 	ofDisableDepthTest();
 	ui_.draw();
+
+
 }
 
 //--------------------------------------------------------------
@@ -116,11 +142,12 @@ void ofApp::gotMessage(ofMessage msg){
 
 }
 
-void ofApp::cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud)
+void ofApp::cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image)
 {
 	//std::lock_guard<std::mutex> lock(mapLock_);
 	frameNumber_[sensorIndex] = frameNumber;
 	cloud_[sensorIndex].swap(cloud);
+	image_[sensorIndex].swap(image);
 }
 
 void ofApp::updateFps(int &fps)

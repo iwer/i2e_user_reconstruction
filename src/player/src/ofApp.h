@@ -44,11 +44,15 @@ class ofApp : public ofBaseApp{
 		std::map<int, int> frameNumber_;
 		std::map<int, recon::CloudPtr> cloud_;
 		std::map<int, ofMesh> mesh;
+		std::map<int, std::shared_ptr<ofImage>> image_;
 		std::list<recon::AbstractSensor::Ptr> sensors_;
 
 		std::mutex mapLock_;
-		void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud);
+		void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image);
 		
 		void updateFps(int &fps);
 		void changeSensor(int &sensor);
+
+		std::vector<ofRectangle> imageLayout_;
+
 };

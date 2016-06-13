@@ -44,7 +44,7 @@ int PointCloudPlayer::count_files()
 	std::string ext(".pcd");
 	boost::filesystem::path Path(basepath_);
 	boost::regex e1(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_) + std::string("_[0-9]{5}.pcd"));
-	int Nb_ext = 0;
+	int numberFileswithExt = 0;
 	boost::filesystem::directory_iterator end_iter; // Default constructor for an iterator is the end iterator
 
 	if (boost::filesystem::is_directory(Path)) {
@@ -52,12 +52,12 @@ int PointCloudPlayer::count_files()
 			//if (iter->path().extension() == ext)
 			std::cout << iter->path().generic_string() << std::endl;
 			if (boost::regex_match(iter->path().generic_string(), e1))
-				++Nb_ext;
+				++numberFileswithExt;
 			
 		}
 	}
-	std::cout << "Files for sensor " << sensor_index_ << " : " << Nb_ext;
-	return Nb_ext;
+	std::cout << "Files for sensor " << sensor_index_ << " : " << numberFileswithExt;
+	return numberFileswithExt;
 }
 
 void PointCloudPlayer::setFramesPerSecond(int fps)

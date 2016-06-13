@@ -69,19 +69,20 @@ void PointCloudWriter::writeThreadFunction()
 
 				std::string cloud_name = base_filename_ + std::string("_s")
 					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".pcd");
-				std::cout << "Writing: " << cloud_name << std::endl;
-				std::string image_name = base_filename_ + std::string("_s")
-					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".png");
+				std::string image_name = std::string("recorder/capture") + std::string("_s")
+					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".jpg");
 
 				if (c->size() > 0) {
+					std::cout << "Writing: " << cloud_name << std::endl;
 					pcl::io::savePCDFileBinary(cloud_name, *c.get());
 				}
 				if(i->getDataSize() > 0)
 				{
-					ofImage t;
-					toOfTexture(i, t.getTextureReference());
-
-					t.save(image_name);
+					ofImage image;
+					toOfImage(i, image);
+					
+					std::cout << "Writing: " << image_name << std::endl;
+					image.save(image_name);
 				}
 
 

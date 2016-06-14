@@ -88,7 +88,7 @@ int PointCloudPlayer::getNumberSensors(std::string path)
 				if (boost::regex_search(it->path().filename().string(), what, e1, boost::match_default))
 				{
 					std::string res = what[1];
-					std::cout << res << std::endl;
+					//std::cout << res << std::endl;
 					sensorIndizes.insert(res);
 				}
 
@@ -146,8 +146,8 @@ void PointCloudPlayer::readThreadFunction()
 			
 			std::shared_ptr<ofImage> image(new ofImage());
 			auto img_loaded = image->load(imagePath);
-			image->update();
-			std::cout << "Loaded image: " << imagePath << std::endl << image->getWidth() << "x" << image->getHeight() << std::endl;
+
+			//std::cout << "Loaded image: " << imagePath << std::endl << image->getWidth() << "x" << image->getHeight() << std::endl;
 			if (!cerr) {
 				if (cloud.size() > 0 && img_loaded) {
 					recon::CloudPtr cloudPtr = cloud.makeShared();

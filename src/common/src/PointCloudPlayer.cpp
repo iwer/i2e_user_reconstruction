@@ -111,12 +111,14 @@ int PointCloudPlayer::getNumberFrames()
 
 void PointCloudPlayer::start()
 {
+	std::cout << "Player " << sensor_index_ << " starting" << std::endl;
 	running_ = true;
 	read_thread_ = new std::thread(&PointCloudPlayer::readThreadFunction, this);
 }
 
 void PointCloudPlayer::stop()
 {
+	std::cout << "Player " << sensor_index_ << " stopping" << std::endl;
 	running_ = false;
 	read_thread_->join();
 }
@@ -150,7 +152,7 @@ void PointCloudPlayer::readThreadFunction()
 			avgReadFromDiskTime_ = avgReadFromDiskTime_ + ((elapsed_time - avgReadFromDiskTime_) / (readIndex_ + 1));
 			
 
-			std::cout << "Loaded image: " << imagePath << std::endl << image->getWidth() << "x" << image->getHeight() << std::endl;
+			//std::cout << "Loaded image: " << imagePath << std::endl << image->getWidth() << "x" << image->getHeight() << std::endl;
 			if (!cerr) {
 				if (cloud.size() > 0 && img_loaded) {
 					// call application

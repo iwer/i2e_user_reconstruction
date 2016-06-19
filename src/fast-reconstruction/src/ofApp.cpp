@@ -113,7 +113,7 @@ void ofApp::draw(){
 			std::to_string(player_[s->getId()]->getNumberFrames()) +
 			std::string("]  : "));
 		cam_.begin();
-		ofPushMatrix();
+		//ofPushMatrix();
 		auto ext = s->getDepthExtrinsics();
 		auto translation = toOfVector3(*ext->getTranslation());
 		auto rotation = toOfQuaternion(*ext->getRotation());
@@ -131,7 +131,7 @@ void ofApp::draw(){
 			mesh[s->getId()].drawWireframe();
 		}
 		//image_[s->getId()]->getTexture().unbind();
-		ofPopMatrix();
+		//ofPopMatrix();
 		cam_.end();
 
 		if (image_[s->getId()]->isAllocated()) {
@@ -243,22 +243,22 @@ void ofApp::back()
 //--------------------------------------------------------------
 void ofApp::loadCalibrationFromFile()
 {
-	//SensorCalibrationSettings set;
-	//for (auto& s : sensor_list_)
-	//{
-	//	set.loadCalibration(s.second, s.second->getId());
-	//	auto ext = s.second->getDepthExtrinsics();
-	//	ofVec3f t;
-	//	ofQuaternion q;
-	//	toOfVector3(*ext->getTranslation(), t);
-	//	toOfQuaternion(*ext->getRotation(), q);
+	SensorCalibrationSettings set;
+	for (auto& s : sensors_)
+	{
+		set.loadCalibration(s, s->getId());
+		auto ext = s->getDepthExtrinsics();
+		ofVec3f t;
+		ofQuaternion q;
+		toOfVector3(*ext->getTranslation(), t);
+		toOfQuaternion(*ext->getRotation(), q);
 
-	//	ofMatrix4x4 m;
-	//	m.translate(t);
-	//	m.rotate(q);
+		ofMatrix4x4 m;
+		m.translate(t);
+		m.rotate(q);
 
-	//	sensor_extrinsics_[sensorIds_[s.second->getId()]] = m;
-	//}
+		//sensor_extrinsics_[s->getId()] = m;
+	}
 }
 
 //--------------------------------------------------------------

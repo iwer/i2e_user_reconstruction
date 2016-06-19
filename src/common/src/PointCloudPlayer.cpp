@@ -1,4 +1,4 @@
-#include "PointCloudPlayer.h"
+#include "common/PointCloudPlayer.h"
 #include <pcl/io/pcd_io.h>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -133,30 +133,31 @@ void PointCloudPlayer::readThreadFunction()
 		// assemble file path string
 		std::string filePath(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_)
 			+ std::string("_") + fileNumber() + std::string(".pcd"));
-		std::string imagePath(std::string("recorder/capture_s") + std::to_string(sensor_index_)
+		std::string imagePath(/*std::string("data/recorder/capture_s")*/ basepath_ + std::string("/capture_s") + std::to_string(sensor_index_)
 			+ std::string("_") + fileNumber() + std::string(".jpg"));
 		// if filePath is a file, try to open as .pcd
 		if (boost::filesystem::is_regular_file(boost::filesystem::path(filePath))) {
 			recon::Cloud cloud;
+			std::shared_ptr<ofImage> image(new ofImage());
+
 			auto start = std::chrono::high_resolution_clock::now();
+
 			int cerr = pcl::io::loadPCDFile(filePath, cloud);
+			auto img_loaded = image->load(imagePath);
+
 			auto end = std::chrono::high_resolution_clock::now();
 			auto elapsed_time = end - start;
 			avgReadFromDiskTime_ = avgReadFromDiskTime_ + ((elapsed_time - avgReadFromDiskTime_) / (readIndex_ + 1));
 			
-			std::shared_ptr<ofImage> image(new ofImage());
-			auto img_loaded = image->load(imagePath);
 
-			//std::cout << "Loaded image: " << imagePath << std::endl << image->getWidth() << "x" << image->getHeight() << std::endl;
+			std::cout << "Loaded image: " << imagePath << std::endl << image->getWidth() << "x" << image->getHeight() << std::endl;
 			if (!cerr) {
 				if (cloud.size() > 0 && img_loaded) {
-					recon::CloudPtr cloudPtr = cloud.makeShared();
 					// call application
-					callback(readIndex_, sensor_index_, cloudPtr, image);
-
-
+					callback(readIndex_, sensor_index_, cloud.makeShared(), image);
 				}
 			}
+
 			// sleep
 			auto sleeptime = frameTime_ - avgReadFromDiskTime_;
 			std::this_thread::sleep_for(sleeptime);

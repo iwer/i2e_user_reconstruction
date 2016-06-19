@@ -4,9 +4,11 @@ add_library(common
     # Source files
 	src/common.cpp
 	src/SensorCalibrationSettings.cpp
+	src/PointCloudPlayer.cpp
 	# Header files (to be able to edit in VS et. al.)
 	include/common/common.h
 	include/common/SensorCalibrationSettings.h
+	include/common/PointCloudPlayer.h
 	)
 
 # Define headers for this library. PUBLIC headers are used for

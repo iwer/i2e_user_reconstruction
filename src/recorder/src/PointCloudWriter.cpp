@@ -8,7 +8,6 @@ using namespace std::chrono_literals;
 
 PointCloudWriter::PointCloudWriter() 
 	: running_(false)
-	, writeIndex_(0)
 {
 }
 
@@ -30,6 +29,14 @@ void PointCloudWriter::enquePointcloudForWriting(int sensorId, recon::CloudConst
 {
 	std::lock_guard<std::mutex> lock(queue_lock_);
 	queue_.push(SaveTriplet(sensorId, cloud, image));
+
+	try
+	{
+		auto i = writeIndex_.at(sensorId);
+	} catch(std::out_of_range)
+	{
+		writeIndex_[sensorId] = 0;
+	}
 }
 
 void PointCloudWriter::start()
@@ -50,9 +57,9 @@ int PointCloudWriter::getQueueLength()
 	return queue_.size();
 }
 
-std::string PointCloudWriter::fileNumber() {
+std::string PointCloudWriter::fileNumber(int number) {
 	std::ostringstream ss;
-	ss << std::setw(5) << std::setfill('0') << writeIndex_;
+	ss << std::setw(5) << std::setfill('0') << number;
 	return ss.str();
 }
 
@@ -68,9 +75,9 @@ void PointCloudWriter::writeThreadFunction()
 				auto i = queue_.front().image_;
 
 				std::string cloud_name = base_filename_ + std::string("_s")
-					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".pcd");
+					+ std::to_string(id) + std::string("_") + fileNumber(writeIndex_[id]) + std::string(".pcd");
 				std::string image_name = std::string("recorder/capture") + std::string("_s")
-					+ std::to_string(id) + std::string("_") + fileNumber() + std::string(".jpg");
+					+ std::to_string(id) + std::string("_") + fileNumber(writeIndex_[id]) + std::string(".jpg");
 
 				if (c->size() > 0) {
 					std::cout << "Writing: " << cloud_name << std::endl;
@@ -87,7 +94,7 @@ void PointCloudWriter::writeThreadFunction()
 
 
 				queue_.pop();
-				++writeIndex_;
+				++writeIndex_[id];
 			}
 			else {
 				std::this_thread::sleep_for(30ms);

@@ -37,7 +37,7 @@ private:
 	Eigen::Vector4f sensor_translation_;
 	Eigen::Quaternionf sensor_rotation_;
 
-	int writeIndex_;
+	std::map<int,int> writeIndex_;
 	std::string base_filename_;
 
 	std::queue<SaveTriplet> queue_;
@@ -47,7 +47,7 @@ private:
 	std::thread * write_thread_;
 
 	void writeThreadFunction();
-	std::string fileNumber();
+	std::string fileNumber(int number);
 
 
 };

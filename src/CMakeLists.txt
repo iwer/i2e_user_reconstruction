@@ -52,5 +52,7 @@ add_subdirectory(autocalibrator)
 add_subdirectory(sensorsync)
 add_subdirectory(texturemapping)
 add_subdirectory(imageloader)
+add_subdirectory(fast-reconstruction)
+add_subdirectory(slow-reconstruction)
 
 #add_dependencies(ofAddons openFrameworks)

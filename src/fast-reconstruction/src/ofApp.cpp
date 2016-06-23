@@ -3,6 +3,7 @@
 #include <common/SensorCalibrationSettings.h>
 #include <recon/SensorFactory.h>
 #include <common/common.h>
+#include <pcl/common/transforms.h>
 
 void ofApp::setupUi()
 {
@@ -20,6 +21,8 @@ void ofApp::setupUi()
 	backBtn_.addListener(this, &ofApp::back);
 	playing_.addListener(this, &ofApp::play); 
 	stopBtn_.addListener(this, &ofApp::stop);
+	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
+	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
@@ -31,6 +34,8 @@ void ofApp::setupUi()
 	ui_.add(backBtn_.setup("Rewind"));
 	ui_.add(playTgl_.setup(playing_));
 	ui_.add(stopBtn_.setup("Stop"));
+	ui_.add(nextFrameBtn_.setup("Next Frame"));
+	ui_.add(prevFrameBtn_.setup("Previous Frame"));
 	ui_.add(backgroundRemovalPrms_);
 	ui_.add(triangulationPrms_);
 }
@@ -46,7 +51,7 @@ void ofApp::setup(){
 	std::cout << "Sensor count: " << sensorCount << std::endl;
 
 	recon::SensorFactory sensorFac;
-
+	maxFrames_ = 1000000000;
 	for (int i = 0; i < sensorCount; i++)
 	{
 		auto s = sensorFac.createDummySensor();
@@ -57,6 +62,8 @@ void ofApp::setup(){
 			s->getId(), 1));
 		player_[s->getId()]->callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2, _3, _4));
 		image_[s->getId()] = std::make_shared<ofImage>();
+
+		maxFrames_ = std::min(maxFrames_, player_[s->getId()]->getNumberFrames());
 	}
 
 	switch (sensorCount) {
@@ -73,11 +80,23 @@ void ofApp::setup(){
 
 	// TODO: Fix Texture bug to get rid of dummy Texture
 	dummyTex_.allocate(640, 480, GL_RGBA);
+	globalFrameNumber_ = 0;
+	
+
+
+	cam_.rotate(180, 0, 1, 0);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+	combinedMesh.clear();
 	for (auto &s : sensors_) {
+		if(!playing_)
+		{
+			// aquire frame with globalFrameNumber_
+			auto framedata = player_[s->getId()]->requestFrame(globalFrameNumber_);
+			cloudCallback(globalFrameNumber_, s->getId(), framedata->cloud_, framedata->image_);
+		}
 		if (cloud_[s->getId()]) {
 			if (cloud_[s->getId()] != nullptr && image_[s->getId()] != nullptr)
 			{
@@ -91,12 +110,18 @@ void ofApp::update(){
 
 
 				ofMesh m;
-				//createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
-				createOfMeshWithTexCoords(cloud_wo_back, tris, dummyTex_, sensorMap_[s->getId()], m);
+				createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
+
 				mesh[s->getId()] = m;
+
+				recon::CloudPtr cloud_transformed(new recon::Cloud());
+				pcl::transformPointCloud(*cloud_wo_back, *cloud_transformed, s->getDepthExtrinsics()->getTransformation());
+				combinedMesh.append(m);
 			}
 		}
 	}
+
+
 }
 
 //--------------------------------------------------------------
@@ -122,15 +147,27 @@ void ofApp::draw(){
 		rotation.getRotate(qangle, qaxis);
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-		//image_[s->getId()]->getTexture().bind();
 		if (fillWireFrameTgl_) {
-			mesh[s->getId()].draw();
+			if(perPixelColor_)
+			{
+				image_[s->getId()]->getTexture().bind();	
+				mesh[s->getId()].disableColors();
+				mesh[s->getId()].enableTextures();
+				mesh[s->getId()].draw();
+				image_[s->getId()]->getTexture().unbind();
+			}
+			else {
+				mesh[s->getId()].enableColors();
+				mesh[s->getId()].disableTextures();
+				mesh[s->getId()].draw();
+			}
 		}
 		else
 		{
+			mesh[s->getId()].enableColors();
+			mesh[s->getId()].disableTextures();
 			mesh[s->getId()].drawWireframe();
 		}
-		//image_[s->getId()]->getTexture().unbind();
 		//ofPopMatrix();
 		cam_.end();
 
@@ -138,12 +175,12 @@ void ofApp::draw(){
 			ofPushMatrix();
 			ofTranslate(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3);
 			ofScale(.25, .25, .25);
-
-			ofImage i;
 			image_[s->getId()]->getTexture().draw(imageLayout_[s->getId()]);
 			ofPopMatrix();
 		}
 	}
+
+	combinedMesh.draw();
 
 	ofDisableDepthTest();
 	ofDrawBitmapString(fpsString, ofGetWidth() - 200, 10);
@@ -231,13 +268,34 @@ void ofApp::stop()
 {
 	std::cout << "Stop" << std::endl;
 	playTgl_ = false;
-	//playing_.set(false);
 }
 
 //--------------------------------------------------------------
 void ofApp::back()
 {
 	std::cout << "Back" << std::endl;
+	for(auto &p : player_)
+	{
+		p.second->setFrameNumber(0);
+	}
+}
+
+//--------------------------------------------------------------
+void ofApp::nextFrame()
+{
+	if(!playing_ && globalFrameNumber_ < (maxFrames_ - 1))
+	{
+		globalFrameNumber_++;
+	}
+}
+
+//--------------------------------------------------------------
+void ofApp::prevFrame()
+{
+	if (!playing_ && globalFrameNumber_ > 0)
+	{
+		globalFrameNumber_--;
+	}
 }
 
 //--------------------------------------------------------------

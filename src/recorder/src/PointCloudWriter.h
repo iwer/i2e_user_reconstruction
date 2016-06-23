@@ -5,6 +5,7 @@
 #include <string>
 #include "recon/typedefs.h"
 #include "recon/AbstractSensor.h"
+#include <common/PclCloudAndImage.h>
 
 class PointCloudWriter
 {
@@ -20,19 +21,6 @@ public:
 
 	int getQueueLength();
 private:
-	class SaveTriplet
-	{
-	public:
-		SaveTriplet(int id, recon::CloudConstPtr cloud, recon::ImagePtr image)
-			: id_(id)
-			, cloud_(cloud)
-			, image_(image)
-		{}
-		int id_;
-		recon::CloudConstPtr cloud_;
-		recon::ImagePtr image_;
-	};
-
 	bool running_;
 	Eigen::Vector4f sensor_translation_;
 	Eigen::Quaternionf sensor_rotation_;
@@ -40,7 +28,7 @@ private:
 	std::map<int,int> writeIndex_;
 	std::string base_filename_;
 
-	std::queue<SaveTriplet> queue_;
+	std::queue<PclCloudAndImage> queue_;
 
 	std::mutex queue_lock_;
 

@@ -44,6 +44,13 @@ class ofApp : public ofBaseApp{
 		void play(bool &play);
 		void stop();
 		void back();
+		void nextFrame();
+		void prevFrame();
+
+		int globalFrameNumber_;
+		int maxFrames_;
+
+		ofFbo combinedTexture;
 
 		std::map<int, PointCloudPlayer::Ptr> player_;
 		std::map<int, int> frameNumber_;
@@ -53,6 +60,8 @@ class ofApp : public ofBaseApp{
 		ofTexture dummyTex_;
 		std::list<recon::AbstractSensor::Ptr> sensors_;
 		std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
+
+		ofMesh combinedMesh;
 
 		std::vector<ofRectangle> imageLayout_;
 
@@ -67,10 +76,12 @@ class ofApp : public ofBaseApp{
 		ofxToggle perPixelColor_;
 		ofxToggle showFrustum_;
 		ofxToggle fillWireFrameTgl_;
-
+		
 		ofxIntSlider fpsSlider_;
 		ofxButton backBtn_;
 		ofxToggle playTgl_;
+		ofxButton prevFrameBtn_;
+		ofxButton nextFrameBtn_;
 		ofxButton stopBtn_;
 
 		ofxFloatSlider passMinSl_;

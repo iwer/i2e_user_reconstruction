@@ -28,7 +28,7 @@ void PointCloudWriter::setBaseFileName(std::string & filename)
 void PointCloudWriter::enquePointcloudForWriting(int sensorId, recon::CloudConstPtr cloud, recon::ImagePtr image)
 {
 	std::lock_guard<std::mutex> lock(queue_lock_);
-	queue_.push(SaveTriplet(sensorId, cloud, image));
+	queue_.push(PclCloudAndImage(sensorId, cloud, image));
 
 	try
 	{
@@ -70,7 +70,7 @@ void PointCloudWriter::writeThreadFunction()
 		if (!queue_.empty()) {
 			std::lock_guard<std::mutex> lock(queue_lock_);
 			if (!queue_.empty()) {
-				auto id = queue_.front().id_;
+				auto id = queue_.front().sensor_id_;
 				auto c = queue_.front().cloud_;
 				auto i = queue_.front().image_;
 

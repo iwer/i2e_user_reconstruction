@@ -6,6 +6,7 @@
 #include <boost/signals2.hpp>
 #include "recon/typedefs.h"
 #include <ofImage.h>
+#include "PclCloudAndOfImage.h"
 
 class PointCloudPlayer
 {
@@ -21,6 +22,11 @@ public:
 	void setFramesPerSecond(int fps);
 	static int getNumberSensors(std::string path);
 	int getNumberFrames();
+	void setFrameNumber(int number);
+
+	PclCloudAndOfImage::Ptr requestFrame();
+	PclCloudAndOfImage::Ptr requestFrame(int number);
+
 
 	void start();
 	void stop();
@@ -28,6 +34,7 @@ public:
 	boost::signals2::signal<void (int, int, recon::CloudPtr, std::shared_ptr<ofImage>)> callback;
 private:
 	bool running_;
+	bool looping_;
 	int fps_;
 
 	int sensor_index_;
@@ -40,7 +47,7 @@ private:
 
 	std::thread * read_thread_;
 
-	std::string fileNumber();
+	std::string fileNumber(int number);
 	int count_files();
 	void readThreadFunction();
 };

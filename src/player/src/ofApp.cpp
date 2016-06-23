@@ -33,7 +33,7 @@ void ofApp::setup(){
 
 	for (auto &s : sensors_) {
 		player_[s->getId()]->start();
-		image_[s->getId()].reset(new ofImage());
+		image_[s->getId()] = std::make_shared<ofImage>();
 	}
 
 
@@ -48,6 +48,8 @@ void ofApp::setup(){
 		imageLayout_.push_back(ofRectangle(0, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
 		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
 	}
+
+	ofDisableArbTex();
 }
 
 //--------------------------------------------------------------
@@ -67,6 +69,7 @@ void ofApp::draw(){
 
 	for (auto &s : sensors_) {
 		cam_.begin();
+		ofPushMatrix();
 		auto ext = s->getDepthExtrinsics();
 		auto translation = toOfVector3(*ext->getTranslation());
 		auto rotation = toOfQuaternion(*ext->getRotation());
@@ -75,17 +78,21 @@ void ofApp::draw(){
 		rotation.getRotate(qangle, qaxis);
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-
 		mesh[s->getId()].drawVertices();
+		ofPopMatrix();
 		cam_.end();
+
 		if (image_[s->getId()]->isAllocated()) {
-			//ofPushMatrix();
-			//ofTranslate(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3);
-			//ofScale(.25, .25, .25);
+			ofPushMatrix();
+			ofTranslate(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3);
+			ofScale(.25, .25, .25);
+			
+			ofImage i;
 			image_[s->getId()]->getTexture().draw(imageLayout_[s->getId()]);
-			//ofPopMatrix();
+			ofPopMatrix();
 		}
 	}
+
 	ofDisableDepthTest();
 	ui_.draw();
 

@@ -9,6 +9,8 @@ add_library(common
 	include/common/common.h
 	include/common/SensorCalibrationSettings.h
 	include/common/PointCloudPlayer.h
+	include/common/PclCloudAndImage.h
+	include/common/PclCloudAndOfTexture.h
 	)
 
 # Define headers for this library. PUBLIC headers are used for

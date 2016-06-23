@@ -4,6 +4,7 @@
 void ofApp::setup(){
 	image_ = std::make_shared<ofImage>();
 	image_local_ = std::make_shared<ofImage>();
+	ofEnableDepthTest();
 }
 
 //--------------------------------------------------------------
@@ -16,8 +17,11 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofBackground(0);
-
-	image_local_->draw(0, 0,ofGetWidth(),ofGetHeight());
+	ofPushMatrix();
+	ofTranslate(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3);
+	ofScale(.25, .25, .25);
+	image_local_->getTexture().draw(0, 0,ofGetWidth(),ofGetHeight());
+	ofPopMatrix();
 
 }
 

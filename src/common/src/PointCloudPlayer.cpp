@@ -9,6 +9,7 @@
 
 PointCloudPlayer::PointCloudPlayer()
 	: running_(false)
+	, looping_(true)
 	, readIndex_(0)
 	, sensor_index_(0)
 {
@@ -18,6 +19,7 @@ PointCloudPlayer::PointCloudPlayer()
 
 PointCloudPlayer::PointCloudPlayer(std::string path, int index, int fps)
 	: running_(false)
+	, looping_(true)
 	, readIndex_(0)
 	, sensor_index_(index)
 	, basepath_(path)
@@ -46,20 +48,31 @@ int PointCloudPlayer::count_files()
 {
 	std::string ext(".pcd");
 	boost::filesystem::path Path(basepath_);
-	boost::regex e1(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_) + std::string("_[0-9]{5}.pcd"));
-	int numberFileswithExt = 0;
+	boost::regex exp_pcd(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_) + std::string("_[0-9]{5}.pcd"));
+	boost::regex exp_jpg(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_) + std::string("_[0-9]{5}.jpg"));
+	int numberPcdFiles = 0;
+	int numberJpgFiles = 0;
 	boost::filesystem::directory_iterator end_iter; // Default constructor for an iterator is the end iterator
 
 	if (boost::filesystem::is_directory(Path)) {
 		for (boost::filesystem::directory_iterator iter(Path); iter != end_iter; ++iter) {
-			if (boost::regex_match(iter->path().generic_string(), e1)) {
-				//std::cout << iter->path().generic_string() << std::endl;
-				++numberFileswithExt;
+			if (boost::regex_match(iter->path().generic_string(), exp_pcd)) {
+				++numberPcdFiles;
+			}
+			if (boost::regex_match(iter->path().generic_string(), exp_jpg)) {
+				++numberJpgFiles;
 			}
 		}
 	}
-	std::cout << "Files for sensor " << sensor_index_ << " : " << numberFileswithExt;
-	return numberFileswithExt;
+	
+	if(numberPcdFiles != numberJpgFiles)
+	{
+		std::cout << "WARNING: Number of .pcd ("<< numberPcdFiles << ") and .jpg (" << numberJpgFiles << ") files do not match." << std::endl;
+	}
+	std::cout << "Files for sensor " << sensor_index_ << " : " << numberPcdFiles << std::endl;
+	
+	
+	return std::min(numberPcdFiles, numberJpgFiles);
 }
 
 void PointCloudPlayer::setFramesPerSecond(int fps)
@@ -109,6 +122,49 @@ int PointCloudPlayer::getNumberFrames()
 	return numberOfFiles_;
 }
 
+void PointCloudPlayer::setFrameNumber(int number)
+{
+	if(number >= 0 && number < numberOfFiles_)
+	{
+		readIndex_ = number;
+	} else
+	{
+		std::cout << "Frame number not in range" << std::endl;
+	}
+}
+
+PclCloudAndOfImage::Ptr PointCloudPlayer::requestFrame()
+{
+	return requestFrame(readIndex_);
+}
+
+PclCloudAndOfImage::Ptr PointCloudPlayer::requestFrame(int number)
+{
+	PclCloudAndOfImage::Ptr p;
+	if(!running_)
+	{
+		std::shared_ptr<ofImage> image(new ofImage());
+		recon::Cloud cloud;
+
+		auto filePath(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_)
+			+ std::string("_") + fileNumber(number) + std::string(".pcd"));
+		auto imagePath(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_)
+			+ std::string("_") + fileNumber(number) + std::string(".jpg"));
+
+		int cerr = pcl::io::loadPCDFile(filePath, cloud);
+		auto img_loaded = image->load(imagePath);
+		if (!cerr) {
+			if (cloud.size() > 0 && img_loaded) {
+				p.reset(new PclCloudAndOfImage(sensor_index_, cloud.makeShared(), image));
+			}
+		}
+	} else
+	{
+		std::cout << "PointCloudPlayer is running in async mode (e.g. started), connect to ::callback to receive frames." << std::endl;
+	}
+	return p;
+}
+
 void PointCloudPlayer::start()
 {
 	std::cout << "Player " << sensor_index_ << " starting" << std::endl;
@@ -123,9 +179,9 @@ void PointCloudPlayer::stop()
 	read_thread_->join();
 }
 
-std::string PointCloudPlayer::fileNumber() {
+std::string PointCloudPlayer::fileNumber(int number) {
 	std::ostringstream ss;
-	ss << std::setw(5) << std::setfill('0') << readIndex_;
+	ss << std::setw(5) << std::setfill('0') << number;
 	return ss.str();
 }
 
@@ -134,9 +190,9 @@ void PointCloudPlayer::readThreadFunction()
 	while (running_) {
 		// assemble file path string
 		std::string filePath(basepath_ + std::string("/capture_s") + std::to_string(sensor_index_)
-			+ std::string("_") + fileNumber() + std::string(".pcd"));
+			+ std::string("_") + fileNumber(readIndex_) + std::string(".pcd"));
 		std::string imagePath(/*std::string("data/recorder/capture_s")*/ basepath_ + std::string("/capture_s") + std::to_string(sensor_index_)
-			+ std::string("_") + fileNumber() + std::string(".jpg"));
+			+ std::string("_") + fileNumber(readIndex_) + std::string(".jpg"));
 		// if filePath is a file, try to open as .pcd
 		if (boost::filesystem::is_regular_file(boost::filesystem::path(filePath))) {
 			recon::Cloud cloud;

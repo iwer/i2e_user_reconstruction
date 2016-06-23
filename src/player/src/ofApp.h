@@ -2,7 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxGui.h"
-#include "PointCloudPlayer.h"
+#include "common/PointCloudPlayer.h"
 #include "recon/typedefs.h"
 #include "of-pcl-bridge/of-pcl-bridge.h"
 #include <recon/AbstractSensor.h>
@@ -33,12 +33,7 @@ class ofApp : public ofBaseApp{
 		ofxPanel ui_;
 		ofxIntSlider fpsSlider_;
 		ofxIntSlider sensorIndexSlider_;
-		//ofxButton saveCalibrationBtn_;
 		ofxButton loadCalibrationBtn_;
-
-		//int frameNumber_;
-		//recon::CloudPtr cloud_;
-		//ofMesh mesh;
 
 		std::map<int, PointCloudPlayer::Ptr> player_;
 		std::map<int, int> frameNumber_;

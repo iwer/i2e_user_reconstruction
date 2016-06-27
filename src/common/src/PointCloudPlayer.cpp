@@ -216,15 +216,18 @@ void PointCloudPlayer::readThreadFunction()
 				}
 			}
 
+
+			readIndex_++;
+
+			// reset framenumber at the end
+			if (readIndex_+1 >= numberOfFiles_) {
+				readIndex_ = 0;
+			}
+
 			// sleep
 			auto sleeptime = frameTime_ - avgReadFromDiskTime_;
 			std::this_thread::sleep_for(sleeptime);
-			++readIndex_;
 
-			// reset framenumber at the end
-			if (readIndex_ >= numberOfFiles_) {
-				readIndex_ = 0;
-			}
 		}
 	}
 }

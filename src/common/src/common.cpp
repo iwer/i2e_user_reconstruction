@@ -5,6 +5,7 @@
 #include <ofMain.h>
 #include <of-pcl-bridge/of-pcl-bridge.h>
 
+
 float approxRollingAverage(float avg, float new_sample, int window)
 {
 	avg -= avg / window;
@@ -12,6 +13,7 @@ float approxRollingAverage(float avg, float new_sample, int window)
 
 	return avg;
 }
+
 
 void downsample(recon::CloudConstPtr src, recon::CloudPtr trgt, float resolution)
 {
@@ -42,6 +44,7 @@ void removeBackground(recon::CloudPtr src, recon::CloudPtr trgt, float min, floa
 	pass.filter(*trgt);
 }
 
+
 void extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, recon::CloudPtr in_cloud, recon::CloudPtr out_cloud)
 {
 	pcl::ExtractIndices<recon::PointType> extract;
@@ -54,7 +57,8 @@ void extractInOutliers(recon::CloudPtr src, pcl::PointIndices::Ptr inliers, reco
 	extract.filter(*out_cloud);
 }
 
-void organizedFastMesh(recon::CloudPtr src, recon::TrianglesPtr &triangles, int edgeLength, float angleTolerance, float distanceTolerance)
+
+void organizedFastMesh(recon::CloudPtr src, recon::TrianglesPtr& triangles, int edgeLength, float angleTolerance, float distanceTolerance)
 {
 	pcl::OrganizedFastMesh<recon::PointType> ofm;
 	ofm.setTriangulationType(pcl::OrganizedFastMesh<recon::PointType>::TRIANGLE_LEFT_CUT);
@@ -65,7 +69,8 @@ void organizedFastMesh(recon::CloudPtr src, recon::TrianglesPtr &triangles, int 
 	ofm.reconstruct(*triangles);
 }
 
-void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr &triangles, int edgeLength, float angleTolerance, float distanceTolerance)
+
+void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr& triangles, int edgeLength, float angleTolerance, float distanceTolerance)
 {
 	pcl::OrganizedFastMesh<recon::PointType> ofm;
 	ofm.setTriangulationType(pcl::OrganizedFastMesh<recon::PointType>::TRIANGLE_LEFT_CUT);
@@ -75,25 +80,27 @@ void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr &triangles,
 	ofm.setInputCloud(src);
 	ofm.reconstruct(*triangles);
 }
+
 
 void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 {
 	ofMatrix4x4 mat, persp;
-	
+
 	auto transl = toOfVector3(*sensor->getDepthExtrinsics()->getTranslation());
 	auto rotate = toOfQuaternion(*sensor->getDepthExtrinsics()->getRotation());
 
 
-	ofVec3f qaxis; float qangle;
+	ofVec3f qaxis;
+	float qangle;
 	rotate.getRotate(qangle, qaxis);
-	mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
+	mat.translate(-transl.x, -transl.y, -transl.z);
 	mat.rotate(180, 1, 0, 0);
-	mat.translate(-transl.x, transl.y, transl.z);
+	mat.rotate(qangle, -qaxis.x, qaxis.y, qaxis.z);
 
 	auto fov = sensor->getDepthIntrinsics()->getVFov();
 	auto aspect = sensor->getDepthIntrinsics()->getAspectRatio();
 	persp.makePerspectiveMatrix(fov, aspect, 10, 100000);
-	
+
 	mat.postMult(persp);
 
 	ofPushMatrix();
@@ -106,16 +113,29 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 }
 
 
-ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::AbstractSensor::Ptr sensor)
+ofVec2f calculateTextureCoordinate(ofVec3f& point, float texwidth, float texheight, recon::AbstractSensor::Ptr sensor, bool inCameraSpace)
 {
 	ofMatrix4x4 mat, persp;
-	auto width = texture.getWidth();
-	auto height = texture.getHeight();
 	auto intrinsics = sensor->getDepthIntrinsics();
 
+	
+	auto transl = toOfVector3(*sensor->getDepthExtrinsics()->getTranslation());//
+	auto rotate = toOfQuaternion(*sensor->getDepthExtrinsics()->getRotation());//
+
+	ofVec3f qaxis;//
+	float qangle;//
+	
+	if (!inCameraSpace) {
+		rotate.getRotate(qangle, qaxis);//
+		mat.translate(-transl.x, -transl.y, -transl.z);//
+	}
+	
 	// counter pcl s positive z-direction
 	mat.rotate(180, 1, 0, 0);
-
+	
+	if (!inCameraSpace) {
+		mat.rotate(qangle, -qaxis.x, qaxis.y, qaxis.z);//
+	}
 	// create ViewProjection Matrix
 	persp.makePerspectiveMatrix(intrinsics->getVFov(), intrinsics->getAspectRatio(), 10, 100000);
 	mat.postMult(persp);
@@ -126,31 +146,70 @@ ofVec2f calculateTextureCoordinate(ofVec3f &point, ofTexture & texture, recon::A
 	projectedPoint.x /= projectedPoint.w;
 	projectedPoint.y /= projectedPoint.w;
 	// scale to 0, width
-	auto new_x = (projectedPoint.x + 1) * .5 * width;
-	auto new_y = (projectedPoint.y + 1) * .5 * height;
+	auto new_x = (projectedPoint.x + 1) * .5 * texwidth;
+	auto new_y = (projectedPoint.y + 1) * .5 * texheight;
 	return ofVec2f(new_x, new_y);
 }
 
-void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src, 
-	boost::shared_ptr<std::vector<pcl::Vertices>> triangles, 
-	ofTexture & texture, 
-	recon::AbstractSensor::Ptr sensor, 
-	ofMesh &targetMesh)
+
+void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
+                               boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
+                               ofTexture& texture,
+                               recon::AbstractSensor::Ptr sensor,
+                               ofMesh& targetMesh)
 {
-	if (triangles && src) {
+	if (triangles && src)
+	{
 		// triangle inputMesh
 		targetMesh.clear();
 		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 		pcl::PointXYZRGB p;
 
-		for (auto &t : *triangles) {
-			for (auto &pointindex : t.vertices) {
+		for (auto& t : *triangles)
+		{
+			for (auto& pointindex : t.vertices)
+			{
 				p = src->at(pointindex);
 				ofVec3f ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 				targetMesh.addVertex(ofp);
 				targetMesh.addColor(ofColor(p.r, p.g, p.b));
-				targetMesh.addTexCoord(calculateTextureCoordinate(ofp, texture, sensor));
+				targetMesh.addTexCoord(calculateTextureCoordinate(ofp, texture.getWidth(), texture.getHeight(), sensor, true));
 			}
 		}
 	}
 }
+
+void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src, 
+	boost::shared_ptr<std::vector<pcl::Vertices>> triangles, 
+	ofTexture& texture, 
+	ofRectangle& texturelayout, 
+	recon::AbstractSensor::Ptr sensor, 
+	ofMesh& targetMesh)
+{
+	if (triangles && src)
+	{
+		// triangle inputMesh
+		targetMesh.clear();
+		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+		pcl::PointXYZRGB p;
+
+		for (auto& t : *triangles)
+		{
+			for (auto& pointindex : t.vertices)
+			{
+				p = src->at(pointindex);
+				ofVec3f ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+				targetMesh.addVertex(ofp);
+				targetMesh.addColor(ofColor(p.r, p.g, p.b));
+				//calculate texcoord on single texture
+				auto localTexcoord = calculateTextureCoordinate(ofp, texturelayout.getWidth(), texturelayout.getHeight(), sensor, false);
+				//std::cout << localTexcoord << "\t->\t";
+				//shift according to texture layout
+				localTexcoord += texturelayout.getTopLeft();
+				//std::cout << localTexcoord << std::endl;
+				targetMesh.addTexCoord(localTexcoord);
+			}
+		}
+	}
+}
+

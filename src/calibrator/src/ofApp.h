@@ -45,6 +45,7 @@ class ofApp : public ofBaseApp{
 		std::map<int, ofMatrix4x4> sensor_extrinsics_;
 		int selected_sensor_id_;
 
+		ofMatrix4x4 global_calibration_;
 
 		ofxPanel ui_;
 		ofxButton nextCamBtm_;

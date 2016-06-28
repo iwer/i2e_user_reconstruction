@@ -14,7 +14,7 @@ class ofApp : public ofBaseApp{
 			, fps_("FPS", 1, 0, 30)
 			, passMin_("Z Min", .01, .01, 8)
 			, passMax_("Z Max", 2.5, .01, 8)
-			, triEdgeLength_("Triangle Edge Length", 5, 1, 50)
+			, triEdgeLength_("Triangle Edge Length", 50, 1, 50)
 			, angleTolerance_("Angle Tolerance", 15, 1, 270)
 			, distanceTolerance_("Distance Tolerance", .2, .001, 1.5)
 			, playing_("Play", false)
@@ -46,21 +46,22 @@ class ofApp : public ofBaseApp{
 		void back();
 		void nextFrame();
 		void prevFrame();
+		void saveCurrentFrame();
 
 		int globalFrameNumber_;
 		int maxFrames_;
 
-		ofFbo combinedTexture;
+		ofFbo combinedTexture_;
 
 		std::map<int, PointCloudPlayer::Ptr> player_;
 		std::map<int, int> frameNumber_;
 		std::map<int, recon::CloudPtr> cloud_;
 		std::map<int, ofMesh> mesh;
 		std::map<int, std::shared_ptr<ofImage>> image_;
-		ofTexture dummyTex_;
 		std::list<recon::AbstractSensor::Ptr> sensors_;
 		std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
 
+		ofImage dummyTex_;
 		ofMesh combinedMesh;
 
 		std::vector<ofRectangle> imageLayout_;
@@ -75,6 +76,8 @@ class ofApp : public ofBaseApp{
 
 		ofxToggle perPixelColor_;
 		ofxToggle showFrustum_;
+		ofxToggle showSingle_;
+		ofxToggle showCombined_;
 		ofxToggle fillWireFrameTgl_;
 		
 		ofxIntSlider fpsSlider_;
@@ -83,6 +86,8 @@ class ofApp : public ofBaseApp{
 		ofxButton prevFrameBtn_;
 		ofxButton nextFrameBtn_;
 		ofxButton stopBtn_;
+
+		ofxButton saveCurrentFrame_;
 
 		ofxFloatSlider passMinSl_;
 		ofxFloatSlider passMaxSl_;

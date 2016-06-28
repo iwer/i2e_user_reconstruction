@@ -37,6 +37,8 @@ void ofApp::setup(){
 		loadExtrinsicsFromCurrentSensor();
 	}
 
+	global_calibration_.makeIdentityMatrix();
+
 	// setup ui
 	ui_.setup();
 	xTrans_.addListener(this, &ofApp::guiUpdatedExtrinsics);
@@ -70,6 +72,7 @@ void ofApp::setup(){
 	ui_.add(loadCalibrationBtn_.setup("Load calibration"));
 
 	cam_.setFarClip(100000);
+	cam_.rotate(180, 0, 1, 0);
 }
 
 //--------------------------------------------------------------
@@ -115,7 +118,7 @@ void ofApp::draw(){
 
 	cam_.begin();
 	ofEnableDepthTest();
-	ofDrawAxis(10);
+	ofDrawAxis(1000);
 
 	
 	for (auto &sensor : sensor_list_) {
@@ -134,6 +137,20 @@ void ofApp::draw(){
 		ofVec3f qaxis;
 		float qangle;
 		rotation.getRotate(qangle, qaxis);
+		
+		// global transformation
+		//ofQuaternion q;
+		//ofVec3f x_dir(1, 0, 0), y_dir(0, 1, 0), z_dir(0, 0, 1);
+		//q.makeRotate(xRot_, x_dir, yRot_, y_dir, zRot_, z_dir);
+		//ofVec3f qaxis_global;
+		//float qangle_global;
+		//q.getRotate(qangle_global, qaxis_global);
+
+		//ofTranslate(xTrans_ * 1000, yTrans_ * 1000, zTrans_ * 1000);
+		//ofRotate(qangle_global, qaxis_global.x, qaxis_global.y, qaxis_global.z);
+		
+		ofMultMatrix(global_calibration_);
+
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
 
@@ -249,12 +266,12 @@ void ofApp::loadExtrinsicsFromCurrentSensor()
 		m.rotate(q);
 
 		sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
-		xTrans_ = t.x;
-		yTrans_ = t.y;
-		zTrans_ = t.z;
-		xRot_ = q.getEuler().x;
-		yRot_ = q.getEuler().y;
-		zRot_ = q.getEuler().z;
+		//xTrans_ = t.x;
+		//yTrans_ = t.y;
+		//zTrans_ = t.z;
+		//xRot_ = q.getEuler().x;
+		//yRot_ = q.getEuler().y;
+		//zRot_ = q.getEuler().z;
 }
 
 void ofApp::guiUpdatedExtrinsics(float &dummy)
@@ -270,8 +287,9 @@ void ofApp::guiUpdatedExtrinsics(float &dummy)
 	m.translate(v);
 	m.rotate(q);
 
-	sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
-	saveExtrinsicsToCurrentSensor();
+	global_calibration_ = m;
+	//sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
+	//saveExtrinsicsToCurrentSensor();
 }
 
 void ofApp::loadCalibrationFromFile()
@@ -300,11 +318,30 @@ void ofApp::saveCalibrationToFile()
 
 	for (auto& s : sensor_list_)
 	{
-		auto m = sensor_extrinsics_[sensorIds_[s.second->getId()]];
-		auto t = m.getTranslation();
-		auto q = m.getRotate();
-		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(toEigenVector4f(t), toEigenQuaternionf(q)));
+		auto sensor_matrix = sensor_extrinsics_[sensorIds_[s.second->getId()]];
+		ofMatrix4x4 combined_matrix;
+
+		combined_matrix.translate(global_calibration_.getTranslation());
+		combined_matrix.rotate(global_calibration_.getRotate());
+
+		combined_matrix.translate(sensor_matrix.getTranslation());
+		combined_matrix.rotate(sensor_matrix.getRotate());
+
+		auto combined_translation = toEigenVector4f(combined_matrix.getTranslation());
+		auto combined_rotation = toEigenQuaternionf(combined_matrix.getRotate());
+		
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(combined_translation, combined_rotation));
 		sensor_list_[sensorIds_[s.second->getId()]]->setDepthExtrinsics(ext);
 		set.saveCalibration(s.second, s.second->getId());
 	}
+
+	xTrans_ = 0;
+	yTrans_ = 0;
+	zTrans_ = 0;
+
+	xRot_ = 0;
+	yRot_ = 0;
+	zRot_ = 0;
+
+	global_calibration_.makeIdentityMatrix();
 }

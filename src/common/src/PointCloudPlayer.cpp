@@ -220,7 +220,7 @@ void PointCloudPlayer::readThreadFunction()
 			readIndex_++;
 
 			// reset framenumber at the end
-			if (readIndex_+1 >= numberOfFiles_) {
+			if (readIndex_ + 1 >= numberOfFiles_) {
 				readIndex_ = 0;
 			}
 

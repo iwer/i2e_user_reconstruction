@@ -23,13 +23,17 @@ void ofApp::setupUi()
 	stopBtn_.addListener(this, &ofApp::stop);
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
+	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
 	ui_.add(loadCalibrationBtn_.setup("Load Calibration"));
+	ui_.add(saveCurrentFrame_.setup("Save current Mesh"));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
 	ui_.add(showFrustum_.setup("Show Frustum", false)); 
+	ui_.add(showSingle_.setup("Show Single Meshes", true));
+	ui_.add(showCombined_.setup("Show Combined Mesh", false));
 	ui_.add(fpsSlider_.setup(fps_));
 	ui_.add(backBtn_.setup("Rewind"));
 	ui_.add(playTgl_.setup(playing_));
@@ -44,15 +48,15 @@ void ofApp::setupUi()
 void ofApp::setup(){
 	setupUi();
 
-	boost::filesystem::path full_path(boost::filesystem::current_path());
+	auto full_path(boost::filesystem::current_path());
 	boost::filesystem::path recorder_data_path("./data/recorder");
 
-	int sensorCount = PointCloudPlayer::getNumberSensors(full_path.generic_string() + recorder_data_path.generic_string());
+	auto sensorCount = PointCloudPlayer::getNumberSensors(full_path.generic_string() + recorder_data_path.generic_string());
 	std::cout << "Sensor count: " << sensorCount << std::endl;
 
 	recon::SensorFactory sensorFac;
 	maxFrames_ = 1000000000;
-	for (int i = 0; i < sensorCount; i++)
+	for (auto i = 0; i < sensorCount; i++)
 	{
 		auto s = sensorFac.createDummySensor();
 		sensors_.push_back(s);
@@ -66,30 +70,44 @@ void ofApp::setup(){
 		maxFrames_ = std::min(maxFrames_, player_[s->getId()]->getNumberFrames());
 	}
 
+
+	int iWidth = 640;
+	int iHeight = 480;
+	int iWidth2 = iWidth * 2;
+	int iHeight2 = iHeight * 2;
 	switch (sensorCount) {
 	case 1:
-		imageLayout_.push_back(ofRectangle(0, 0, ofGetWidth(), ofGetHeight()));
+		imageLayout_.push_back(ofRectangle(0, 0, iWidth2, iHeight2));
 	case 2:
 	case 3:
 	case 4:
-		imageLayout_.push_back(ofRectangle(0, 0, ofGetWidth() / 2, ofGetHeight() / 2));
-		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, 0, ofGetWidth() / 2, ofGetHeight() / 2));
-		imageLayout_.push_back(ofRectangle(0, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
-		imageLayout_.push_back(ofRectangle(ofGetWidth() / 2, ofGetHeight() / 2, ofGetWidth() / 2, ofGetHeight() / 2));
+		imageLayout_.push_back(ofRectangle(0, 0, iWidth, iHeight));
+		imageLayout_.push_back(ofRectangle(iWidth, 0, iWidth, iHeight));
+		imageLayout_.push_back(ofRectangle(0, iHeight, iWidth, iHeight));
+		imageLayout_.push_back(ofRectangle(iWidth, iHeight, iWidth, iHeight));
 	}
 
+
+	for(auto &r: imageLayout_)
+	{
+		std::cout << r << std::endl;
+	}
 	// TODO: Fix Texture bug to get rid of dummy Texture
-	dummyTex_.allocate(640, 480, GL_RGBA);
+	dummyTex_.load("uv_test.png");
 	globalFrameNumber_ = 0;
 	
-
+	combinedTexture_.allocate(iWidth2, iHeight2);
 
 	cam_.rotate(180, 0, 1, 0);
+
+	//loadCalibrationFromFile();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	combinedMesh.clear();
+	combinedMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
 	for (auto &s : sensors_) {
 		if(!playing_)
 		{
@@ -111,12 +129,14 @@ void ofApp::update(){
 
 				ofMesh m;
 				createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
-
 				mesh[s->getId()] = m;
 
 				recon::CloudPtr cloud_transformed(new recon::Cloud());
 				pcl::transformPointCloud(*cloud_wo_back, *cloud_transformed, s->getDepthExtrinsics()->getTransformation());
-				combinedMesh.append(m);
+				ofMesh points;
+				createOfMeshWithCombinedTexCoords(cloud_transformed, tris, image_[s->getId()]->getTexture(), imageLayout_[s->getId()], sensorMap_[s->getId()], points);
+				combinedMesh.append(points);
+				std::cout << "sensors Mesh: " << points.getNumVertices() << " " << points.getNumTexCoords() <<  std::endl;
 			}
 		}
 	}
@@ -131,56 +151,92 @@ void ofApp::draw(){
 
 	std::string fpsString;
 
+	// combine textures
+	combinedTexture_.begin();
+	ofClear(64, 64, 64, 128);
+	for (auto &s : sensors_) {
+		ofPushMatrix();
+		//ofTranslate(combinedTexture_.getWidth(), 0);
+		//ofScale(-1, 1, 1);
+		if (image_[s->getId()]->isAllocated()) {
+			image_[s->getId()]->getTexture().draw(imageLayout_[s->getId()]);
+		}
+		ofPopMatrix();
+	}
+	combinedTexture_.end();
+
+	cam_.begin();
+	ofDrawAxis(10);
+
+	// per sensor rendering
 	for (auto &s : sensors_) {
 		fpsString.append(std::string("[") +
 			std::to_string(frameNumber_[s->getId()]) +
 			std::string("/") +
 			std::to_string(player_[s->getId()]->getNumberFrames()) +
 			std::string("]  : "));
-		cam_.begin();
-		//ofPushMatrix();
-		auto ext = s->getDepthExtrinsics();
-		auto translation = toOfVector3(*ext->getTranslation());
-		auto rotation = toOfQuaternion(*ext->getRotation());
-		ofVec3f qaxis;
-		float qangle;
-		rotation.getRotate(qangle, qaxis);
-		ofTranslate(translation);
-		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-		if (fillWireFrameTgl_) {
-			if(perPixelColor_)
-			{
-				image_[s->getId()]->getTexture().bind();	
-				mesh[s->getId()].disableColors();
-				mesh[s->getId()].enableTextures();
-				mesh[s->getId()].draw();
-				image_[s->getId()]->getTexture().unbind();
+		if (showSingle_) {
+			ofPushMatrix();
+			auto ext = s->getDepthExtrinsics();
+			auto translation = toOfVector3(*ext->getTranslation());
+			auto rotation = toOfQuaternion(*ext->getRotation());
+			ofVec3f qaxis;
+			float qangle;
+			rotation.getRotate(qangle, qaxis);
+			ofTranslate(translation);
+			ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
+			if (fillWireFrameTgl_) {
+				if (perPixelColor_)
+				{
+					image_[s->getId()]->getTexture().bind();
+					mesh[s->getId()].disableColors();
+					mesh[s->getId()].enableTextures();
+					mesh[s->getId()].draw();
+					image_[s->getId()]->getTexture().unbind();
+				}
+				else {
+					mesh[s->getId()].enableColors();
+					mesh[s->getId()].disableTextures();
+					mesh[s->getId()].draw();
+				}
 			}
-			else {
+			else
+			{
 				mesh[s->getId()].enableColors();
 				mesh[s->getId()].disableTextures();
-				mesh[s->getId()].draw();
+				mesh[s->getId()].drawWireframe();
 			}
-		}
-		else
-		{
-			mesh[s->getId()].enableColors();
-			mesh[s->getId()].disableTextures();
-			mesh[s->getId()].drawWireframe();
-		}
-		//ofPopMatrix();
-		cam_.end();
-
-		if (image_[s->getId()]->isAllocated()) {
-			ofPushMatrix();
-			ofTranslate(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3);
-			ofScale(.25, .25, .25);
-			image_[s->getId()]->getTexture().draw(imageLayout_[s->getId()]);
 			ofPopMatrix();
 		}
+		if (showFrustum_)
+			drawCameraFrustum(s);
 	}
 
-	combinedMesh.draw();
+	if (showCombined_) {
+		if(perPixelColor_)
+		{
+			combinedMesh.enableTextures();
+			combinedMesh.disableColors();
+			combinedTexture_.getTexture().bind();
+			combinedMesh.draw();
+			combinedTexture_.getTexture().unbind();
+		}
+		else {
+			combinedMesh.disableTextures();
+			combinedMesh.enableColors();
+			combinedMesh.draw();
+		}
+	
+	}
+
+	cam_.end();
+
+
+	ofPushMatrix();
+	ofTranslate(ofGetWidth(), 0);
+	ofScale(-1, 1, 1);
+	combinedTexture_.draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
+	ofPopMatrix();
 
 	ofDisableDepthTest();
 	ofDrawBitmapString(fpsString, ofGetWidth() - 200, 10);
@@ -296,6 +352,15 @@ void ofApp::prevFrame()
 	{
 		globalFrameNumber_--;
 	}
+}
+
+//--------------------------------------------------------------
+void ofApp::saveCurrentFrame()
+{
+	combinedMesh.save("combined.ply");
+	ofPixels pixels;
+	combinedTexture_.readToPixels(pixels);
+	ofSaveImage(pixels, "combined.png");
 }
 
 //--------------------------------------------------------------

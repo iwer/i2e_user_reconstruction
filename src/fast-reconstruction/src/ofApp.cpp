@@ -105,8 +105,8 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	combinedMesh.clear();
-	combinedMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+	combinedMesh_.clear();
+	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
 	for (auto &s : sensors_) {
 		if(!playing_)
@@ -129,13 +129,13 @@ void ofApp::update(){
 
 				ofMesh m;
 				createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
-				mesh[s->getId()] = m;
+				mesh_[s->getId()] = m;
 
 				recon::CloudPtr cloud_transformed(new recon::Cloud());
 				pcl::transformPointCloud(*cloud_wo_back, *cloud_transformed, s->getDepthExtrinsics()->getTransformation());
 				ofMesh points;
 				createOfMeshWithCombinedTexCoords(cloud_transformed, tris, image_[s->getId()]->getTexture(), imageLayout_[s->getId()], sensorMap_[s->getId()], points);
-				combinedMesh.append(points);
+				combinedMesh_.append(points);
 				std::cout << "sensors Mesh: " << points.getNumVertices() << " " << points.getNumTexCoords() <<  std::endl;
 			}
 		}
@@ -189,22 +189,22 @@ void ofApp::draw(){
 				if (perPixelColor_)
 				{
 					image_[s->getId()]->getTexture().bind();
-					mesh[s->getId()].disableColors();
-					mesh[s->getId()].enableTextures();
-					mesh[s->getId()].draw();
+					mesh_[s->getId()].disableColors();
+					mesh_[s->getId()].enableTextures();
+					mesh_[s->getId()].draw();
 					image_[s->getId()]->getTexture().unbind();
 				}
 				else {
-					mesh[s->getId()].enableColors();
-					mesh[s->getId()].disableTextures();
-					mesh[s->getId()].draw();
+					mesh_[s->getId()].enableColors();
+					mesh_[s->getId()].disableTextures();
+					mesh_[s->getId()].draw();
 				}
 			}
 			else
 			{
-				mesh[s->getId()].enableColors();
-				mesh[s->getId()].disableTextures();
-				mesh[s->getId()].drawWireframe();
+				mesh_[s->getId()].enableColors();
+				mesh_[s->getId()].disableTextures();
+				mesh_[s->getId()].drawWireframe();
 			}
 			ofPopMatrix();
 		}
@@ -215,16 +215,16 @@ void ofApp::draw(){
 	if (showCombined_) {
 		if(perPixelColor_)
 		{
-			combinedMesh.enableTextures();
-			combinedMesh.disableColors();
+			combinedMesh_.enableTextures();
+			combinedMesh_.disableColors();
 			combinedTexture_.getTexture().bind();
-			combinedMesh.draw();
+			combinedMesh_.draw();
 			combinedTexture_.getTexture().unbind();
 		}
 		else {
-			combinedMesh.disableTextures();
-			combinedMesh.enableColors();
-			combinedMesh.draw();
+			combinedMesh_.disableTextures();
+			combinedMesh_.enableColors();
+			combinedMesh_.draw();
 		}
 	
 	}
@@ -357,7 +357,7 @@ void ofApp::prevFrame()
 //--------------------------------------------------------------
 void ofApp::saveCurrentFrame()
 {
-	combinedMesh.save("combined.ply");
+	combinedMesh_.save("combined.ply");
 	ofPixels pixels;
 	combinedTexture_.readToPixels(pixels);
 	ofSaveImage(pixels, "combined.png");

@@ -38,7 +38,7 @@ class ofApp : public ofBaseApp{
 		std::map<int, PointCloudPlayer::Ptr> player_;
 		std::map<int, int> frameNumber_;
 		std::map<int, recon::CloudPtr> cloud_;
-		std::map<int, ofMesh> mesh;
+		std::map<int, ofMesh> mesh_;
 		std::map<int, std::shared_ptr<ofImage>> image_;
 		std::list<recon::AbstractSensor::Ptr> sensors_;
 

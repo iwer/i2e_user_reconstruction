@@ -56,7 +56,7 @@ void ofApp::setup(){
 void ofApp::update(){
 	for (auto &s : sensors_) {
 		if (cloud_[s->getId()]) {
-			createOfMeshFromPoints(cloud_[s->getId()], mesh[s->getId()]);
+			createOfMeshFromPoints(cloud_[s->getId()], mesh_[s->getId()]);
 		}
 	}
 }
@@ -78,7 +78,7 @@ void ofApp::draw(){
 		rotation.getRotate(qangle, qaxis);
 		ofTranslate(translation);
 		ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-		mesh[s->getId()].drawVertices();
+		mesh_[s->getId()].drawVertices();
 		ofPopMatrix();
 		cam_.end();
 

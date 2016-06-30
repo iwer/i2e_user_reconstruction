@@ -24,7 +24,7 @@ public:
 		, maxSurfaceAngle_("Max Surface Angle", 45, 0, 360)
 		, minAngle_("Min Triangle Angle", 10, 1, 60)
 		, maxAngle_("Max Triangle Angle", 120, 60, 179)
-
+		, smoothRadius_("Search Radius", 0.03, 0.001, 0.2)
 	{}
 
 	void setupUi();
@@ -116,6 +116,9 @@ public:
 
 	ofParameterGroup downsamplingPrms_; 
 	ofParameter<float> resolution_;
+
+	ofParameterGroup smoothingPrms_;
+	ofParameter<float> smoothRadius_;
 
 	ofParameterGroup triangulationPrms_;
 	ofParameter<float> triEdgeLength_;

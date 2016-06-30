@@ -32,9 +32,20 @@ target_link_libraries(common
 	openFrameworks
 	ofAddons
 	of-pcl-bridge
+	pcl-common
+	pcl-octree
+	pcl-io
 	pcl-kdtree
 	pcl-features
+	pcl-sample-consensus
 	pcl-filters
+	pcl-ml
+	pcl-segmentation
+	pcl-registration
+	pcl-keypoints
+	pcl-tracking
+	pcl-recognition
+	pcl-stereo
 	pcl-search
 	pcl-surface
 	librecon

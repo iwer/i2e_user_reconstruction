@@ -9,6 +9,7 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/surface/organized_fast_mesh.h>
+#include <pcl/surface/mls.h>
 
 float approxRollingAverage(float avg, float new_sample, int window)
 {
@@ -103,15 +104,43 @@ void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr& triangles,
 	ofm.reconstruct(*triangles);
 }
 
+void movingLeastSquaresSmoothing(recon::NormalCloudPtr src, recon::NormalCloudPtr trgt, float smoothRadius)
+{
+	// Create a KD-Tree
+	pcl::search::KdTree<recon::PointType>::Ptr tree(new pcl::search::KdTree<recon::PointType>);
+
+	// Init object (second point type is for the normals, even if unused)
+	pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType> mls;
+
+	recon::CloudPtr normalRemovedCloud(new recon::Cloud);
+	pcl::copyPointCloud<pcl::PointXYZRGBNormal, recon::PointType>(*src, *normalRemovedCloud);
+
+	mls.setComputeNormals(true);
+
+	// Set parameters
+	mls.setInputCloud(normalRemovedCloud);
+	mls.setPolynomialFit(true);
+	mls.setPolynomialOrder(2);
+	mls.setDistinctCloud(normalRemovedCloud);
+	mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::DISTINCT_CLOUD);
+	mls.setSearchMethod(tree);
+	mls.setSearchRadius(smoothRadius);
+
+	// Reconstruct
+	mls.process(*trgt);
+}
+
 void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int normalKNeighbours)
 {
-	pcl::NormalEstimation<recon::PointType, pcl::Normal> n_;
-	pcl::search::KdTree<recon::PointType>::Ptr tree_(new pcl::search::KdTree<recon::PointType>);
+	pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> n_;
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree_(new pcl::search::KdTree<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::Normal>::Ptr normals_(new pcl::PointCloud<pcl::Normal>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr justPoints(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::copyPointCloud<recon::PointType, pcl::PointXYZ>(*src, *justPoints);
 
 	// Normal estimation
-	tree_->setInputCloud(src);
-	n_.setInputCloud(src);
+	tree_->setInputCloud(justPoints);
+	n_.setInputCloud(justPoints);
 	n_.setSearchMethod(tree_);
 	n_.setKSearch(normalKNeighbours);
 	n_.compute(*normals_);
@@ -138,7 +167,8 @@ void greedyProjectionMesh(recon::NormalCloudPtr src, recon::TrianglesPtr& triang
 	gp3_.setMaximumSurfaceAngle(DEG2RAD(maxSurfaceDegree));
 	gp3_.setMinimumAngle(DEG2RAD(minTriDegree));
 	gp3_.setMaximumAngle(DEG2RAD(maxTriDegree));
-	gp3_.setNormalConsistency(false);
+	gp3_.setNormalConsistency(true);
+	gp3_.setConsistentVertexOrdering(true);
 
 	// Get result
 	gp3_.setInputCloud(src);

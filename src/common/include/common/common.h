@@ -68,6 +68,15 @@ void organizedFastMesh(
 	float distanceTolerance);
 
 /**
+* Moving-Least Squares Smoothing of Point cloud with normals
+*/
+void movingLeastSquaresSmoothing(
+	recon::NormalCloudPtr src,
+	recon::NormalCloudPtr trgt,
+	float smoothRadius
+	);
+
+/**
 * Calculates point normals
 */
 void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int normalKNeighbours);

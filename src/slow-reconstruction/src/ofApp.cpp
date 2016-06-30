@@ -17,6 +17,9 @@ void ofApp::setupUi()
 	normalCalcPrms_.setName("Normal Estimation");
 	normalCalcPrms_.add(normalKNeighbours_);
 
+	smoothingPrms_.setName("Smoothing");
+	smoothingPrms_.add(smoothRadius_);
+
 	triangulationPrms_.setName("Triangulation");
 	triangulationPrms_.add(triEdgeLength_);
 	triangulationPrms_.add(searchRadius_);
@@ -52,8 +55,9 @@ void ofApp::setupUi()
 	ui_.add(nextFrameBtn_.setup("Next Frame"));
 	ui_.add(prevFrameBtn_.setup("Previous Frame"));
 	ui_.add(backgroundRemovalPrms_);
-	ui_.add(downsamplingPrms_);
 	ui_.add(normalCalcPrms_);
+	ui_.add(downsamplingPrms_);
+	ui_.add(smoothingPrms_);
 	ui_.add(triangulationPrms_);
 }
 
@@ -161,11 +165,14 @@ void ofApp::update() {
 		recon::NormalCloudPtr cloud_downsampled(new recon::NormalCloud());
 		downsample(combinedCloud, cloud_downsampled, resolution_);
 
+		recon::NormalCloudPtr cloud_smoothed(new recon::NormalCloud());
+		movingLeastSquaresSmoothing(cloud_downsampled, cloud_smoothed, smoothRadius_);
+
 		// triangulate using greedy projection
 		recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
-		greedyProjectionMesh(cloud_downsampled, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
+		greedyProjectionMesh(cloud_smoothed, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
 
-		createOfMeshFromPointsWNormalsAndTriangles(cloud_downsampled, tris, combinedMesh_);
+		createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
 	}
 }
 

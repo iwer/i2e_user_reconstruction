@@ -21,7 +21,16 @@ void downsample(recon::CloudConstPtr src, recon::CloudPtr trgt, float resolution
 	sor.setInputCloud(src);
 	sor.setLeafSize(resolution, resolution, resolution);
 	sor.filter(*trgt);
-	auto indices = sor.getIndices();
+	//auto indices = sor.getIndices();
+}
+
+void downsample(recon::CloudPtr src, recon::CloudPtr trgt, float resolution)
+{
+	pcl::VoxelGrid<recon::PointType> sor;
+	sor.setInputCloud(src);
+	sor.setLeafSize(resolution, resolution, resolution);
+	sor.filter(*trgt);
+	//auto indices = sor.getIndices();
 }
 
 void removeBackground(recon::CloudConstPtr src, recon::CloudPtr trgt, float min, float max, bool keepOrganized)
@@ -81,6 +90,9 @@ void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr& triangles,
 	ofm.reconstruct(*triangles);
 }
 
+void greedyProjectionMesh()
+{
+}
 
 void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 {

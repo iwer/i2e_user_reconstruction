@@ -16,6 +16,10 @@ void downsample(
 	recon::CloudConstPtr cloud, 
 	recon::CloudPtr cloud_downsampled, 
 	float resolution);
+void downsample(
+	recon::CloudPtr cloud,
+	recon::CloudPtr cloud_downsampled,
+	float resolution);
 
 /**
 * A simple Depth threshold filter. keepOrganized should be set to true if for example the resrult should be meshed using OrganizedFastMesh.
@@ -58,6 +62,11 @@ void organizedFastMesh(
 	int edgeLength, 
 	float angleTolerance, 
 	float distanceTolerance);
+
+/**
+* Creates triangles for pointcloud using greedy projection triangulation.
+*/
+void greedyProjectionMesh();
 
 /**
 * Draws the camera frustum in world space using given sensor intrisics and extrinsics.

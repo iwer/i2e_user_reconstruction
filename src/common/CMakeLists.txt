@@ -10,7 +10,7 @@ add_library(common
 	include/common/SensorCalibrationSettings.h
 	include/common/PointCloudPlayer.h
 	include/common/PclCloudAndImage.h
-	include/common/PclCloudAndOfTexture.h
+	include/common/PclCloudAndOfImage.h
 	)
 
 # Define headers for this library. PUBLIC headers are used for
@@ -32,6 +32,11 @@ target_link_libraries(common
 	openFrameworks
 	ofAddons
 	of-pcl-bridge
+	pcl-kdtree
+	pcl-features
+	pcl-filters
+	pcl-search
+	pcl-surface
 	librecon
 )
 

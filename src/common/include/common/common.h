@@ -13,12 +13,16 @@ float approxRollingAverage(
 * Downsamples the source pointcloud to resolution and stores it in target.
 */
 void downsample(
-	recon::CloudConstPtr cloud, 
-	recon::CloudPtr cloud_downsampled, 
+	recon::CloudConstPtr src, 
+	recon::CloudPtr trgt, 
 	float resolution);
 void downsample(
-	recon::CloudPtr cloud,
-	recon::CloudPtr cloud_downsampled,
+	recon::CloudPtr src,
+	recon::CloudPtr trgt,
+	float resolution);
+void downsample(
+	recon::NormalCloudPtr src,
+	recon::NormalCloudPtr trgt,
 	float resolution);
 
 /**
@@ -64,9 +68,22 @@ void organizedFastMesh(
 	float distanceTolerance);
 
 /**
-* Creates triangles for pointcloud using greedy projection triangulation.
+* Calculates point normals
 */
-void greedyProjectionMesh();
+void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int normalKNeighbours);
+
+/**
+* Creates triangles for pointcloud with normals using greedy projection triangulation.
+*/
+void greedyProjectionMesh(
+	recon::NormalCloudPtr src, 
+	recon::TrianglesPtr& triangles, 
+	float maxEdgeLength,
+	float mu, 
+	int maxNearestNeighbours,
+	float maxSurfaceDegree, 
+	float minTriDegree, 
+	float maxTriDegree);
 
 /**
 * Draws the camera frustum in world space using given sensor intrisics and extrinsics.

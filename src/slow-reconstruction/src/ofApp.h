@@ -16,6 +16,15 @@ public:
 		, passMax_("Z Max", 2.5, .01, 8)
 		, playing_("Play", false)
 		, resolution_("Resolution", 0.03, 0.001, 0.2)
+		, normalKNeighbours_("K Neighbours", 20, 3, 500)
+		, triEdgeLength_("Triangle Edge Length", 0.03, 0.001, 0.2)
+		, searchRadius_("Search radius", 0.035, 0.004, 0.8)
+		, mu_("Radius Multiplier", 2.5, 0.1, 10)
+		, maxNeighbours_("Max Neighbours", 100, 10, 500)
+		, maxSurfaceAngle_("Max Surface Angle", 45, 0, 360)
+		, minAngle_("Min Triangle Angle", 10, 1, 60)
+		, maxAngle_("Max Triangle Angle", 120, 60, 179)
+
 	{}
 
 	void setupUi();
@@ -46,6 +55,8 @@ public:
 	void prevFrame();
 	void saveCurrentFrame();
 
+	void drawNormals(ofMesh &mesh, float length, bool bFaceNormals);
+
 	int globalFrameNumber_;
 	int maxFrames_;
 
@@ -60,7 +71,6 @@ public:
 	std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
 
 	ofImage dummyTex_;
-	ofMesh combinedPoints_;
 	ofMesh combinedMesh_;
 
 	std::vector<ofRectangle> imageLayout_;
@@ -77,6 +87,7 @@ public:
 	ofxToggle showFrustum_;
 	ofxToggle showSingle_;
 	ofxToggle showCombined_;
+	ofxToggle showNormals_;
 	ofxToggle fillWireFrameTgl_;
 
 	ofxIntSlider fpsSlider_;
@@ -100,10 +111,20 @@ public:
 	ofParameter<float> passMin_;
 	ofParameter<float> passMax_;
 
+	ofParameterGroup normalCalcPrms_;
+	ofParameter<int> normalKNeighbours_;
+
 	ofParameterGroup downsamplingPrms_; 
 	ofParameter<float> resolution_;
 
 	ofParameterGroup triangulationPrms_;
+	ofParameter<float> triEdgeLength_;
+	ofParameter<float> searchRadius_;
+	ofParameter<float> mu_;
+	ofParameter<int> maxNeighbours_;
+	ofParameter<float> maxSurfaceAngle_;
+	ofParameter<float> minAngle_;
+	ofParameter<float> maxAngle_;
 
 
 };

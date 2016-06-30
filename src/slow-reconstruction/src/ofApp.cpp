@@ -14,7 +14,17 @@ void ofApp::setupUi()
 	downsamplingPrms_.setName("Downsampling");
 	downsamplingPrms_.add(resolution_);
 
+	normalCalcPrms_.setName("Normal Estimation");
+	normalCalcPrms_.add(normalKNeighbours_);
+
 	triangulationPrms_.setName("Triangulation");
+	triangulationPrms_.add(triEdgeLength_);
+	triangulationPrms_.add(searchRadius_);
+	triangulationPrms_.add(mu_);
+	triangulationPrms_.add(maxNeighbours_);
+	triangulationPrms_.add(maxSurfaceAngle_);
+	triangulationPrms_.add(minAngle_);
+	triangulationPrms_.add(maxAngle_);
 
 	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
 	fps_.addListener(this, &ofApp::updateFps);
@@ -34,6 +44,7 @@ void ofApp::setupUi()
 	ui_.add(showFrustum_.setup("Show Frustum", false));
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
+	ui_.add(showNormals_.setup("Show normals", false));
 	ui_.add(fpsSlider_.setup(fps_));
 	ui_.add(backBtn_.setup("Rewind"));
 	ui_.add(playTgl_.setup(playing_));
@@ -42,6 +53,7 @@ void ofApp::setupUi()
 	ui_.add(prevFrameBtn_.setup("Previous Frame"));
 	ui_.add(backgroundRemovalPrms_);
 	ui_.add(downsamplingPrms_);
+	ui_.add(normalCalcPrms_);
 	ui_.add(triangulationPrms_);
 }
 
@@ -109,7 +121,7 @@ void ofApp::update() {
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
-	recon::CloudPtr combinedCloud(new recon::Cloud());
+	recon::NormalCloudPtr combinedCloud(new recon::NormalCloud());
 
 	for (auto &s : sensors_) {
 		if (!playing_)
@@ -125,31 +137,36 @@ void ofApp::update() {
 				recon::CloudPtr cloud_wo_back(new recon::Cloud());
 				removeBackground(cloud_[s->getId()], cloud_wo_back, passMin_, passMax_, false);
 
+				// calculate normals
+				pcl::PointCloud<recon::PointNormalType>::Ptr cloud_with_normals(new recon::NormalCloud);
+				calculatePointNormals(cloud_wo_back, cloud_with_normals, normalKNeighbours_);
+
 				// transform pointcloud
-				recon::CloudPtr cloud_transformed(new recon::Cloud());
-				pcl::transformPointCloud(*cloud_wo_back, *cloud_transformed, s->getDepthExtrinsics()->getTransformation());
+				recon::NormalCloudPtr cloud_transformed(new recon::NormalCloud());
+				pcl::transformPointCloud(*cloud_with_normals, *cloud_transformed, s->getDepthExtrinsics()->getTransformation());
 
 				// create ofMesh for displaying
 				ofMesh m;
-				createOfMeshFromPoints(cloud_transformed, m);
+				createOfMeshFromPointsWNormals(cloud_transformed, m);
 				mesh_[s->getId()] = m;
 
 				// merge pointclouds
 				*combinedCloud += *cloud_transformed;
-
-				//ofMesh points;
-				//createOfMeshWithCombinedTexCoords(cloud_transformed, tris, image_[s->getId()]->getTexture(), imageLayout_[s->getId()], sensorMap_[s->getId()], points);
-				//combinedMesh.append(points);
-				//std::cout << "sensors Mesh: " << points.getNumVertices() << " " << points.getNumTexCoords() << std::endl;
 			}
 		}
 	}
 	
-	// Downsample combined cloud
-	recon::CloudPtr cloud_downsampled(new recon::Cloud());
-	downsample(combinedCloud, cloud_downsampled, resolution_);
+	if (combinedCloud->size() > 0) {
+		// Downsample combined cloud
+		recon::NormalCloudPtr cloud_downsampled(new recon::NormalCloud());
+		downsample(combinedCloud, cloud_downsampled, resolution_);
 
-	createOfMeshFromPoints(cloud_downsampled, combinedPoints_);
+		// triangulate using greedy projection
+		recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
+		greedyProjectionMesh(cloud_downsampled, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
+
+		createOfMeshFromPointsWNormalsAndTriangles(cloud_downsampled, tris, combinedMesh_);
+	}
 }
 
 //--------------------------------------------------------------
@@ -206,6 +223,10 @@ void ofApp::draw() {
 				mesh_[s->getId()].disableTextures();
 				mesh_[s->getId()].drawWireframe();
 			}
+			if(showNormals_)
+			{
+				drawNormals(mesh_[s->getId()], 10, false);
+			}
 			ofPopMatrix();
 		}
 		if (showFrustum_)
@@ -213,21 +234,28 @@ void ofApp::draw() {
 	}
 
 	if (showCombined_) {
-		if (perPixelColor_)
+		if (fillWireFrameTgl_) {
+			if (perPixelColor_)
+			{
+				combinedMesh_.enableTextures();
+				combinedMesh_.disableColors();
+				combinedTexture_.getTexture().bind();
+				combinedMesh_.draw();
+				combinedTexture_.getTexture().unbind();
+			}
+			else {
+				combinedMesh_.disableTextures();
+				combinedMesh_.enableColors();
+				combinedMesh_.draw();
+			}
+		}else
 		{
-			//combinedMesh_.enableTextures();
-			//combinedMesh_.disableColors();
-			//combinedTexture_.getTexture().bind();
-			//combinedMesh_.draw();
-			//combinedTexture_.getTexture().unbind();
+			combinedMesh_.drawWireframe();
 		}
-		else {
-			//combinedMesh_.disableTextures();
-			//combinedMesh_.enableColors();
-			//combinedMesh_.draw();
-			combinedPoints_.drawVertices();
+		if (showNormals_)
+		{
+			drawNormals(combinedMesh_, 10, false);
 		}
-
 	}
 
 	cam_.end();
@@ -403,3 +431,45 @@ void ofApp::updateFps(int &fps)
 }
 
 //--------------------------------------------------------------
+
+
+void ofApp::drawNormals(ofMesh &mesh, float length, bool bFaceNormals) {
+
+	if (mesh.usingNormals()) {
+		const vector<ofVec3f>& normals = mesh.getNormals();
+		const vector<ofVec3f>& vertices = mesh.getVertices();
+		ofVec3f normal;
+		ofVec3f vert;
+		ofMesh normalsMesh;
+		normalsMesh.setMode(OF_PRIMITIVE_LINES);
+		normalsMesh.getVertices().resize(normals.size() * 2);
+
+		if (bFaceNormals) {
+			for (int i = 0; i < (int)normals.size(); i++) {
+				if (i % 3 == 0) {
+					vert = (vertices[i] + vertices[i + 1] + vertices[i + 2]) / 3;
+				}
+				else if (i % 3 == 1) {
+					vert = (vertices[i - 1] + vertices[i] + vertices[i + 1]) / 3;
+				}
+				else if (i % 3 == 2) {
+					vert = (vertices[i - 2] + vertices[i - 1] + vertices[i]) / 3;
+				}
+				normalsMesh.setVertex(i * 2, vert);
+				normal = normals[i].getNormalized();
+				normal *= length;
+				normalsMesh.setVertex(i * 2 + 1, normal + vert);
+			}
+		}
+		else {
+			for (int i = 0; i < (int)normals.size(); i++) {
+				vert = vertices[i];
+				normal = normals[i].getNormalized();
+				normalsMesh.setVertex(i * 2, vert);
+				normal *= length;
+				normalsMesh.setVertex(i * 2 + 1, normal + vert);
+			}
+		}
+		normalsMesh.draw();
+	}
+}

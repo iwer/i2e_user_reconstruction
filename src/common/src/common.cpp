@@ -1,10 +1,14 @@
 #include "common/common.h"
+
+#include <ofMain.h>
+#include <of-pcl-bridge/of-pcl-bridge.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/surface/organized_fast_mesh.h>
-#include <ofMain.h>
-#include <of-pcl-bridge/of-pcl-bridge.h>
-
 
 float approxRollingAverage(float avg, float new_sample, int window)
 {
@@ -27,6 +31,15 @@ void downsample(recon::CloudConstPtr src, recon::CloudPtr trgt, float resolution
 void downsample(recon::CloudPtr src, recon::CloudPtr trgt, float resolution)
 {
 	pcl::VoxelGrid<recon::PointType> sor;
+	sor.setInputCloud(src);
+	sor.setLeafSize(resolution, resolution, resolution);
+	sor.filter(*trgt);
+	//auto indices = sor.getIndices();
+}
+
+void downsample(recon::NormalCloudPtr src, recon::NormalCloudPtr trgt, float resolution)
+{
+	pcl::VoxelGrid<recon::PointNormalType> sor;
 	sor.setInputCloud(src);
 	sor.setLeafSize(resolution, resolution, resolution);
 	sor.filter(*trgt);
@@ -90,8 +103,51 @@ void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr& triangles,
 	ofm.reconstruct(*triangles);
 }
 
-void greedyProjectionMesh()
+void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int normalKNeighbours)
 {
+	pcl::NormalEstimation<recon::PointType, pcl::Normal> n_;
+	pcl::search::KdTree<recon::PointType>::Ptr tree_(new pcl::search::KdTree<recon::PointType>);
+	pcl::PointCloud<pcl::Normal>::Ptr normals_(new pcl::PointCloud<pcl::Normal>);
+
+	// Normal estimation
+	tree_->setInputCloud(src);
+	n_.setInputCloud(src);
+	n_.setSearchMethod(tree_);
+	n_.setKSearch(normalKNeighbours);
+	n_.compute(*normals_);
+
+	// Concatenate the XYZ and normal fields
+	pcl::concatenateFields(*src.get(), *normals_.get(), *trgt.get());
+}
+
+void greedyProjectionMesh(recon::NormalCloudPtr src, recon::TrianglesPtr& triangles, float maxEdgeLength, float mu, int maxNearestNeighbours, 
+	float maxSurfaceDegree, float minTriDegree, float maxTriDegree)
+{
+	pcl::GreedyProjectionTriangulation<recon::PointNormalType> gp3_;
+
+
+
+	// Create search tree
+	pcl::search::KdTree<recon::PointNormalType>::Ptr tree2(new pcl::search::KdTree<recon::PointNormalType>);
+	tree2->setInputCloud(src);
+
+	// Set parameters
+	gp3_.setSearchRadius(maxEdgeLength);
+	gp3_.setMu(mu);
+	gp3_.setMaximumNearestNeighbors(maxNearestNeighbours);
+	gp3_.setMaximumSurfaceAngle(DEG2RAD(maxSurfaceDegree));
+	gp3_.setMinimumAngle(DEG2RAD(minTriDegree));
+	gp3_.setMaximumAngle(DEG2RAD(maxTriDegree));
+	gp3_.setNormalConsistency(false);
+
+	// Get result
+	gp3_.setInputCloud(src);
+	gp3_.setSearchMethod(tree2);
+	gp3_.reconstruct(*triangles);
+
+	// Additional vertex information
+	//auto parts = gp3_.getPartIDs();
+	//auto states = gp3_.getPointStates();
 }
 
 void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)

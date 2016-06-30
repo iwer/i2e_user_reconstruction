@@ -1,5 +1,5 @@
 #include "Controls.h"
-
+#ifdef NODEF
 Controls::Controls(void)
 {
 	createMainGui();
@@ -425,3 +425,5 @@ void Controls::setCameraTransformation(float x, float y, float z, float rot_x, f
 	yRot = rot_y;
 	zRot = rot_z;
 }
+
+#endif

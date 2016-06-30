@@ -1,4 +1,4 @@
-#include "SensorCalibrationSettings.h"
+#include "common/SensorCalibrationSettings.h"
 #include <ofxXmlSettings.h>
 
 
@@ -15,15 +15,17 @@ SensorCalibrationSettings::~SensorCalibrationSettings(void)
 
 void SensorCalibrationSettings::saveCalibration(recon::AbstractSensor::Ptr s, int index)
 {
-	auto extr = s->getDepthExtrinsics();
-	auto intr = s->getDepthIntrinsics();
+	if (s != nullptr) {
+		auto extr = s->getDepthExtrinsics();
+		auto intr = s->getDepthIntrinsics();
 
-	ofxXmlSettings set;
-	set.addValue("sensor:index", index);
-	addExtrinsicsToSettingsFile(set, extr);
-	addIntrinsicsToSettingsFile(set, intr);
-	std::cout << "Saving calibration for sensor " << index << std::endl;
-	set.saveFile(calibrationFilePrefix + std::to_string(index) + calibrationFileSuffix);
+		ofxXmlSettings set;
+		set.addValue("sensor:index", index);
+		addExtrinsicsToSettingsFile(set, extr);
+		addIntrinsicsToSettingsFile(set, intr);
+		std::cout << "Saving calibration for sensor " << index << std::endl;
+		set.saveFile(calibrationFilePrefix + std::to_string(index) + calibrationFileSuffix);
+	}
 }
 
 void SensorCalibrationSettings::loadCalibration(recon::AbstractSensor::Ptr s, int index)

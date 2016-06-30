@@ -1,47 +1,37 @@
 #include "ofApp.h"
+#include "ControlsOfxGui.h"
 
-void ofApp::toOfTexture(recon::ImagePtr image)
-{
-	auto width = image->getWidth();
-	auto height = image->getHeight();
-	auto encoding = image->getEncoding();
-
-	if(encoding == pcl::io::Image::Encoding::RGB)
-	{
-		auto data = static_cast<const unsigned char *>(image->getData());
-		texture.loadData(data, width, height, GL_RGB);
-	}
-}
 
 //--------------------------------------------------------------
-void ofApp::setup2(){
-	this->splashScreen.init("splash.png");
-	this->splashScreen.begin();
+void ofApp::setup(){
+	//this->splashScreen.init("splash.png");
+	//this->splashScreen.begin();
 
 	ofSetFrameRate(40);
 	selectedCamera = 0;
 	appmode = APPMODE_RECON;
+	currentFrame_ = recon::Frame::Ptr(new recon::Frame());
 
 	pcl::ScopeTime t("Setup");
 	recon::SensorFactory s;
-	auto n_cams = s.checkConnectedDevices(false);
+	auto n_cams = s.checkConnectedDevices(true);
 
 	if(n_cams < NCLOUDS)
 	{
 		std::cerr << "Not enough sensors" << std::endl;
-		ofExit(1);
+		//ofExit(1);
 	}
 
 	ofEnableDepthTest();
 
 	// connect control callbacks
 	std::cout << "Connecting App Callbacks" << std::endl;
-	Controls::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
-	Controls::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
-	Controls::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
-	Controls::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
-	Controls::getInstance().updateAppMode.connect(boost::bind(&ofApp::setAppmode, this, _1));
-	Controls::getInstance().updateFov.connect(boost::bind(&ofApp::updateFovOfCurrentCamera, this, _1));
+	ControlsOfxGui::getInstance().updateBackground.connect(boost::bind(&ofApp::setBackground, this, _1));
+	ControlsOfxGui::getInstance().updateRenderMode.connect(boost::bind(&ofApp::setRendermode, this, _1));
+	ControlsOfxGui::getInstance().updateCameraTransformation.connect(boost::bind(&ofApp::updateCameraTransformation, this, _1, _2, _3, _4, _5, _6));
+	ControlsOfxGui::getInstance().nextCamera.connect(boost::bind(&ofApp::selectNextCamera, this));
+	ControlsOfxGui::getInstance().updateAppMode.connect(boost::bind(&ofApp::setAppmode, this, _1));
+	ControlsOfxGui::getInstance().updateFov.connect(boost::bind(&ofApp::updateFovOfCurrentCamera, this, _1));
 
 	// create pipeline with control callbacks
 	std::cout << "Creating Pipeline" << std::endl;
@@ -54,26 +44,27 @@ void ofApp::setup2(){
 	//	&Controls::getInstance().updateMaxNearestNeighbours,
 	//	&Controls::getInstance().updateSampleResolution);
 	pipeline_ = new recon::Pipeline01(
-		&Controls::getInstance().updateMinDepth,
-		&Controls::getInstance().updateMaxDepth,
-		&Controls::getInstance().updateTriangleSize);
+		&ControlsOfxGui::getInstance().updateMinDepth,
+		&ControlsOfxGui::getInstance().updateMaxDepth,
+		&ControlsOfxGui::getInstance().updateTriangleSize);
 
 	//setup grabbers
 	std::cout << "Create Pointcloud sources" << std::endl;
+	boost::filesystem::path full_path(boost::filesystem::current_path());
 
-	//std::string filenames[4] = {
-	//	"data/vpscan01.pcd",
-	//	"data/vpscan02.pcd",
-	//	"data/vpscan03.pcd",
-	//	"data/vpscan04.pcd"
-	//};
+	std::string filenames[4] = {
+		full_path.generic_string() + std::string("/data/vpscan01.pcd"),
+		full_path.generic_string() + std::string("/data/vpscan02.pcd"),
+		full_path.generic_string() + std::string("/data/vpscan03.pcd"),
+		full_path.generic_string() + std::string("/data/vpscan04.pcd")
+	};
 
-	//std::string bgFilenames[4] = {
-	//	"data/vpbackground01.pcd",
-	//	"data/vpbackground02.pcd",
-	//	"data/vpbackground03.pcd",
-	//	"data/vpbackground04.pcd"
-	//};
+	std::string bgFilenames[4] = {
+		full_path.generic_string() + std::string("/data/vpbackground01.pcd"),
+		full_path.generic_string() + std::string("/data/vpbackground02.pcd"),
+		full_path.generic_string() + std::string("/data/vpbackground03.pcd"),
+		full_path.generic_string() + std::string("/data/vpbackground04.pcd")
+	};
 
 	cloudColors[0].set(255,0,0);
 	cloudColors[1].set(0,255,0);
@@ -82,9 +73,10 @@ void ofApp::setup2(){
 
 	SensorCalibrationSettings cal_set;
 
-	for(auto i = 0; i < NCLOUDS; i++) {
-		//sensors_[i] = s.createFilePointCloudGenerator(filenames[i], bgFilenames[i]);
-		sensors_[i] = s.createPclOpenNI2Grabber();
+	for(auto i = 0; i < std::min(NCLOUDS, n_cams); i++) {
+		std::cout << "Creating sensor" << std::endl;
+		sensors_[i] = s.createFilePointCloudGenerator(filenames[i], bgFilenames[i]);
+		//sensors_[i] = s.createPclOpenNI2Grabber();
 		cal_set.loadCalibration(sensors_[i], i);
 
 		pipeline_->setSensor(sensors_[i], i);
@@ -106,6 +98,7 @@ void ofApp::setup2(){
 
 	// setup camera
 	std::cout << "Setup camera" << std::endl;
+	
 	cam_.setPosition(ofVec3f(0, -10, 0));
 	cam_.setFov(57);
 	cam_.lookAt(ofVec3f(0, 0, 0), ofVec3f(0, 0, 1));
@@ -116,33 +109,35 @@ void ofApp::setup2(){
 	ofToUnityTransformation.rotate(270, 1, 0, 0);
 
 
-	Controls::getInstance().loadSettings();
+	ControlsOfxGui::getInstance().loadSettings();
 
-	this->splashScreen.end();
+	setBackground(127);
+	//this->splashScreen.end();
 	fullyInitialized = true;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
 	//pcl::ScopeTime t("Update");
+	std::cout << "UPDATE" << std::endl;
 
 	if (ofGetFrameNum() == 1)
 	{
 		nextframe = false;
-		this->setup2();
+		//this->setup2();
 	}
 	else if (fullyInitialized) 
 	{
 		// Update Framerate in Gui
-		Controls::getInstance().updateFramerate(ofGetFrameRate());
+		//ControlsOfxGui::getInstance().updateFramerate(ofGetFrameRate());
 		//pipeline_->processData();
 		getNewFrame();
-		pipeline_->processData(currentFrame_);
+		//pipeline_->processData(currentFrame_);
 
 		auto image = currentFrame_->getInputImage(0);
 		if (image)
 		{
-			toOfTexture(image);
+			toOfTexture(image, texture_);
 		}
 
 		//createOfMeshFromPoints(pipeline_->getOutputCloud(), outputMesh);
@@ -150,8 +145,8 @@ void ofApp::update(){
 		for(auto i = 0; i < NCLOUDS; i++) 
 		{
 
-			createIndexedOfMesh(currentFrame_->getInputCloud(i), i, inputMesh[i]);
-			createOfMeshFromPointsAndTriangles(currentFrame_->getOutputCloud(i), currentFrame_->getOutputTriangles(i), outputMesh[i]);
+			//createIndexedOfMesh(currentFrame_->getInputCloud(i), i, inputMesh[i]);
+			//createOfMeshFromPointsAndTriangles(currentFrame_->getOutputCloud(i), currentFrame_->getOutputTriangles(i), outputMesh[i]);
 
 		}
 	}
@@ -165,7 +160,8 @@ void ofApp::drawReconstruction()
 	case RENDER_SOURCES:
 		for(auto i = 0; i < NCLOUDS; i++) {
 			ofPushMatrix();
-			if(Controls::getInstance().transformSources) {
+			ofPushStyle();
+			if(ControlsOfxGui::getInstance().transformSources) {
 
 				ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 
@@ -177,10 +173,12 @@ void ofApp::drawReconstruction()
 			inputMesh[i].enableColors();
 			inputMesh[i].drawVertices();
 			ofPopMatrix();
+			ofPopStyle();
 		}
 		break;
 	case RENDER_POINTS:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.disableTextures();
 			m.enableColors();
@@ -188,18 +186,22 @@ void ofApp::drawReconstruction()
 			m.drawVertices();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	case RENDER_WIRE:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.enableColors();
 			ofMultMatrix(ofToUnityTransformation);
 			m.drawWireframe();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	case RENDER_MESH:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.enableColors();
 			m.disableTextures();
@@ -207,26 +209,31 @@ void ofApp::drawReconstruction()
 			m.draw();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	case RENDER_TEXTURE_MESH:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.disableColors();
 			m.enableTextures();
-			texture.setTextureWrap(GL_CLAMP,GL_CLAMP);
-			texture.bind();
+			texture_.setTextureWrap(GL_CLAMP,GL_CLAMP);
+			texture_.bind();
 			ofMultMatrix(ofToUnityTransformation);
 			m.draw();
-			texture.unbind();
+			texture_.unbind();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	default:
 		ofPushMatrix();
+		ofPushStyle();
 		for(auto &m : outputMesh){
 			m.drawVertices();
 		}
 		ofPopMatrix();
+		ofPopStyle();
 		break;
 	}
 
@@ -238,9 +245,10 @@ void ofApp::drawCalibration()
 {
 	for(auto i = 0; i < NCLOUDS; i++) {
 		ofPushMatrix();
+		ofPushStyle();
 		ofVec3f qaxis; float qangle;
 		sourceRotation[i].getRotate(qangle, qaxis);
-		if(Controls::getInstance().transformSources) {
+		if(ControlsOfxGui::getInstance().transformSources) {
 			ofTranslate(sourceTranslation[i].x * 1000, sourceTranslation[i].y * 1000, sourceTranslation[i].z * 1000);
 			ofRotate(qangle, qaxis.x , qaxis.y, qaxis.z);
 		}
@@ -257,6 +265,7 @@ void ofApp::drawCalibration()
 		inputMesh[i].drawVertices();		
 		ofDrawAxis(100);
 		ofPopMatrix();
+		ofPopStyle();
 
 		//ofPushMatrix();
 		//outputMesh.drawVertices();
@@ -265,6 +274,7 @@ void ofApp::drawCalibration()
 		// camera frustum on active cam
 		if (i == selectedCamera) {
 			ofPushMatrix();
+			ofPushStyle();
 			ofMatrix4x4 mat, persp;
 			mat.translate(-sourceTranslation[i].x * 1000, -sourceTranslation[i].y * 1000, -sourceTranslation[i].z * 1000);
 			mat.rotate(qangle, -qaxis.x, -qaxis.y, -qaxis.z);
@@ -276,6 +286,7 @@ void ofApp::drawCalibration()
 			ofNoFill();
 			ofDrawBox(0, 0, 0, 2.0f);
 			ofPopMatrix();
+			ofPopStyle();
 		}
 	}
 }
@@ -283,12 +294,15 @@ void ofApp::drawCalibration()
 //--------------------------------------------------------------
 void ofApp::draw(){
 	//pcl::ScopeTime t("Draw");
+	std::cout << "UPDATE" << std::endl;
 
 	ofBackground(background);
 
 	cam_.begin();
 	ofPushMatrix();
+	ofPushStyle();
 	ofDrawAxis(1000);
+
 	if (appmode == APPMODE_RECON)
 	{
 		drawReconstruction();
@@ -302,12 +316,17 @@ void ofApp::draw(){
 	cam_.end();
 
 	ofPushMatrix();
-	auto aspect =  texture.getWidth() / texture.getHeight();
+	ofPopStyle();
+	auto aspect =  texture_.getWidth() / texture_.getHeight();
 	auto screenWidth = ofGetWidth()/8;
 	auto screenHeight = screenWidth / aspect;
 	//                                                             vvv to flip image
-	texture.draw(ofPoint(screenWidth,ofGetHeight() - screenHeight), -screenWidth, screenHeight);
+	//texture.draw(ofPoint(screenWidth,ofGetHeight() - screenHeight), -screenWidth, screenHeight);
 	ofPopMatrix();
+
+	ofDisableDepthTest();
+	ControlsOfxGui::getInstance().draw();
+	ofEnableDepthTest();
 }
 
 //--------------------------------------------------------------
@@ -318,7 +337,7 @@ void ofApp::keyPressed(int key){
 	}
 	if(key == OF_KEY_F1)
 	{
-		Controls::getInstance().setStepHigh(true);
+		ControlsOfxGui::getInstance().setStepHigh(true);
 	}
 }
 
@@ -326,7 +345,7 @@ void ofApp::keyPressed(int key){
 void ofApp::keyReleased(int key){
 	if(key == OF_KEY_F1)
 	{
-		Controls::getInstance().setStepHigh(false);
+		ControlsOfxGui::getInstance().setStepHigh(false);
 	}
 }
 
@@ -334,7 +353,8 @@ void ofApp::keyReleased(int key){
 void ofApp::mouseMoved(int x, int y ){
 
 	// disable cam when mouse on mainGui
-	if(Controls::getInstance().getGui()->getRect()->getMaxX() >= x && Controls::getInstance().getGui()->getRect()->getMaxY() >= y){
+	if(ControlsOfxGui::getInstance().getGui()->getShape().getMaxX() >= x 
+		&& ControlsOfxGui::getInstance().getGui()->getShape().getMaxY() >= y){
 		cam_.disableMouseInput();
 	} else {
 		cam_.enableMouseInput();
@@ -369,17 +389,18 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 //--------------------------------------------------------------
 void ofApp::exit()
 {
-	Controls::getInstance().saveSettings();
+	ControlsOfxGui::getInstance().saveSettings();
 	//for (auto &cs : cloudSource_) {
 	//	cs->stop();
 	//}
 	SensorCalibrationSettings set;
-	for(auto i = 0; i < NCLOUDS; i++) 
-	{
-		set.saveCalibration(sensors_[i], i);
-		i++;
+	if (sensors_) {
+		for (auto i = 0; i < NCLOUDS; i++)
+		{
+			set.saveCalibration(sensors_[i], i);
+			i++;
+		}
 	}
-
 }
 
 //--------------------------------------------------------------
@@ -406,11 +427,10 @@ ofVec2f* ofApp::calculateTextureCoordinate(ofVec3f &point, int cam_index)
 {
 	ofVec3f qaxis; float qangle;
 	ofMatrix4x4 mat, persp;
-	auto width = texture.getWidth();
-	auto height = texture.getHeight();
+	auto width = texture_.getWidth();
+	auto height = texture_.getHeight();
 	auto intrinsics = sensors_[cam_index]->getDepthIntrinsics();
 	//loadExtrinsicsFromCurrentSensor();
-
 	sourceRotation[cam_index].getRotate(qangle, qaxis);
 
 	mat.translate(sourceTranslation[cam_index].x*1000, sourceTranslation[cam_index].y*1000, sourceTranslation[cam_index].z*1000);
@@ -443,7 +463,6 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 		recon::PointType p;
 		for(auto &t : *triangles) {
-			// So easy, such style, very beauty, many readable, so wow!
 			for(auto &pointindex : t.vertices){
 				p = inputCloud->at(pointindex);
 				ofVec3f ofp = ofVec3f(p.x*1000,p.y*1000,p.z*1000);
@@ -455,16 +474,6 @@ void ofApp::createOfMeshFromPointsAndTriangles(recon::CloudConstPtr inputCloud, 
 			}
 		}
 	}
-	//else
-	//{
-	//	if(!triangles) {
-	//		std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty triangles" << std::endl;
-	//	}
-	//	if(!inputCloud)
-	//	{
-	//		std::cout << "Frame " << currentFrame_->getFrameNumber() << " has empty output cloud" << std::endl;
-	//	}
-	//}
 }
 
 //--------------------------------------------------------------
@@ -518,7 +527,7 @@ void ofApp::saveExtrinsicsToCurrentSensor()
 //--------------------------------------------------------------
 void ofApp::updateGuiTransformation()
 {
-	Controls::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
+	ControlsOfxGui::getInstance().setCameraTransformation(sourceTranslation[selectedCamera].x,
 	                                                sourceTranslation[selectedCamera].y,
 	                                                sourceTranslation[selectedCamera].z,
 	                                                sourceRotation[selectedCamera].getEuler().x,
@@ -529,11 +538,13 @@ void ofApp::updateGuiTransformation()
 //--------------------------------------------------------------
 void ofApp::loadExtrinsicsFromCurrentSensor()
 {
-	auto ext = sensors_[selectedCamera]->getDepthExtrinsics();
-	sourceTranslation[selectedCamera].set(ext->getTranslation()->x(), ext->getTranslation()->y(), ext->getTranslation()->z());
-	sourceRotation[selectedCamera].set(ext->getRotation()->x(), ext->getRotation()->y(), ext->getRotation()->z(), ext->getRotation()->w());
+	if (sensors_) {
+		auto ext = sensors_[selectedCamera]->getDepthExtrinsics();
+		sourceTranslation[selectedCamera].set(ext->getTranslation()->x(), ext->getTranslation()->y(), ext->getTranslation()->z());
+		sourceRotation[selectedCamera].set(ext->getRotation()->x(), ext->getRotation()->y(), ext->getRotation()->z(), ext->getRotation()->w());
 
-	updateGuiTransformation();
+		updateGuiTransformation();
+	}
 }
 
 //--------------------------------------------------------------
@@ -568,5 +579,7 @@ void ofApp::getNewFrame()
 //--------------------------------------------------------------
 void ofApp::updateFovOfCurrentCamera(float f)
 {
-	sensors_[selectedCamera]->getDepthIntrinsics()->setFocalLength(f);
+	if (sensors_) {
+		sensors_[selectedCamera]->getDepthIntrinsics()->setFocalLength(f);
+	}
 }

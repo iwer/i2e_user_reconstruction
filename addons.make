@@ -1,5 +1,0 @@
-ofxXmlSettings
-ofxMSATimer
-ofxTimeMeasurements
-ofxUI
-ofxSplashScreen

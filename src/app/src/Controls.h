@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef NODEF
 #include "ofMain.h"
 #include "ofxUi.h"
 #include <boost/signals2.hpp>
@@ -73,3 +73,4 @@ private:
 	float step;
 };
 
+#endif

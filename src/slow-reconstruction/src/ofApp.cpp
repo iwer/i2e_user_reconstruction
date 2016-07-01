@@ -120,6 +120,8 @@ void ofApp::setup() {
 	//loadCalibrationFromFile();
 }
 
+
+
 //--------------------------------------------------------------
 void ofApp::update() {
 	combinedMesh_.clear();
@@ -165,14 +167,21 @@ void ofApp::update() {
 		recon::NormalCloudPtr cloud_downsampled(new recon::NormalCloud());
 		downsample(combinedCloud, cloud_downsampled, resolution_);
 
+		// smoothing
 		recon::NormalCloudPtr cloud_smoothed(new recon::NormalCloud());
 		movingLeastSquaresSmoothing(cloud_downsampled, cloud_smoothed, smoothRadius_);
+
+		// generate texture coordinate wrt the closest visible camera
+		std::vector<ofVec2f> tex_coords;
+		generateTextureCoordinates(cloud_smoothed, tex_coords, sensorMap_);
 
 		// triangulate using greedy projection
 		recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
 		greedyProjectionMesh(cloud_smoothed, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
 
-		createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
+		//
+		//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
+		createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
 	}
 }
 
@@ -479,4 +488,65 @@ void ofApp::drawNormals(ofMesh &mesh, float length, bool bFaceNormals) {
 		}
 		normalsMesh.draw();
 	}
+}
+
+
+//--------------------------------------------------------------
+void ofApp::generateTextureCoordinates(recon::NormalCloudPtr pointCloud, vector<ofVec2f>& tex_coords, map<int, boost::shared_ptr<recon::AbstractSensor>>& sensors)
+{
+	for(auto &p : pointCloud->points)
+	{
+		auto normal = ofVec3f(p.normal_x, p.normal_y, p.normal_z);
+		auto cam_id = selectClosestFacingCamera(normal, sensors);
+		auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+
+		switch(cam_id)
+		{
+		case 0:
+			p.r = 255;
+			p.g = 0;
+			p.b = 0;
+			break;
+		case 1:
+			p.r = 0;
+			p.g = 255;
+			p.b = 0;
+			break;
+		case 2:
+			p.r = 0;
+			p.g = 0;
+			p.b = 255;
+			break;
+		default:
+			break;
+		}
+		auto tex_coord = calculateTextureCoordinate(ofp, imageLayout_[cam_id].getWidth(), imageLayout_[cam_id].getHeight(), sensors[cam_id], false);
+		tex_coord += imageLayout_[cam_id].getTopLeft();
+
+		tex_coords.push_back(tex_coord);
+	}
+}
+
+//--------------------------------------------------------------
+int ofApp::selectClosestFacingCamera(ofVec3f& normal, map<int, boost::shared_ptr<recon::AbstractSensor>>& sensors)
+{
+	auto minAngle = 360.0f;
+	int minAngleSensorId = 0;
+	for(auto &s : sensors)
+	{
+		auto inverse_camera_transform = s.second->getDepthExtrinsics()->getTransformation().inverse();
+		auto view_vector = ofVec3f(0, 0, 1) * toOfMatrix4x4(inverse_camera_transform);
+
+		auto norm_n = normal.normalized();
+		auto angle = norm_n.angle(view_vector);
+
+		angle = std::abs(angle - 180);
+
+		if(angle < minAngle)
+		{
+			minAngle = angle;
+			minAngleSensorId = s.second->getId();
+		}
+	}
+	return minAngleSensorId;
 }

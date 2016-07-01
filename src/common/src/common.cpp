@@ -268,7 +268,7 @@ void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
 			for (auto& pointindex : t.vertices)
 			{
 				p = src->at(pointindex);
-				ofVec3f ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+				auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 				targetMesh.addVertex(ofp);
 				targetMesh.addColor(ofColor(p.r, p.g, p.b));
 				targetMesh.addTexCoord(calculateTextureCoordinate(ofp, texture.getWidth(), texture.getHeight(), sensor, true));
@@ -296,7 +296,7 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstP
 			for (auto& pointindex : t.vertices)
 			{
 				p = src->at(pointindex);
-				ofVec3f ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+				auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 				targetMesh.addVertex(ofp);
 				targetMesh.addColor(ofColor(p.r, p.g, p.b));
 				//calculate texcoord on single texture
@@ -306,6 +306,33 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstP
 				localTexcoord += texturelayout.getTopLeft();
 				//std::cout << localTexcoord << std::endl;
 				targetMesh.addTexCoord(localTexcoord);
+			}
+		}
+	}
+}
+
+void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGBNormal>::ConstPtr src,
+	boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
+	std::vector<ofVec2f> &texcoords,
+	ofMesh& targetMesh)
+{
+	if (triangles && src)
+	{
+		// triangle inputMesh
+		targetMesh.clear();
+		targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+		pcl::PointXYZRGBNormal p;
+
+		for (auto& t : *triangles)
+		{
+			for (auto& pointindex : t.vertices)
+			{
+				p = src->at(pointindex);
+				auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+				targetMesh.addVertex(ofp);
+				targetMesh.addColor(ofColor(p.r, p.g, p.b));
+				targetMesh.addNormal(ofVec3f(p.normal_x, p.normal_y, p.normal_z));
+				targetMesh.addTexCoord(texcoords.at(pointindex));
 			}
 		}
 	}

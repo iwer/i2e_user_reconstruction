@@ -30,6 +30,8 @@ public:
 	void setupUi();
 
 	void setup();
+	int selectClosestFacingCamera(ofVec3f& normal, map<int, boost::shared_ptr<recon::AbstractSensor>>& sensors);
+	void generateTextureCoordinates(recon::NormalCloudPtr pointCloud, vector<ofVec2f>& tex_coords, map<int, boost::shared_ptr<recon::AbstractSensor>>& sensors);
 	void update();
 	void draw();
 

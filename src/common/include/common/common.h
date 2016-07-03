@@ -131,3 +131,9 @@ void createOfMeshWithCombinedTexCoords(
 	boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
 	std::vector<ofVec2f> &texcoords,
 	ofMesh &targetMesh);
+
+
+void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, std::vector<ofRectangle>& texturelayout, ofMesh &targetMesh);
+
+
+ofColor getSensorColor(int sensorId);

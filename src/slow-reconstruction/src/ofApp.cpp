@@ -4,6 +4,7 @@
 #include <recon/SensorFactory.h>
 #include <common/common.h>
 #include <pcl/common/transforms.h>
+#include <pcl/surface/texture_mapping.h>
 
 void ofApp::setupUi()
 {
@@ -179,9 +180,27 @@ void ofApp::update() {
 		recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
 		greedyProjectionMesh(cloud_smoothed, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
 
-		//
+
+
+		// pcl texture mapping
+		pcl::TextureMesh::Ptr tmesh(new pcl::TextureMesh());
+		pcl::toPCLPointCloud2(*cloud_smoothed, tmesh->cloud);
+		tmesh->tex_polygons.push_back(*tris);
+
+
+		pcl::texture_mapping::CameraVector cam_vec;
+		for (auto &s : sensors_) {
+			cam_vec.push_back(s->asPclCamera());
+		}
+
+		//pcl::TexMaterial material;
+		//material.
+		pcl::TextureMapping<pcl::PointXYZ> tmapping;
+		tmapping.textureMeshwithMultipleCameras(*tmesh, cam_vec);
+
+		createOfMeshFromPclTextureMesh(tmesh, imageLayout_, combinedMesh_);
 		//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
-		createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
+		//createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
 	}
 }
 

@@ -121,8 +121,10 @@ void movingLeastSquaresSmoothing(recon::NormalCloudPtr src, recon::NormalCloudPt
 	mls.setInputCloud(normalRemovedCloud);
 	mls.setPolynomialFit(true);
 	mls.setPolynomialOrder(2);
+	// TODO: check other upsampling methods
 	mls.setDistinctCloud(normalRemovedCloud);
 	mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::DISTINCT_CLOUD);
+
 	mls.setSearchMethod(tree);
 	mls.setSearchRadius(smoothRadius);
 
@@ -149,11 +151,10 @@ void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int 
 	pcl::concatenateFields(*src.get(), *normals_.get(), *trgt.get());
 }
 
-void greedyProjectionMesh(recon::NormalCloudPtr src, recon::TrianglesPtr& triangles, float maxEdgeLength, float mu, int maxNearestNeighbours, 
-	float maxSurfaceDegree, float minTriDegree, float maxTriDegree)
+void greedyProjectionMesh(recon::NormalCloudPtr src, recon::TrianglesPtr& triangles, float maxEdgeLength, float mu, int maxNearestNeighbours,
+                          float maxSurfaceDegree, float minTriDegree, float maxTriDegree)
 {
 	pcl::GreedyProjectionTriangulation<recon::PointNormalType> gp3_;
-
 
 
 	// Create search tree
@@ -205,6 +206,7 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 	ofPushStyle();
 	ofMultMatrix(mat.getInverse());
 	ofNoFill();
+	ofSetColor(getSensorColor(sensor->getId()));
 	ofDrawBox(0, 0, 0, 2.0f);
 	ofPopMatrix();
 	ofPopStyle();
@@ -216,22 +218,24 @@ ofVec2f calculateTextureCoordinate(ofVec3f& point, float texwidth, float texheig
 	ofMatrix4x4 mat, persp;
 	auto intrinsics = sensor->getDepthIntrinsics();
 
-	
+
 	auto transl = toOfVector3(*sensor->getDepthExtrinsics()->getTranslation());//
 	auto rotate = toOfQuaternion(*sensor->getDepthExtrinsics()->getRotation());//
 
 	ofVec3f qaxis;//
 	float qangle;//
-	
-	if (!inCameraSpace) {
+
+	if (!inCameraSpace)
+	{
 		rotate.getRotate(qangle, qaxis);//
 		mat.translate(-transl.x, -transl.y, -transl.z);//
 	}
-	
+
 	// counter pcl s positive z-direction
 	mat.rotate(180, 1, 0, 0);
-	
-	if (!inCameraSpace) {
+
+	if (!inCameraSpace)
+	{
 		mat.rotate(qangle, -qaxis.x, qaxis.y, qaxis.z);//
 	}
 	// create ViewProjection Matrix
@@ -277,12 +281,12 @@ void createOfMeshWithTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
 	}
 }
 
-void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src, 
-	boost::shared_ptr<std::vector<pcl::Vertices>> triangles, 
-	ofTexture& texture, 
-	ofRectangle& texturelayout, 
-	recon::AbstractSensor::Ptr sensor, 
-	ofMesh& targetMesh)
+void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr src,
+                                       boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
+                                       ofTexture& texture,
+                                       ofRectangle& texturelayout,
+                                       recon::AbstractSensor::Ptr sensor,
+                                       ofMesh& targetMesh)
 {
 	if (triangles && src)
 	{
@@ -312,9 +316,9 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGB>::ConstP
 }
 
 void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGBNormal>::ConstPtr src,
-	boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
-	std::vector<ofVec2f> &texcoords,
-	ofMesh& targetMesh)
+                                       boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
+                                       std::vector<ofVec2f>& texcoords,
+                                       ofMesh& targetMesh)
 {
 	if (triangles && src)
 	{
@@ -338,3 +342,56 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGBNormal>::
 	}
 }
 
+void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, 
+	std::vector<ofRectangle>& texturelayout,
+	ofMesh &targetMesh)
+{
+	targetMesh.clear();
+	targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+	pcl::PointCloud<pcl::PointXYZ> local_cloud;
+	pcl::fromPCLPointCloud2(mesh->cloud, local_cloud);
+	unsigned sub_mesh_idx = 0;
+	for (auto &sub_mesh : mesh->tex_polygons)
+	{
+		unsigned tri_mesh_idx = 0;
+
+		for (auto &t : sub_mesh) {
+			for (auto &pointindex : t.vertices)
+			{
+				auto p = local_cloud.at(pointindex);
+				targetMesh.addVertex(ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000));
+				auto local_texcoord = mesh->tex_coordinates[sub_mesh_idx][tri_mesh_idx];
+				ofVec2f tc = ofVec2f(local_texcoord.x(), local_texcoord.y());
+				tc += texturelayout[sub_mesh_idx].getTopLeft();
+
+				targetMesh.addTexCoord(tc);
+			}
+			++tri_mesh_idx;
+		}
+		++sub_mesh_idx;
+	}
+}
+
+ofColor getSensorColor(int sensorId)
+{
+	ofColor c;
+	switch (sensorId)
+	{
+	case 0:
+		c = ofColor(255, 0, 0);
+		break;
+	case 1:
+		c = ofColor(0, 255, 0);
+		break;
+	case 2:
+		c = ofColor(0, 0, 255);
+		break;
+	case 3:
+		c = ofColor(255, 255, 0);
+		break;
+	default:
+		c = ofColor(255, 255, 255);
+		break;
+	}
+	return c;
+}

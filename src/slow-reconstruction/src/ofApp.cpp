@@ -5,29 +5,42 @@
 #include <common/common.h>
 #include <pcl/common/transforms.h>
 #include <pcl/surface/texture_mapping.h>
+#include <pcl/common/time.h>
 
 void ofApp::setupUi()
 {
 	backgroundRemovalPrms_.setName("Backgroundremoval");
+	passMin_.addListener(this, &ofApp::processFrameTriggerFloat);
 	backgroundRemovalPrms_.add(passMin_);
+	passMax_.addListener(this, &ofApp::processFrameTriggerFloat);
 	backgroundRemovalPrms_.add(passMax_);
-
+	
 	downsamplingPrms_.setName("Downsampling");
+	resolution_.addListener(this, &ofApp::processFrameTriggerFloat);
 	downsamplingPrms_.add(resolution_);
 
 	normalCalcPrms_.setName("Normal Estimation");
+	normalKNeighbours_.addListener(this, &ofApp::processFrameTriggerInt);
 	normalCalcPrms_.add(normalKNeighbours_);
 
 	smoothingPrms_.setName("Smoothing");
+	smoothRadius_.addListener(this, &ofApp::processFrameTriggerFloat);
 	smoothingPrms_.add(smoothRadius_);
 
 	triangulationPrms_.setName("Triangulation");
+	triEdgeLength_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(triEdgeLength_);
+	searchRadius_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(searchRadius_);
+	mu_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(mu_);
+	maxNeighbours_.addListener(this, &ofApp::processFrameTriggerInt);
 	triangulationPrms_.add(maxNeighbours_);
+	maxSurfaceAngle_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(maxSurfaceAngle_);
+	minAngle_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(minAngle_);
+	maxAngle_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(maxAngle_);
 
 	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
@@ -50,9 +63,9 @@ void ofApp::setupUi()
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
 	ui_.add(showNormals_.setup("Show normals", false));
 	ui_.add(fpsSlider_.setup(fps_));
-	ui_.add(backBtn_.setup("Rewind"));
-	ui_.add(playTgl_.setup(playing_));
-	ui_.add(stopBtn_.setup("Stop"));
+	//ui_.add(backBtn_.setup("Rewind"));
+	//ui_.add(playTgl_.setup(playing_));
+	//ui_.add(stopBtn_.setup("Stop"));
 	ui_.add(nextFrameBtn_.setup("Next Frame"));
 	ui_.add(prevFrameBtn_.setup("Previous Frame"));
 	ui_.add(backgroundRemovalPrms_);
@@ -119,16 +132,14 @@ void ofApp::setup() {
 	cam_.rotate(180, 0, 1, 0);
 
 	//loadCalibrationFromFile();
+	processFrame();
 }
 
 
-
-//--------------------------------------------------------------
-void ofApp::update() {
-	combinedMesh_.clear();
-	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
-
-	recon::NormalCloudPtr combinedCloud(new recon::NormalCloud());
+void ofApp::processFrame()
+{
+	pcl::ScopeTime time("Frame processing time");
+	combinedCloud_.reset(new recon::NormalCloud());
 
 	for (auto &s : sensors_) {
 		if (!playing_)
@@ -149,32 +160,27 @@ void ofApp::update() {
 				calculatePointNormals(cloud_wo_back, cloud_with_normals, normalKNeighbours_);
 
 				// transform pointcloud
-				recon::NormalCloudPtr cloud_transformed(new recon::NormalCloud());
-				pcl::transformPointCloud(*cloud_with_normals, *cloud_transformed, s->getDepthExtrinsics()->getTransformation());
-
-				// create ofMesh for displaying
-				ofMesh m;
-				createOfMeshFromPointsWNormals(cloud_transformed, m);
-				mesh_[s->getId()] = m;
+				cloud_transformed_[s->getId()].reset(new recon::NormalCloud());
+				pcl::transformPointCloud(*cloud_with_normals, *cloud_transformed_[s->getId()], s->getDepthExtrinsics()->getTransformation());
 
 				// merge pointclouds
-				*combinedCloud += *cloud_transformed;
+				*combinedCloud_ += *cloud_transformed_[s->getId()];
 			}
 		}
 	}
 	
-	if (combinedCloud->size() > 0) {
+	if (combinedCloud_->size() > 0) {
 		// Downsample combined cloud
 		recon::NormalCloudPtr cloud_downsampled(new recon::NormalCloud());
-		downsample(combinedCloud, cloud_downsampled, resolution_);
+		downsample(combinedCloud_, cloud_downsampled, resolution_);
 
 		// smoothing
 		recon::NormalCloudPtr cloud_smoothed(new recon::NormalCloud());
 		movingLeastSquaresSmoothing(cloud_downsampled, cloud_smoothed, smoothRadius_);
 
-		// generate texture coordinate wrt the closest visible camera
-		std::vector<ofVec2f> tex_coords;
-		generateTextureCoordinates(cloud_smoothed, tex_coords, sensorMap_);
+		// generate texture coordinate wrt the closest visible camera, this does not work very well...
+		//std::vector<ofVec2f> tex_coords;
+		//generateTextureCoordinates(cloud_smoothed, tex_coords, sensorMap_);
 
 		// triangulate using greedy projection
 		recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
@@ -183,9 +189,9 @@ void ofApp::update() {
 
 
 		// pcl texture mapping
-		pcl::TextureMesh::Ptr tmesh(new pcl::TextureMesh());
-		pcl::toPCLPointCloud2(*cloud_smoothed, tmesh->cloud);
-		tmesh->tex_polygons.push_back(*tris);
+		tmesh_.reset(new pcl::TextureMesh());
+		pcl::toPCLPointCloud2(*cloud_smoothed, tmesh_->cloud);
+		tmesh_->tex_polygons.push_back(*tris);
 
 
 		pcl::texture_mapping::CameraVector cam_vec;
@@ -196,11 +202,35 @@ void ofApp::update() {
 		//pcl::TexMaterial material;
 		//material.
 		pcl::TextureMapping<pcl::PointXYZ> tmapping;
-		tmapping.textureMeshwithMultipleCameras(*tmesh, cam_vec);
+		tmapping.textureMeshwithMultipleCameras(*tmesh_, cam_vec);
+	}
+}
 
-		createOfMeshFromPclTextureMesh(tmesh, imageLayout_, combinedMesh_);
-		//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
-		//createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
+void ofApp::processFrameTriggerInt(int & value)
+{
+	processFrame();
+}
+
+void ofApp::processFrameTriggerFloat(float & value)
+{
+	processFrame();
+}
+
+//--------------------------------------------------------------
+void ofApp::update() {
+	combinedMesh_.clear();
+	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
+
+	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, combinedMesh_);
+	//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
+	//createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
+
+	for(auto &s : sensors_)
+	{
+		// create ofMesh for displaying
+		ofMesh m;
+		createOfMeshFromPointsWNormals(cloud_transformed_[s->getId()], m);
+		mesh_[s->getId()] = m;
 	}
 }
 
@@ -406,6 +436,7 @@ void ofApp::nextFrame()
 	if (!playing_ && globalFrameNumber_ < (maxFrames_ - 1))
 	{
 		globalFrameNumber_++;
+		processFrame();
 	}
 }
 
@@ -415,6 +446,7 @@ void ofApp::prevFrame()
 	if (!playing_ && globalFrameNumber_ > 0)
 	{
 		globalFrameNumber_--;
+		processFrame();
 	}
 }
 

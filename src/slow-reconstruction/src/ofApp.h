@@ -59,6 +59,10 @@ public:
 
 	void drawNormals(ofMesh &mesh, float length, bool bFaceNormals);
 
+	void processFrame();
+	void processFrameTriggerInt(int &value);
+	void processFrameTriggerFloat(float &value);
+
 	int globalFrameNumber_;
 	int maxFrames_;
 
@@ -66,13 +70,18 @@ public:
 
 	std::map<int, PointCloudPlayer::Ptr> player_;
 	std::map<int, int> frameNumber_;
+
 	std::map<int, recon::CloudPtr> cloud_;
+	std::map<int, recon::NormalCloudPtr> cloud_transformed_;
 	std::map<int, ofMesh> mesh_;
 	std::map<int, std::shared_ptr<ofImage>> image_;
+
 	std::list<recon::AbstractSensor::Ptr> sensors_;
 	std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
 
 	ofImage dummyTex_;
+	recon::NormalCloudPtr combinedCloud_;
+	pcl::TextureMesh::Ptr tmesh_;
 	ofMesh combinedMesh_;
 
 	std::vector<ofRectangle> imageLayout_;

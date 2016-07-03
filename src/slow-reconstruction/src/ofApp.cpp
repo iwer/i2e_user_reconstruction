@@ -221,7 +221,7 @@ void ofApp::update() {
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
-	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, combinedMesh_);
+	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, sensorMap_, combinedMesh_);
 	//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
 	//createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
 
@@ -478,6 +478,7 @@ void ofApp::loadCalibrationFromFile()
 
 		//sensor_extrinsics_[s->getId()] = m;
 	}
+	processFrame();
 }
 
 //--------------------------------------------------------------

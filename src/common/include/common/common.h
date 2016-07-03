@@ -133,7 +133,7 @@ void createOfMeshWithCombinedTexCoords(
 	ofMesh &targetMesh);
 
 
-void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, std::vector<ofRectangle>& texturelayout, ofMesh &targetMesh);
+void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, std::vector<ofRectangle>& texturelayout, std::map<int, recon::AbstractSensor::Ptr> sensors, ofMesh &targetMesh);
 
 
 ofColor getSensorColor(int sensorId);

@@ -344,6 +344,7 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGBNormal>::
 
 void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, 
 	std::vector<ofRectangle>& texturelayout,
+	std::map<int, recon::AbstractSensor::Ptr> sensors,
 	ofMesh &targetMesh)
 {
 	targetMesh.clear();
@@ -356,15 +357,19 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 		unsigned tri_mesh_idx = 0;
 
 		for (auto &t : sub_mesh) {
+			
 			for (auto &pointindex : t.vertices)
 			{
 				auto p = local_cloud.at(pointindex);
-				targetMesh.addVertex(ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000));
-				auto local_texcoord = mesh->tex_coordinates[sub_mesh_idx][tri_mesh_idx];
-				ofVec2f tc = ofVec2f(local_texcoord.x(), local_texcoord.y());
-				tc += texturelayout[sub_mesh_idx].getTopLeft();
-
-				targetMesh.addTexCoord(tc);
+				auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+				targetMesh.addVertex(ofp);
+				if(sub_mesh_idx < sensors.size()){
+					auto sensor = sensors[sub_mesh_idx];
+					targetMesh.addColor(getSensorColor(sub_mesh_idx));
+					auto local_texcoord = calculateTextureCoordinate(ofp, texturelayout[sub_mesh_idx].getWidth(), texturelayout[sub_mesh_idx].getHeight(), sensor, false);
+					local_texcoord += texturelayout[sub_mesh_idx].getTopLeft();
+					targetMesh.addTexCoord(local_texcoord);
+				}
 			}
 			++tri_mesh_idx;
 		}

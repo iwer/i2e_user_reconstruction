@@ -71,13 +71,13 @@ public:
 	std::map<int, PointCloudPlayer::Ptr> player_;
 	std::map<int, int> frameNumber_;
 
+	std::list<recon::AbstractSensor::Ptr> sensors_;
+	std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
+
 	std::map<int, recon::CloudPtr> cloud_;
 	std::map<int, recon::NormalCloudPtr> cloud_transformed_;
 	std::map<int, ofMesh> mesh_;
 	std::map<int, std::shared_ptr<ofImage>> image_;
-
-	std::list<recon::AbstractSensor::Ptr> sensors_;
-	std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
 
 	ofImage dummyTex_;
 	recon::NormalCloudPtr combinedCloud_;

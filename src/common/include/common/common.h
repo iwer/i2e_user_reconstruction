@@ -126,3 +126,14 @@ void createOfMeshWithCombinedTexCoords(
 	ofRectangle &texturelayout,
 	recon::AbstractSensor::Ptr sensor, 
 	ofMesh &targetMesh);
+void createOfMeshWithCombinedTexCoords(
+	pcl::PointCloud<pcl::PointXYZRGBNormal>::ConstPtr src,
+	boost::shared_ptr<std::vector<pcl::Vertices>> triangles,
+	std::vector<ofVec2f> &texcoords,
+	ofMesh &targetMesh);
+
+
+void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, std::vector<ofRectangle>& texturelayout, std::map<int, recon::AbstractSensor::Ptr> sensors, ofMesh &targetMesh);
+
+
+ofColor getSensorColor(int sensorId);

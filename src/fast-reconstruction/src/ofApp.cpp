@@ -103,7 +103,7 @@ void ofApp::setup(){
 	cam_.enableMouseInput();
 	cam_.disableMouseMiddleButton();
 
-	//loadCalibrationFromFile();
+	writeIndex_ = 0;
 }
 
 //--------------------------------------------------------------
@@ -139,7 +139,6 @@ void ofApp::update(){
 				ofMesh points;
 				createOfMeshWithCombinedTexCoords(cloud_transformed, tris, image_[s->getId()]->getTexture(), imageLayout_[s->getId()], sensorMap_[s->getId()], points);
 				combinedMesh_.append(points);
-				std::cout << "sensors Mesh: " << points.getNumVertices() << " " << points.getNumTexCoords() <<  std::endl;
 			}
 		}
 	}
@@ -361,10 +360,15 @@ void ofApp::prevFrame()
 //--------------------------------------------------------------
 void ofApp::saveCurrentFrame()
 {
-	combinedMesh_.save("combined.ply");
 	ofPixels pixels;
 	combinedTexture_.readToPixels(pixels);
-	ofSaveImage(pixels, "combined.png");
+
+	auto mesh_name = std::string("reconstructed/frame_") + fileNumber(writeIndex_) + std::string(".ply");
+	auto image_name = std::string("reconstructed/frame_") + fileNumber(writeIndex_) + std::string(".png");
+
+	combinedMesh_.save(mesh_name);
+	ofSaveImage(pixels, image_name);
+	++writeIndex_;
 }
 
 //--------------------------------------------------------------
@@ -406,3 +410,10 @@ void ofApp::updateFps(int &fps)
 }
 
 //--------------------------------------------------------------
+
+std::string ofApp::fileNumber(int number)
+{
+	std::ostringstream ss;
+	ss << std::setw(5) << std::setfill('0') << number;
+	return ss.str();
+}

@@ -5,6 +5,7 @@
 #include <recon/typedefs.h>
 #include <recon/AbstractSensor.h>
 #include <common/PointCloudPlayer.h>
+#include <common/ModelWriter.h>
 
 class ofApp : public ofBaseApp{
 
@@ -66,6 +67,9 @@ class ofApp : public ofBaseApp{
 
 		std::vector<ofRectangle> imageLayout_;
 
+		std::string fileNumber(int number);
+		int writeIndex_;
+		
 		ofEasyCam cam_;
 
 		// UI stuff

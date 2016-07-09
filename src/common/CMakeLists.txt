@@ -5,12 +5,15 @@ add_library(common
 	src/common.cpp
 	src/SensorCalibrationSettings.cpp
 	src/PointCloudPlayer.cpp
+	src/ModelWriter.cpp
 	# Header files (to be able to edit in VS et. al.)
 	include/common/common.h
 	include/common/SensorCalibrationSettings.h
 	include/common/PointCloudPlayer.h
 	include/common/PclCloudAndImage.h
 	include/common/PclCloudAndOfImage.h
+	include/common/OfMeshAndPixels.h
+	include/common/ModelWriter.h
 	)
 
 # Define headers for this library. PUBLIC headers are used for

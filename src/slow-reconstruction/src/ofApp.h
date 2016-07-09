@@ -63,6 +63,9 @@ public:
 	void processFrameTriggerInt(int &value);
 	void processFrameTriggerFloat(float &value);
 
+	std::string fileNumber(int number);
+	int writeIndex_;
+
 	int globalFrameNumber_;
 	int maxFrames_;
 

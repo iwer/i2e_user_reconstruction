@@ -98,7 +98,10 @@ void ofApp::setup(){
 	
 	combinedTexture_.allocate(iWidth2, iHeight2);
 
+	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
 
 	//loadCalibrationFromFile();
 }
@@ -165,6 +168,7 @@ void ofApp::draw(){
 	}
 	combinedTexture_.end();
 
+	// render 3d objects
 	cam_.begin();
 	ofDrawAxis(10);
 

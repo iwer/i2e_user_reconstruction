@@ -129,7 +129,10 @@ void ofApp::setup() {
 
 	combinedTexture_.allocate(iWidth2, iHeight2);
 
+	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
 
 	//loadCalibrationFromFile();
 	processFrame();

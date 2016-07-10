@@ -6,21 +6,29 @@ void ofApp::setupUI()
 
 
 	ui_.setup();
+
+	randomRecordingBtn_.addListener(this, &ofApp::randomSetting);
+	ui_.add(randomRecordingBtn_.setup("Random"));
+
 	ui_.add(takeLbl_.setup("Take", take_[takeIdx_]));
 	nextTakeBtn_.addListener(this, &ofApp::nextTake);
 	prevTakeBtn_.addListener(this, &ofApp::prevTake);
 	ui_.add(nextTakeBtn_.setup("Next Take"));
 	ui_.add(prevTakeBtn_.setup("Previous Take"));
+
 	ui_.add(speedLbl_.setup("Speed", speed_[speedIdx_]));
 	nextSpeedBtn_.addListener(this, &ofApp::nextSpeed);
 	prevSpeedBtn_.addListener(this, &ofApp::prevSpeed);
 	ui_.add(nextSpeedBtn_.setup("Next Speed"));
 	ui_.add(prevSpeedBtn_.setup("Previous Speed"));
+
 	ui_.add(qualityLbl_.setup("Quality", quality_[qualityIdx_]));
 	nextQualityBtn_.addListener(this, &ofApp::nextQuality);
 	prevQualityBtn_.addListener(this, &ofApp::prevQuality);
 	ui_.add(nextQualityBtn_.setup("Next Quality"));
 	ui_.add(prevQualityBtn_.setup("Previous Quality"));
+
+	ui_.add(texmapTgl_.setup("Texmap", false));
 }
 
 void ofApp::loadData()
@@ -64,12 +72,14 @@ void ofApp::updateMaxFrames()
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	font.load("verdana.ttf", 36);
+	
 	takeIdx_ = speedIdx_ = qualityIdx_ = 0;
 
 	take_.push_back("first");
 	speed_.push_back("fast");
-	speed_.push_back("slow");
-	quality_.push_back("hq");
+	//speed_.push_back("slow");
+	//quality_.push_back("hq");
 	quality_.push_back("lq");
 
 	setupUI();
@@ -103,6 +113,9 @@ void ofApp::update(){
 void ofApp::draw(){
 	ofBackground(127);
 	
+	auto text = std::to_string(takeIdx_) + std::to_string(speedIdx_) + std::to_string(qualityIdx_) + std::to_string(texmapTgl_);
+
+	font.drawString(text, ofGetWidth() - 140, 50);
 
 	images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
 
@@ -111,13 +124,18 @@ void ofApp::draw(){
 	ofEnableDepthTest();
 	ofDrawAxis(1000);
 	
-	
-	images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].getTexture().bind();
-	meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].disableColors();
-	meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].enableTextures();
-	meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw();
-	images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].getTexture().unbind();
-	
+	if (texmapTgl_) {
+		images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].getTexture().bind();
+		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].disableColors();
+		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].enableTextures();
+		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw();
+		images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].getTexture().unbind();
+	} else
+	{
+		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].enableColors();
+		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].disableTextures();
+		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw();
+	}
 	cam_.end();
 
 	ofDisableDepthTest();
@@ -251,6 +269,19 @@ void ofApp::prevQuality()
 	updateMaxFrames();
 }
 
+void ofApp::randomSetting()
+{
+	auto s = randomPlaysettings();
+	takeIdx_ = s.take;
+	speedIdx_ = s.speed;
+	qualityIdx_ = s.quality;
+
+	takeLbl_ = take_[takeIdx_];
+	speedLbl_ = speed_[speedIdx_];
+	qualityLbl_ = quality_[qualityIdx_];
+	texmapTgl_ = s.texmap;
+}
+
 int ofApp::count_files(std::string basepath)
 {
 	boost::filesystem::path Path(std::string("data/") + basepath);
@@ -281,4 +312,14 @@ int ofApp::count_files(std::string basepath)
 
 
 	return std::min(numberPlyFiles, numberPngFiles);
+}
+
+ofApp::Playsettings ofApp::randomPlaysettings()
+{
+	Playsettings p;
+	p.take = std::rand() % take_.size();
+	p.speed = std::rand() % speed_.size();
+	p.quality = std::rand() % quality_.size();
+	p.texmap = (std::rand() % 2) == 1 ? true : false;
+	return p;
 }

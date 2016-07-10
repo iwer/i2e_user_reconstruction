@@ -27,15 +27,27 @@ class ofApp : public ofBaseApp{
 		
 		std::string fileNumber(int number);
 
+		// Button Listeners
 		void nextTake();
 		void prevTake();
 		void nextSpeed();
 		void prevSpeed();
 		void nextQuality();
 		void prevQuality();
+		void randomSetting();
 		
 		int count_files(std::string basepath);
 		
+		struct Playsettings
+		{
+			int take;
+			int speed;
+			int quality;
+			bool texmap;
+		};
+
+		Playsettings randomPlaysettings();
+
 		ofMesh mesh_;
 		ofImage image_;
 
@@ -55,8 +67,11 @@ class ofApp : public ofBaseApp{
 		std::map<int, std::map<int, std::map<int, std::map<int,ofMesh>>>> meshes_;
 		std::map<int, std::map<int, std::map<int, std::map<int,ofImage>>>> images_;
 
+		ofTrueTypeFont font;
+
 		// UI
 		ofxPanel ui_;
+		ofxButton randomRecordingBtn_;
 
 		ofxLabel takeLbl_;
 		ofxButton nextTakeBtn_;
@@ -69,5 +84,7 @@ class ofApp : public ofBaseApp{
 		ofxLabel qualityLbl_;
 		ofxButton nextQualityBtn_;
 		ofxButton prevQualityBtn_;
+
+		ofxToggle texmapTgl_;
 
 };

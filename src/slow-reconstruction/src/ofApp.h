@@ -98,6 +98,7 @@ public:
 	ofxButton loadCalibrationBtn_;
 
 	ofxToggle perPixelColor_;
+	ofxToggle camColorTgl_;
 	ofxToggle showFrustum_;
 	ofxToggle showSingle_;
 	ofxToggle showCombined_;

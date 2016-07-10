@@ -342,15 +342,19 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGBNormal>::
 	}
 }
 
-void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh, 
+void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 	std::vector<ofRectangle>& texturelayout,
 	std::map<int, recon::AbstractSensor::Ptr> sensors,
-	ofMesh &targetMesh)
+	std::map<int, std::shared_ptr<ofImage>> &texture,
+	ofMesh &targetMesh,
+	bool camIndexColor)
 {
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
 	pcl::PointCloud<pcl::PointXYZ> local_cloud;
 	pcl::fromPCLPointCloud2(mesh->cloud, local_cloud);
+
 	unsigned sub_mesh_idx = 0;
 	for (auto &sub_mesh : mesh->tex_polygons)
 	{
@@ -365,9 +369,16 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 				targetMesh.addVertex(ofp);
 				if(sub_mesh_idx < sensors.size()){
 					auto sensor = sensors[sub_mesh_idx];
-					targetMesh.addColor(getSensorColor(sub_mesh_idx));
 					auto local_texcoord = calculateTextureCoordinate(ofp, texturelayout[sub_mesh_idx].getWidth(), texturelayout[sub_mesh_idx].getHeight(), sensor, false);
 					local_texcoord += texturelayout[sub_mesh_idx].getTopLeft();
+
+					if (camIndexColor) {
+						targetMesh.addColor(getSensorColor(sub_mesh_idx));
+					} else
+					{
+						targetMesh.addColor(texture[sub_mesh_idx]->getColor(local_texcoord.x, local_texcoord.y));
+					}
+
 					targetMesh.addTexCoord(local_texcoord);
 				}
 			}

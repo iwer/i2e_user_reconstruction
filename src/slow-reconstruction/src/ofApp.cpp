@@ -58,6 +58,7 @@ void ofApp::setupUi()
 	ui_.add(saveCurrentFrame_.setup("Save current Mesh"));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
+	ui_.add(camColorTgl_.setup("Color tris per-camera", false));
 	ui_.add(showFrustum_.setup("Show Frustum", false));
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
@@ -196,14 +197,11 @@ void ofApp::processFrame()
 		pcl::toPCLPointCloud2(*cloud_smoothed, tmesh_->cloud);
 		tmesh_->tex_polygons.push_back(*tris);
 
-
 		pcl::texture_mapping::CameraVector cam_vec;
 		for (auto &s : sensors_) {
 			cam_vec.push_back(s->asPclCamera());
 		}
 
-		//pcl::TexMaterial material;
-		//material.
 		pcl::TextureMapping<pcl::PointXYZ> tmapping;
 		tmapping.textureMeshwithMultipleCameras(*tmesh_, cam_vec);
 	}
@@ -224,7 +222,7 @@ void ofApp::update() {
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
-	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, sensorMap_, combinedMesh_);
+	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
 	//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
 	//createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
 

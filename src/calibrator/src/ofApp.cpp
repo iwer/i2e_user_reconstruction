@@ -169,8 +169,12 @@ void ofApp::draw(){
 		}
 
 		ofPopMatrix();
-		if(showFrustum_)
+		if (showFrustum_) {
+			ofPushMatrix();
+			ofMultMatrix(global_calibration_);
 			drawCameraFrustum(sensor.second);
+			ofPopMatrix();
+		}
 	}
 	cam_.end();
 	ofEnableSetupScreen();
@@ -269,12 +273,6 @@ void ofApp::loadExtrinsicsFromCurrentSensor()
 		m.rotate(q);
 
 		sensor_extrinsics_[sensorIds_[selected_sensor_id_]] = m;
-		//xTrans_ = t.x;
-		//yTrans_ = t.y;
-		//zTrans_ = t.z;
-		//xRot_ = q.getEuler().x;
-		//yRot_ = q.getEuler().y;
-		//zRot_ = q.getEuler().z;
 }
 
 void ofApp::guiUpdatedExtrinsics(float &dummy)
@@ -324,11 +322,17 @@ void ofApp::saveCalibrationToFile()
 		auto sensor_matrix = sensor_extrinsics_[sensorIds_[s.second->getId()]];
 		ofMatrix4x4 combined_matrix;
 
-		combined_matrix.translate(global_calibration_.getTranslation());
-		combined_matrix.rotate(global_calibration_.getRotate());
+		//sensor_matrix.translate(global_calibration_.getTranslation());
+		//sensor_matrix.rotate(global_calibration_.getRotate());
 
-		combined_matrix.translate(sensor_matrix.getTranslation());
-		combined_matrix.rotate(sensor_matrix.getRotate());
+		auto t = sensor_matrix.getTranslation();
+		auto r = sensor_matrix.getRotate();
+		ofVec3f raxis;
+		float rangle;
+		r.getRotate(rangle, raxis);
+		combined_matrix.translate(-t.x,-t.y,-t.z);
+		combined_matrix.rotate(180, 0, 1, 0);
+		combined_matrix.rotate(rangle, raxis.x, raxis.y, raxis.z);
 
 		auto combined_translation = toEigenVector4f(combined_matrix.getTranslation());
 		auto combined_rotation = toEigenQuaternionf(combined_matrix.getRotate());

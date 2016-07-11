@@ -198,7 +198,7 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 
 	auto fov = sensor->getDepthIntrinsics()->getVFov();
 	auto aspect = sensor->getDepthIntrinsics()->getAspectRatio();
-	persp.makePerspectiveMatrix(fov, aspect, 10, 100000);
+	persp.makePerspectiveMatrix(fov, aspect, 10, 5000);
 
 	mat.postMult(persp);
 
@@ -208,6 +208,7 @@ void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
 	ofNoFill();
 	ofSetColor(getSensorColor(sensor->getId()));
 	ofDrawBox(0, 0, 0, 2.0f);
+	ofDrawAxis(20);
 	ofPopMatrix();
 	ofPopStyle();
 }

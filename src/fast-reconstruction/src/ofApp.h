@@ -48,7 +48,6 @@ class ofApp : public ofBaseApp{
 		void nextFrame();
 		void prevFrame();
 		void saveCurrentFrame();
-		void reconstructAll();
 
 		void processFrame();
 		void processFrameTriggerInt(int &value);
@@ -96,7 +95,7 @@ class ofApp : public ofBaseApp{
 		ofxButton prevFrameBtn_;
 		ofxButton nextFrameBtn_;
 		ofxButton stopBtn_;
-		ofxButton reconstructAllBtn_;
+		ofxToggle reconstructAllTgl_;
 
 		ofxButton saveCurrentFrame_;
 

@@ -29,7 +29,6 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
-	reconstructAllBtn_.addListener(this, &ofApp::reconstructAll);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
@@ -40,7 +39,7 @@ void ofApp::setupUi()
 	ui_.add(showFrustum_.setup("Show Frustum", false)); 
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
-	ui_.add(reconstructAllBtn_.setup("Reconstruct all"));
+	ui_.add(reconstructAllTgl_.setup("Reconstruct all", false));
 	ui_.add(fpsSlider_.setup(fps_));
 	ui_.add(backBtn_.setup("Rewind"));
 	ui_.add(playTgl_.setup(playing_));
@@ -154,6 +153,16 @@ void ofApp::processFrame()
 
 //--------------------------------------------------------------
 void ofApp::update(){
+	if (reconstructAllTgl_)
+	{
+		saveCurrentFrame();
+		++globalFrameNumber_;
+		if(globalFrameNumber_ >= maxFrames_ - 1)
+		{
+			globalFrameNumber_ = 0;
+			reconstructAllTgl_ = false;
+		}
+	}
 	processFrame();
 }
 
@@ -382,19 +391,6 @@ void ofApp::saveCurrentFrame()
 	combinedMesh_.save(mesh_name);
 	ofSaveImage(pixels, image_name);
 	++writeIndex_;
-}
-
-void ofApp::reconstructAll()
-{
-	if(!playing_)
-	{
-		globalFrameNumber_ = 0;
-		while(globalFrameNumber_ < maxFrames_)
-		{
-			processFrame();
-			saveCurrentFrame();
-		}
-	}
 }
 
 //--------------------------------------------------------------

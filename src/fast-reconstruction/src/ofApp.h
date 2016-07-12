@@ -48,6 +48,12 @@ class ofApp : public ofBaseApp{
 		void nextFrame();
 		void prevFrame();
 		void saveCurrentFrame();
+		void reconstructAll();
+
+		void processFrame();
+		void processFrameTriggerInt(int &value);
+		void processFrameTriggerFloat(float &value);
+
 
 		int globalFrameNumber_;
 		int maxFrames_;
@@ -90,6 +96,7 @@ class ofApp : public ofBaseApp{
 		ofxButton prevFrameBtn_;
 		ofxButton nextFrameBtn_;
 		ofxButton stopBtn_;
+		ofxButton reconstructAllBtn_;
 
 		ofxButton saveCurrentFrame_;
 

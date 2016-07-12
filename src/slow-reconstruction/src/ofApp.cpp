@@ -51,6 +51,7 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
+	reconstructAllBtn_.addListener(this, &ofApp::reconstructAll);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
@@ -69,6 +70,7 @@ void ofApp::setupUi()
 	//ui_.add(stopBtn_.setup("Stop"));
 	ui_.add(nextFrameBtn_.setup("Next Frame"));
 	ui_.add(prevFrameBtn_.setup("Previous Frame"));
+	ui_.add(reconstructAllBtn_.setup("Reconstruct all"));
 	ui_.add(backgroundRemovalPrms_);
 	ui_.add(normalCalcPrms_);
 	ui_.add(downsamplingPrms_);
@@ -139,7 +141,7 @@ void ofApp::setup() {
 	processFrame();
 }
 
-
+//--------------------------------------------------------------
 void ofApp::processFrame()
 {
 	pcl::ScopeTime time("Frame processing time");
@@ -207,11 +209,13 @@ void ofApp::processFrame()
 	}
 }
 
+//--------------------------------------------------------------
 void ofApp::processFrameTriggerInt(int & value)
 {
 	processFrame();
 }
 
+//--------------------------------------------------------------
 void ofApp::processFrameTriggerFloat(float & value)
 {
 	processFrame();
@@ -463,6 +467,21 @@ void ofApp::saveCurrentFrame()
 	combinedMesh_.save(mesh_name);
 	ofSaveImage(pixels, image_name);
 	++writeIndex_;
+}
+
+//--------------------------------------------------------------
+void ofApp::reconstructAll()
+{
+	if(!playing_)
+	{
+		globalFrameNumber_ = 0;
+		while(globalFrameNumber_ < maxFrames_)
+		{
+			processFrame();
+			saveCurrentFrame();
+			++globalFrameNumber_;
+		}
+	}
 }
 
 //--------------------------------------------------------------

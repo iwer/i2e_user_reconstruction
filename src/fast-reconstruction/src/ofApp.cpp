@@ -9,12 +9,17 @@ void ofApp::setupUi()
 {
 	backgroundRemovalPrms_.setName("Backgroundremoval");
 	backgroundRemovalPrms_.add(passMin_);
+	passMin_.addListener(this, &ofApp::processFrameTriggerFloat);
 	backgroundRemovalPrms_.add(passMax_);
+	passMax_.addListener(this, &ofApp::processFrameTriggerFloat);
 
 	triangulationPrms_.setName("Triangulation");
 	triangulationPrms_.add(triEdgeLength_);
+	triEdgeLength_.addListener(this, &ofApp::processFrameTriggerInt);
 	triangulationPrms_.add(angleTolerance_);
+	angleTolerance_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(distanceTolerance_);
+	distanceTolerance_.addListener(this, &ofApp::processFrameTriggerFloat);
 
 	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
 	fps_.addListener(this, &ofApp::updateFps);
@@ -24,6 +29,7 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
+	reconstructAllBtn_.addListener(this, &ofApp::reconstructAll);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
@@ -34,6 +40,7 @@ void ofApp::setupUi()
 	ui_.add(showFrustum_.setup("Show Frustum", false)); 
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
+	ui_.add(reconstructAllBtn_.setup("Reconstruct all"));
 	ui_.add(fpsSlider_.setup(fps_));
 	ui_.add(backBtn_.setup("Rewind"));
 	ui_.add(playTgl_.setup(playing_));
@@ -107,7 +114,8 @@ void ofApp::setup(){
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){
+void ofApp::processFrame()
+{
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
@@ -142,8 +150,11 @@ void ofApp::update(){
 			}
 		}
 	}
+}
 
-
+//--------------------------------------------------------------
+void ofApp::update(){
+	processFrame();
 }
 
 //--------------------------------------------------------------
@@ -345,6 +356,7 @@ void ofApp::nextFrame()
 	if(!playing_ && globalFrameNumber_ < (maxFrames_ - 1))
 	{
 		globalFrameNumber_++;
+		processFrame();
 	}
 }
 
@@ -354,6 +366,7 @@ void ofApp::prevFrame()
 	if (!playing_ && globalFrameNumber_ > 0)
 	{
 		globalFrameNumber_--;
+		processFrame();
 	}
 }
 
@@ -369,6 +382,19 @@ void ofApp::saveCurrentFrame()
 	combinedMesh_.save(mesh_name);
 	ofSaveImage(pixels, image_name);
 	++writeIndex_;
+}
+
+void ofApp::reconstructAll()
+{
+	if(!playing_)
+	{
+		globalFrameNumber_ = 0;
+		while(globalFrameNumber_ < maxFrames_)
+		{
+			processFrame();
+			saveCurrentFrame();
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -410,10 +436,21 @@ void ofApp::updateFps(int &fps)
 }
 
 //--------------------------------------------------------------
-
 std::string ofApp::fileNumber(int number)
 {
 	std::ostringstream ss;
 	ss << std::setw(5) << std::setfill('0') << number;
 	return ss.str();
+}
+
+//--------------------------------------------------------------
+void ofApp::processFrameTriggerInt(int & value)
+{
+	processFrame();
+}
+
+//--------------------------------------------------------------
+void ofApp::processFrameTriggerFloat(float & value)
+{
+	processFrame();
 }

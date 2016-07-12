@@ -56,6 +56,7 @@ public:
 	void nextFrame();
 	void prevFrame();
 	void saveCurrentFrame();
+	void reconstructAll();
 
 	void drawNormals(ofMesh &mesh, float length, bool bFaceNormals);
 
@@ -111,6 +112,7 @@ public:
 	ofxButton prevFrameBtn_;
 	ofxButton nextFrameBtn_;
 	ofxButton stopBtn_;
+	ofxButton reconstructAllBtn_;
 
 	ofxButton saveCurrentFrame_;
 

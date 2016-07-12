@@ -78,8 +78,8 @@ void ofApp::setup(){
 
 	take_.push_back("first");
 	speed_.push_back("fast");
-	//speed_.push_back("slow");
-	//quality_.push_back("hq");
+	speed_.push_back("slow");
+	quality_.push_back("hq");
 	quality_.push_back("lq");
 
 	setupUI();

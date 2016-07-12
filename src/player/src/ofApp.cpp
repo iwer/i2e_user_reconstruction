@@ -50,6 +50,11 @@ void ofApp::setup(){
 	}
 
 	ofDisableArbTex();
+	cam_.setFarClip(100000);
+	cam_.rotate(180, 0, 1, 0);
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
+
 }
 
 //--------------------------------------------------------------

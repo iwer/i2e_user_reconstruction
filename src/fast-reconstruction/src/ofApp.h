@@ -5,6 +5,7 @@
 #include <recon/typedefs.h>
 #include <recon/AbstractSensor.h>
 #include <common/PointCloudPlayer.h>
+#include <common/ModelWriter.h>
 
 class ofApp : public ofBaseApp{
 
@@ -47,6 +48,12 @@ class ofApp : public ofBaseApp{
 		void nextFrame();
 		void prevFrame();
 		void saveCurrentFrame();
+		void reconstructAll();
+
+		void processFrame();
+		void processFrameTriggerInt(int &value);
+		void processFrameTriggerFloat(float &value);
+
 
 		int globalFrameNumber_;
 		int maxFrames_;
@@ -66,6 +73,9 @@ class ofApp : public ofBaseApp{
 
 		std::vector<ofRectangle> imageLayout_;
 
+		std::string fileNumber(int number);
+		int writeIndex_;
+		
 		ofEasyCam cam_;
 
 		// UI stuff
@@ -86,6 +96,7 @@ class ofApp : public ofBaseApp{
 		ofxButton prevFrameBtn_;
 		ofxButton nextFrameBtn_;
 		ofxButton stopBtn_;
+		ofxButton reconstructAllBtn_;
 
 		ofxButton saveCurrentFrame_;
 

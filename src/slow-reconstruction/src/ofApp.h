@@ -56,12 +56,16 @@ public:
 	void nextFrame();
 	void prevFrame();
 	void saveCurrentFrame();
+	void reconstructAll();
 
 	void drawNormals(ofMesh &mesh, float length, bool bFaceNormals);
 
 	void processFrame();
 	void processFrameTriggerInt(int &value);
 	void processFrameTriggerFloat(float &value);
+
+	std::string fileNumber(int number);
+	int writeIndex_;
 
 	int globalFrameNumber_;
 	int maxFrames_;
@@ -95,6 +99,7 @@ public:
 	ofxButton loadCalibrationBtn_;
 
 	ofxToggle perPixelColor_;
+	ofxToggle camColorTgl_;
 	ofxToggle showFrustum_;
 	ofxToggle showSingle_;
 	ofxToggle showCombined_;
@@ -107,6 +112,7 @@ public:
 	ofxButton prevFrameBtn_;
 	ofxButton nextFrameBtn_;
 	ofxButton stopBtn_;
+	ofxButton reconstructAllBtn_;
 
 	ofxButton saveCurrentFrame_;
 

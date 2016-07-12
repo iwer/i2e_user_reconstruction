@@ -51,6 +51,7 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
+	reconstructAllBtn_.addListener(this, &ofApp::reconstructAll);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
@@ -58,6 +59,7 @@ void ofApp::setupUi()
 	ui_.add(saveCurrentFrame_.setup("Save current Mesh"));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
+	ui_.add(camColorTgl_.setup("Color tris per-camera", false));
 	ui_.add(showFrustum_.setup("Show Frustum", false));
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
@@ -68,6 +70,7 @@ void ofApp::setupUi()
 	//ui_.add(stopBtn_.setup("Stop"));
 	ui_.add(nextFrameBtn_.setup("Next Frame"));
 	ui_.add(prevFrameBtn_.setup("Previous Frame"));
+	ui_.add(reconstructAllBtn_.setup("Reconstruct all"));
 	ui_.add(backgroundRemovalPrms_);
 	ui_.add(normalCalcPrms_);
 	ui_.add(downsamplingPrms_);
@@ -138,7 +141,7 @@ void ofApp::setup() {
 	processFrame();
 }
 
-
+//--------------------------------------------------------------
 void ofApp::processFrame()
 {
 	pcl::ScopeTime time("Frame processing time");
@@ -196,24 +199,23 @@ void ofApp::processFrame()
 		pcl::toPCLPointCloud2(*cloud_smoothed, tmesh_->cloud);
 		tmesh_->tex_polygons.push_back(*tris);
 
-
 		pcl::texture_mapping::CameraVector cam_vec;
 		for (auto &s : sensors_) {
 			cam_vec.push_back(s->asPclCamera());
 		}
 
-		//pcl::TexMaterial material;
-		//material.
 		pcl::TextureMapping<pcl::PointXYZ> tmapping;
 		tmapping.textureMeshwithMultipleCameras(*tmesh_, cam_vec);
 	}
 }
 
+//--------------------------------------------------------------
 void ofApp::processFrameTriggerInt(int & value)
 {
 	processFrame();
 }
 
+//--------------------------------------------------------------
 void ofApp::processFrameTriggerFloat(float & value)
 {
 	processFrame();
@@ -224,7 +226,7 @@ void ofApp::update() {
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
-	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, sensorMap_, combinedMesh_);
+	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
 	//createOfMeshFromPointsWNormalsAndTriangles(cloud_smoothed, tris, combinedMesh_);
 	//createOfMeshWithCombinedTexCoords(cloud_smoothed, tris, tex_coords, combinedMesh_);
 
@@ -456,10 +458,30 @@ void ofApp::prevFrame()
 //--------------------------------------------------------------
 void ofApp::saveCurrentFrame()
 {
-	combinedMesh_.save("combined.ply");
 	ofPixels pixels;
 	combinedTexture_.readToPixels(pixels);
-	ofSaveImage(pixels, "combined.png");
+
+	auto mesh_name = std::string("reconstructed/frame_") + fileNumber(writeIndex_) + std::string(".ply");
+	auto image_name = std::string("reconstructed/frame_") + fileNumber(writeIndex_) + std::string(".png");
+
+	combinedMesh_.save(mesh_name);
+	ofSaveImage(pixels, image_name);
+	++writeIndex_;
+}
+
+//--------------------------------------------------------------
+void ofApp::reconstructAll()
+{
+	if(!playing_)
+	{
+		globalFrameNumber_ = 0;
+		while(globalFrameNumber_ < maxFrames_)
+		{
+			processFrame();
+			saveCurrentFrame();
+			++globalFrameNumber_;
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -605,3 +627,11 @@ int ofApp::selectClosestFacingCamera(ofVec3f& normal, map<int, boost::shared_ptr
 	}
 	return minAngleSensorId;
 }
+
+std::string ofApp::fileNumber(int number)
+{
+	std::ostringstream ss;
+	ss << std::setw(5) << std::setfill('0') << number;
+	return ss.str();
+}
+

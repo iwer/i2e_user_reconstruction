@@ -4,6 +4,7 @@
 #include <recon/SensorFactory.h>
 #include <common/common.h>
 #include <pcl/common/transforms.h>
+#include <pcl/common/time.h>
 
 void ofApp::setupUi()
 {
@@ -106,8 +107,7 @@ void ofApp::setup(){
 
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
-	cam_.enableMouseInput();
-	cam_.disableMouseMiddleButton();
+
 
 	writeIndex_ = 0;
 }
@@ -115,6 +115,8 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::processFrame()
 {
+	pcl::ScopeTime t("Frame Processing");
+
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
@@ -149,6 +151,9 @@ void ofApp::processFrame()
 			}
 		}
 	}
+	if (!reconstructAllTgl_) {
+		t.reset();
+	}
 }
 
 //--------------------------------------------------------------
@@ -168,6 +173,9 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
+
 	ofBackground(background_);
 	ofEnableDepthTest();
 

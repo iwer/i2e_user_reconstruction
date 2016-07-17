@@ -7,65 +7,64 @@ void ofApp::setupUI()
 
 	ui_.setup();
 
-	randomRecordingBtn_.addListener(this, &ofApp::randomSetting);
-	ui_.add(randomRecordingBtn_.setup("Random"));
-
-	ui_.add(takeLbl_.setup("Take", take_[takeIdx_]));
-	nextTakeBtn_.addListener(this, &ofApp::nextTake);
-	prevTakeBtn_.addListener(this, &ofApp::prevTake);
-	ui_.add(nextTakeBtn_.setup("Next Take"));
-	ui_.add(prevTakeBtn_.setup("Previous Take"));
-
-	ui_.add(speedLbl_.setup("Speed", speed_[speedIdx_]));
-	nextSpeedBtn_.addListener(this, &ofApp::nextSpeed);
-	prevSpeedBtn_.addListener(this, &ofApp::prevSpeed);
-	ui_.add(nextSpeedBtn_.setup("Next Speed"));
-	ui_.add(prevSpeedBtn_.setup("Previous Speed"));
-
-	ui_.add(qualityLbl_.setup("Quality", quality_[qualityIdx_]));
-	nextQualityBtn_.addListener(this, &ofApp::nextQuality);
-	prevQualityBtn_.addListener(this, &ofApp::prevQuality);
-	ui_.add(nextQualityBtn_.setup("Next Quality"));
-	ui_.add(prevQualityBtn_.setup("Previous Quality"));
-
-	ui_.add(texmapTgl_.setup("Texmap", false));
+	randomRecordingBtn_.addListener(this, &ofApp::invokeLoader);
+	ui_.add(randomRecordingBtn_.setup("Next"));
+	ui_.add(play_.setup("Play", false));
 }
 
-void ofApp::loadData()
+void ofApp::loadRandomPlaySettingData()
 {
-	for (auto i = 0; i < take_.size(); ++i)
+
+	Playsettings setting = randomPlaysettings();
+	loading_ = true;
+
+	// if only texmap changed, no file loading necessary
+	if(setting.take == currentSettings_.take &&
+		setting.speed == currentSettings_.speed &&
+		setting.quality == currentSettings_.quality)
 	{
-		for (auto j = 0; j < speed_.size(); ++j)
-		{
-			for (auto k = 0; k < quality_.size(); ++k)
-			{
-				auto basepath = std::string("reconstructed/") +
-					take_[i] + std::string("/") +
-					speed_[j] + std::string("/") +
-					quality_[k] ;
-				int framenum = count_files(basepath);
-				std::cout << "Path: " << basepath << " " << framenum << std::endl;
-				for (auto l = 0; l < framenum; ++l)
-				{
-					std::cout << "Loading: " << basepath + std::string("/frame_") + fileNumber(l) + std::string(".ply") << std::endl;
-					meshes_[i][j][k][l] = ofMesh();
-					meshes_[i][j][k][l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".ply"));
-					std::cout << "Loading: " << basepath + std::string("/frame_") + fileNumber(l) + std::string(".png") << std::endl;
-					images_[i][j][k][l] = ofImage();
-					images_[i][j][k][l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".png"));
-					images_[i][j][k][l].update();
-				}
-			}
-		}
+		currentSettings_ = setting;
+		loading_ = false;
+		return;
 	}
+	
+	images_.clear();
+	meshes_.clear();
+
+	auto basepath = std::string("reconstructed/") +
+		take_[setting.take] + std::string("/") +
+		speed_[setting.speed] + std::string("/") +
+		quality_[setting.quality];
+
+	int framenum = count_files(basepath);
+	std::cout << "Path: " << basepath << " " << framenum << std::endl;
+	loadState_ = 0.;
+	for (auto l = 0; l < framenum; ++l)
+	{
+		//std::cout << "Loading: " << basepath + std::string("/frame_") + fileNumber(l) + std::string(".ply") << std::endl;
+		meshes_[l] = ofMesh();
+		meshes_[l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".ply"));
+		//std::cout << "Loading: " << basepath + std::string("/frame_") + fileNumber(l) + std::string(".png") << std::endl;
+		images_[l] = ofImage();
+		images_[l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".png"));
+		images_[l].update();
+		loadState_ = (l + 1) * 1.0 / framenum;
+		std::cout << "Loading  " << loadState_ * 100 << "%" << std::endl;
+		std::flush(std::cout);
+	}
+
+	currentSettings_ = setting;
+	updateMaxFrames();
+	loadState_ = 0; 
+	loading_ = false;
 }
 
 void ofApp::updateMaxFrames()
 {
 	auto basepath = std::string("reconstructed/") +
-		take_[takeIdx_] + std::string("/") +
-		speed_[speedIdx_] + std::string("/") +
-		quality_[qualityIdx_];
+		take_[currentSettings_.take] + std::string("/") +
+		speed_[currentSettings_.speed] + std::string("/") +
+		quality_[currentSettings_.quality];
 
 	maxFrames_ = count_files(basepath);
 }
@@ -74,72 +73,122 @@ void ofApp::updateMaxFrames()
 void ofApp::setup(){
 	font.load("verdana.ttf", 36);
 	
-	takeIdx_ = speedIdx_ = qualityIdx_ = 0;
-
-	take_.push_back("first");
+	take_.push_back("0");
+	take_.push_back("1");
+	take_.push_back("2");
+	take_.push_back("3");
+	take_.push_back("4");
 	speed_.push_back("fast");
-	speed_.push_back("slow");
+	//speed_.push_back("slow");
 	quality_.push_back("hq");
-	quality_.push_back("lq");
+	//quality_.push_back("lq");
 
+	for(int i = 0; i < 5; i++)
+	{
+		Playsettings p;
+		p.speed = 0;
+		p.quality = 0;
+		p.take = i;
+		p.texmap = false;
+		availablePlaysettings_.push_back(p);
+		auto p2 = p;
+		p2.texmap = true;
+		availablePlaysettings_.push_back(p2);
+	}
+	std::cout << "Play setting available: " << availablePlaysettings_.size() << std::endl;
 	setupUI();
-
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
-	cam_.enableMouseInput();
-	cam_.disableMouseMiddleButton();
+	cam_.setDistance(10000);
+
 
 	frameNum_ = 0;
 
-	loadData();
+	invokeLoader();
 
-	updateMaxFrames();
-	ofSetFrameRate(10);
+	ofSetFrameRate(8);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+
+	if(!loading_)
+	{
+		try
+		{
+			loaderthread_->join();
+		}
+		catch (exception &e)
+		{
+			
+		}
+	}
 	if(frameNum_ < maxFrames_ - 1)
 	{
-		++frameNum_;
+		if (play_) {
+			++frameNum_;
+		}
 	}
 	else
 	{
 		frameNum_ = 0;
+		play_ = false;
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
+
 	ofBackground(127);
 	
-	auto text = std::to_string(takeIdx_) + std::to_string(speedIdx_) + std::to_string(qualityIdx_) + std::to_string(texmapTgl_);
+	auto text = std::to_string(currentSettings_.take) + std::to_string(currentSettings_.speed) + std::to_string(currentSettings_.quality) + std::to_string(currentSettings_.texmap);
 
 	font.drawString(text, ofGetWidth() - 140, 50);
+	if (!loading_ && images_[frameNum_].isAllocated()) {
+		images_[frameNum_].draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
+	}
+	
 
-	images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
+	ofEnableDepthTest();
+
+	if (loadState_ > 0)
+	{
+		ofPath p;
+		p.arc(ofGetWidth() - 80, 120, 40, 40, 0, loadState_ * 360);
+		p.draw();
+		ofNoFill();
+		ofDrawCircle(ofGetWidth() - 80, 120, 0, 40);
+	}
+
 
 	cam_.begin();
 	
-	ofEnableDepthTest();
 	ofDrawAxis(1000);
 	
-	if (texmapTgl_) {
-		images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].getTexture().bind();
-		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].disableColors();
-		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].enableTextures();
-		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw();
-		images_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].getTexture().unbind();
-	} else
-	{
-		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].enableColors();
-		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].disableTextures();
-		meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_].draw();
+	if (!loading_) {
+		if (currentSettings_.texmap) {
+			if (images_[frameNum_].isAllocated()) {
+				images_[frameNum_].getTexture().bind();
+				meshes_[frameNum_].disableColors();
+				meshes_[frameNum_].enableTextures();
+				meshes_[frameNum_].draw();
+				images_[frameNum_].getTexture().unbind();
+			}
+		}
+		else
+		{
+			meshes_[frameNum_].enableColors();
+			meshes_[frameNum_].disableTextures();
+			meshes_[frameNum_].draw();
+		}
 	}
 	cam_.end();
 
 	ofDisableDepthTest();
 	ui_.draw();
+
 }
 
 //--------------------------------------------------------------
@@ -203,83 +252,12 @@ std::string ofApp::fileNumber(int number) {
 	return ss.str();
 }
 
-void ofApp::nextTake()
+void ofApp::invokeLoader()
 {
-	if(takeIdx_ < take_.size() - 1)
-	{
-		++takeIdx_;
+	if (!loading_) {
+		loaderthread_ = new std::thread(&ofApp::loadRandomPlaySettingData, this);
+		loaderthread_->detach();
 	}
-
-	takeLbl_ = take_[takeIdx_];
-	updateMaxFrames();
-}
-
-void ofApp::prevTake()
-{
-	if (takeIdx_ > 0)
-	{
-		--takeIdx_;
-	}
-
-	takeLbl_ = take_[takeIdx_];
-	updateMaxFrames();
-}
-
-void ofApp::nextSpeed()
-{
-	if (speedIdx_ < speed_.size() - 1)
-	{
-		++speedIdx_;
-	}
-
-	speedLbl_ = speed_[speedIdx_];
-	updateMaxFrames();
-}
-
-void ofApp::prevSpeed()
-{
-	if (speedIdx_ > 0)
-	{
-		--speedIdx_;
-	}
-
-	speedLbl_ = speed_[speedIdx_];
-	updateMaxFrames();
-}
-
-void ofApp::nextQuality()
-{
-	if (qualityIdx_ < quality_.size() - 1)
-	{
-		++qualityIdx_;
-	}
-
-	qualityLbl_ = quality_[qualityIdx_];
-	updateMaxFrames();
-}
-
-void ofApp::prevQuality()
-{
-	if (qualityIdx_ > 0)
-	{
-		--qualityIdx_;
-	}
-
-	qualityLbl_ = quality_[qualityIdx_];
-	updateMaxFrames();
-}
-
-void ofApp::randomSetting()
-{
-	auto s = randomPlaysettings();
-	takeIdx_ = s.take;
-	speedIdx_ = s.speed;
-	qualityIdx_ = s.quality;
-
-	takeLbl_ = take_[takeIdx_];
-	speedLbl_ = speed_[speedIdx_];
-	qualityLbl_ = quality_[qualityIdx_];
-	texmapTgl_ = s.texmap;
 }
 
 int ofApp::count_files(std::string basepath)
@@ -316,10 +294,9 @@ int ofApp::count_files(std::string basepath)
 
 ofApp::Playsettings ofApp::randomPlaysettings()
 {
-	Playsettings p;
-	p.take = std::rand() % take_.size();
-	p.speed = std::rand() % speed_.size();
-	p.quality = std::rand() % quality_.size();
-	p.texmap = (std::rand() % 2) == 1 ? true : false;
-	return p;
+	std::srand(std::time(nullptr));
+	int i = std::rand() % availablePlaysettings_.size();
+	auto s = availablePlaysettings_.at(i);
+	std::cout << s.take << ":" << s.speed << ":" << s.quality << ":" << s.texmap << std::endl;
+	return  s;
 }

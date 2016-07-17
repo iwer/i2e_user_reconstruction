@@ -377,7 +377,9 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 						targetMesh.addColor(getSensorColor(sub_mesh_idx));
 					} else
 					{
-						targetMesh.addColor(texture[sub_mesh_idx]->getColor(local_texcoord.x, local_texcoord.y));
+						if (texture[sub_mesh_idx]->isAllocated()) {
+							targetMesh.addColor(texture[sub_mesh_idx]->getColor(local_texcoord.x, local_texcoord.y));
+						}
 					}
 
 					targetMesh.addTexCoord(local_texcoord);

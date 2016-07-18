@@ -64,6 +64,7 @@ class ofApp : public ofBaseApp{
 		std::mutex ressourceLoaderMtx_;
 		std::thread * loaderthread_;
 		std::atomic<bool> loading_;
+		std::atomic<bool> textureReloadNeeded_;
 
 		std::vector<std::string> take_;
 		std::vector<std::string> speed_;

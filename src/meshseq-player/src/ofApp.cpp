@@ -46,8 +46,9 @@ void ofApp::loadRandomPlaySettingData()
 		meshes_[l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".ply"));
 		//std::cout << "Loading: " << basepath + std::string("/frame_") + fileNumber(l) + std::string(".png") << std::endl;
 		images_[l] = ofImage();
+		images_[l].setUseTexture(false);
 		images_[l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".png"));
-		images_[l].update();
+		//ofLoadImage(pixelData_[l], basepath + std::string("/frame_") + fileNumber(l) + std::string(".png"));
 		loadState_ = (l + 1) * 1.0 / framenum;
 		std::cout << "Loading  " << loadState_ * 100 << "%" << std::endl;
 		std::flush(std::cout);
@@ -57,6 +58,7 @@ void ofApp::loadRandomPlaySettingData()
 	updateMaxFrames();
 	loadState_ = 0; 
 	loading_ = false;
+	textureReloadNeeded_ = true;
 }
 
 void ofApp::updateMaxFrames()
@@ -81,13 +83,13 @@ void ofApp::setup(){
 	speed_.push_back("fast");
 	//speed_.push_back("slow");
 	quality_.push_back("hq");
-	//quality_.push_back("lq");
+	quality_.push_back("lq");
 
 	for(int i = 0; i < 5; i++)
 	{
 		Playsettings p;
 		p.speed = 0;
-		p.quality = 0;
+		p.quality = 1;
 		p.take = i;
 		p.texmap = false;
 		availablePlaysettings_.push_back(p);
@@ -99,30 +101,42 @@ void ofApp::setup(){
 	setupUI();
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
-	cam_.setDistance(10000);
+	cam_.setDistance(3000);
 
 
 	frameNum_ = 0;
 
 	invokeLoader();
-
-	ofSetFrameRate(8);
+	textureReloadNeeded_ = false;
+	ofSetFrameRate(5);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
+	// kill loaderthread if finished loading
 	if(!loading_)
 	{
 		try
 		{
 			loaderthread_->join();
+
 		}
 		catch (exception &e)
 		{
-			
 		}
 	}
+
+	// update images in gpu memory
+	if (textureReloadNeeded_) {
+		for (auto &i : images_)
+		{
+			i.second.setUseTexture(true);
+			i.second.update();
+		}
+		textureReloadNeeded_ = false;
+	}
+
+	// progress framenumber
 	if(frameNum_ < maxFrames_ - 1)
 	{
 		if (play_) {

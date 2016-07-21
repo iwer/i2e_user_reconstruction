@@ -104,32 +104,49 @@ void organizedFastMesh(recon::CloudConstPtr src, recon::TrianglesPtr& triangles,
 	ofm.reconstruct(*triangles);
 }
 
-void movingLeastSquaresSmoothing(recon::NormalCloudPtr src, recon::NormalCloudPtr trgt, float smoothRadius)
+void movingLeastSquaresSmoothing(recon::NormalCloudPtr src, recon::NormalCloudPtr trgt, float smoothRadius, float resolution)
 {
 	// Create a KD-Tree
 	pcl::search::KdTree<recon::PointType>::Ptr tree(new pcl::search::KdTree<recon::PointType>);
 
 	// Init object (second point type is for the normals, even if unused)
 	pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType> mls;
-
+	
 	recon::CloudPtr normalRemovedCloud(new recon::Cloud);
 	pcl::copyPointCloud<pcl::PointXYZRGBNormal, recon::PointType>(*src, *normalRemovedCloud);
-
+	std::cout << "WO Normals: " << normalRemovedCloud->size() << std::endl;
 	mls.setComputeNormals(true);
 
 	// Set parameters
-	mls.setInputCloud(normalRemovedCloud);
 	mls.setPolynomialFit(true);
 	mls.setPolynomialOrder(2);
 	// TODO: check other upsampling methods
-	mls.setDistinctCloud(normalRemovedCloud);
-	mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::DISTINCT_CLOUD);
+
+	// seems to work best for me
+	mls.setDilationVoxelSize(resolution);
+	mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::VOXEL_GRID_DILATION);
+
+	// still quite noisy	
+	//mls.setPointDensity(10);
+	//mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::RANDOM_UNIFORM_DENSITY);
+
+	// pretty noisy
+	//mls.setDistinctCloud(normalRemovedCloud);
+	//mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::DISTINCT_CLOUD);
+
+	// does not work at all? (maybe parameter related)
+	//mls.setUpsamplingStepSize(resolution);
+	//mls.setUpsamplingRadius(resolution * 3);
+	//mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::SAMPLE_LOCAL_PLANE);
 
 	mls.setSearchMethod(tree);
 	mls.setSearchRadius(smoothRadius);
 
 	// Reconstruct
+	mls.setInputCloud(normalRemovedCloud);
+	mls.setDistinctCloud(normalRemovedCloud);
 	mls.process(*trgt);
+
 }
 
 void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int normalKNeighbours)
@@ -142,6 +159,7 @@ void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int 
 
 	// Normal estimation
 	tree_->setInputCloud(justPoints);
+	n_.setNumberOfThreads(8);
 	n_.setInputCloud(justPoints);
 	n_.setSearchMethod(tree_);
 	n_.setKSearch(normalKNeighbours);
@@ -154,31 +172,34 @@ void calculatePointNormals(recon::CloudPtr src, recon::NormalCloudPtr trgt, int 
 void greedyProjectionMesh(recon::NormalCloudPtr src, recon::TrianglesPtr& triangles, float maxEdgeLength, float mu, int maxNearestNeighbours,
                           float maxSurfaceDegree, float minTriDegree, float maxTriDegree)
 {
-	pcl::GreedyProjectionTriangulation<recon::PointNormalType> gp3_;
+	if (src->size() > 0) {
+
+		pcl::GreedyProjectionTriangulation<recon::PointNormalType> gp3_;
 
 
-	// Create search tree
-	pcl::search::KdTree<recon::PointNormalType>::Ptr tree2(new pcl::search::KdTree<recon::PointNormalType>);
-	tree2->setInputCloud(src);
+		// Create search tree
+		pcl::search::KdTree<recon::PointNormalType>::Ptr tree2(new pcl::search::KdTree<recon::PointNormalType>);
+		tree2->setInputCloud(src);
 
-	// Set parameters
-	gp3_.setSearchRadius(maxEdgeLength);
-	gp3_.setMu(mu);
-	gp3_.setMaximumNearestNeighbors(maxNearestNeighbours);
-	gp3_.setMaximumSurfaceAngle(DEG2RAD(maxSurfaceDegree));
-	gp3_.setMinimumAngle(DEG2RAD(minTriDegree));
-	gp3_.setMaximumAngle(DEG2RAD(maxTriDegree));
-	gp3_.setNormalConsistency(true);
-	gp3_.setConsistentVertexOrdering(true);
+		// Set parameters
+		gp3_.setSearchRadius(maxEdgeLength);
+		gp3_.setMu(mu);
+		gp3_.setMaximumNearestNeighbors(maxNearestNeighbours);
+		gp3_.setMaximumSurfaceAngle(DEG2RAD(maxSurfaceDegree));
+		gp3_.setMinimumAngle(DEG2RAD(minTriDegree));
+		gp3_.setMaximumAngle(DEG2RAD(maxTriDegree));
+		gp3_.setNormalConsistency(true);
+		gp3_.setConsistentVertexOrdering(true);
 
-	// Get result
-	gp3_.setInputCloud(src);
-	gp3_.setSearchMethod(tree2);
-	gp3_.reconstruct(*triangles);
+		// Get result
+		gp3_.setInputCloud(src);
+		gp3_.setSearchMethod(tree2);
+		gp3_.reconstruct(*triangles);
 
-	// Additional vertex information
-	//auto parts = gp3_.getPartIDs();
-	//auto states = gp3_.getPointStates();
+		// Additional vertex information
+		//auto parts = gp3_.getPartIDs();
+		//auto states = gp3_.getPointStates();
+	}
 }
 
 void drawCameraFrustum(recon::AbstractSensor::Ptr sensor)
@@ -344,6 +365,7 @@ void createOfMeshWithCombinedTexCoords(pcl::PointCloud<pcl::PointXYZRGBNormal>::
 }
 
 void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
+	recon::NormalCloudPtr cloud,
 	std::vector<ofRectangle>& texturelayout,
 	std::map<int, recon::AbstractSensor::Ptr> sensors,
 	std::map<int, std::shared_ptr<ofImage>> &texture,
@@ -353,8 +375,8 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 	targetMesh.clear();
 	targetMesh.setMode(OF_PRIMITIVE_TRIANGLES);
 
-	pcl::PointCloud<pcl::PointXYZ> local_cloud;
-	pcl::fromPCLPointCloud2(mesh->cloud, local_cloud);
+	//pcl::PointCloud<pcl::PointXYZ> local_cloud;
+	//pcl::fromPCLPointCloud2(mesh->cloud, local_cloud);
 
 	unsigned sub_mesh_idx = 0;
 	for (auto &sub_mesh : mesh->tex_polygons)
@@ -365,23 +387,20 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 			
 			for (auto &pointindex : t.vertices)
 			{
-				auto p = local_cloud.at(pointindex);
+				auto p = cloud->at(pointindex);
 				auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 				targetMesh.addVertex(ofp);
 				if(sub_mesh_idx < sensors.size()){
 					auto sensor = sensors[sub_mesh_idx];
 					auto local_texcoord = calculateTextureCoordinate(ofp, texturelayout[sub_mesh_idx].getWidth(), texturelayout[sub_mesh_idx].getHeight(), sensor, false);
-					local_texcoord += texturelayout[sub_mesh_idx].getTopLeft();
 
 					if (camIndexColor) {
 						targetMesh.addColor(getSensorColor(sub_mesh_idx));
 					} else
 					{
-						if (texture[sub_mesh_idx]->isAllocated()) {
-							targetMesh.addColor(texture[sub_mesh_idx]->getColor(local_texcoord.x, local_texcoord.y));
-						}
+						targetMesh.addColor(ofColor(p.r, p.g, p.b));
 					}
-
+					local_texcoord += texturelayout[sub_mesh_idx].getTopLeft();
 					targetMesh.addTexCoord(local_texcoord);
 				}
 			}

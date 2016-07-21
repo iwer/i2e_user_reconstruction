@@ -4,6 +4,7 @@
 
 ModelWriter::ModelWriter()
 	: running_(false)
+	, writeIndex_(0)
 {
 }
 

@@ -10,37 +10,25 @@
 void ofApp::setupUi()
 {
 	backgroundRemovalPrms_.setName("Backgroundremoval");
-	passMin_.addListener(this, &ofApp::processFrameTriggerFloat);
 	backgroundRemovalPrms_.add(passMin_);
-	passMax_.addListener(this, &ofApp::processFrameTriggerFloat);
 	backgroundRemovalPrms_.add(passMax_);
-	
+
 	downsamplingPrms_.setName("Downsampling");
-	resolution_.addListener(this, &ofApp::processFrameTriggerFloat);
 	downsamplingPrms_.add(resolution_);
 
 	normalCalcPrms_.setName("Normal Estimation");
-	normalKNeighbours_.addListener(this, &ofApp::processFrameTriggerInt);
 	normalCalcPrms_.add(normalKNeighbours_);
 
 	smoothingPrms_.setName("Smoothing");
-	smoothRadius_.addListener(this, &ofApp::processFrameTriggerFloat);
 	smoothingPrms_.add(smoothRadius_);
 
 	triangulationPrms_.setName("Triangulation");
-	triEdgeLength_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(triEdgeLength_);
-	searchRadius_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(searchRadius_);
-	mu_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(mu_);
-	maxNeighbours_.addListener(this, &ofApp::processFrameTriggerInt);
 	triangulationPrms_.add(maxNeighbours_);
-	maxSurfaceAngle_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(maxSurfaceAngle_);
-	minAngle_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(minAngle_);
-	maxAngle_.addListener(this, &ofApp::processFrameTriggerFloat);
 	triangulationPrms_.add(maxAngle_);
 
 	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
@@ -69,6 +57,7 @@ void ofApp::setupUi()
 	//ui_.add(stopBtn_.setup("Stop"));
 	ui_.add(nextFrameBtn_.setup("Next Frame"));
 	ui_.add(prevFrameBtn_.setup("Previous Frame"));
+	ui_.add(reconstructFrame_.setup("Reconstruct Frame", false));
 	ui_.add(reconstructAllTgl_.setup("Reconstruct all", false));
 	ui_.add(backgroundRemovalPrms_);
 	ui_.add(normalCalcPrms_);
@@ -78,11 +67,12 @@ void ofApp::setupUi()
 }
 
 //--------------------------------------------------------------
-void ofApp::setup() {
+void ofApp::setup()
+{
 	setupUi();
 
 	auto full_path(boost::filesystem::current_path());
-	boost::filesystem::path recorder_data_path("./data/recorder");
+	boost::filesystem::path recorder_data_path("/data/recorder");
 
 	auto sensorCount = PointCloudPlayer::getNumberSensors(full_path.generic_string() + recorder_data_path.generic_string());
 	std::cout << "Sensor count: " << sensorCount << std::endl;
@@ -96,7 +86,7 @@ void ofApp::setup() {
 		sensorMap_[s->getId()] = s;
 
 		player_[s->getId()] = PointCloudPlayer::Ptr(new PointCloudPlayer(full_path.generic_string() + recorder_data_path.generic_string(),
-			s->getId(), 1));
+		                                                                 s->getId(), 1));
 		player_[s->getId()]->callback.connect(boost::bind(&ofApp::cloudCallback, this, _1, _2, _3, _4));
 		image_[s->getId()] = std::make_shared<ofImage>();
 
@@ -108,7 +98,8 @@ void ofApp::setup() {
 	int iHeight = 480;
 	int iWidth2 = iWidth * 2;
 	int iHeight2 = iHeight * 2;
-	switch (sensorCount) {
+	switch (sensorCount)
+	{
 	case 1:
 		imageLayout_.push_back(ofRectangle(0, 0, iWidth2, iHeight2));
 	case 2:
@@ -121,23 +112,16 @@ void ofApp::setup() {
 	}
 
 
-	for (auto &r : imageLayout_)
-	{
-		std::cout << r << std::endl;
-	}
-	// TODO: Fix Texture bug to get rid of dummy Texture
-	dummyTex_.load("uv_test.png");
 	globalFrameNumber_ = 0;
 
 	combinedTexture_.allocate(iWidth2, iHeight2);
 
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
-	cam_.enableMouseInput();
-	cam_.disableMouseMiddleButton();
+
 
 	//loadCalibrationFromFile();
-	processFrame();
+	//processFrame();
 }
 
 //--------------------------------------------------------------
@@ -146,14 +130,17 @@ void ofApp::processFrame()
 	pcl::ScopeTime time("Frame processing time");
 	combinedCloud_.reset(new recon::NormalCloud());
 
-	for (auto &s : sensors_) {
+	for (auto& s : sensors_)
+	{
 		if (!playing_)
 		{
 			// aquire frame with globalFrameNumber_
 			auto framedata = player_[s->getId()]->requestFrame(globalFrameNumber_);
 			cloudCallback(globalFrameNumber_, s->getId(), framedata->cloud_, framedata->image_);
+			image_[s->getId()]->update();
 		}
-		if (cloud_[s->getId()]) {
+		if (cloud_[s->getId()])
+		{
 			if (cloud_[s->getId()] != nullptr && image_[s->getId()] != nullptr)
 			{
 				// remove back- and foreground
@@ -173,15 +160,16 @@ void ofApp::processFrame()
 			}
 		}
 	}
-	
-	if (combinedCloud_->size() > 0) {
+
+	if (combinedCloud_->size() > 0)
+	{
 		// Downsample combined cloud
 		recon::NormalCloudPtr cloud_downsampled(new recon::NormalCloud());
 		downsample(combinedCloud_, cloud_downsampled, resolution_);
 
 		// smoothing
-		recon::NormalCloudPtr cloud_smoothed(new recon::NormalCloud());
-		movingLeastSquaresSmoothing(cloud_downsampled, cloud_smoothed, smoothRadius_);
+		cloud_smoothed_.reset(new recon::NormalCloud());
+		movingLeastSquaresSmoothing(cloud_downsampled, cloud_smoothed_, smoothRadius_, resolution_);
 
 		// generate texture coordinate wrt the closest visible camera, this does not work very well...
 		//std::vector<ofVec2f> tex_coords;
@@ -189,68 +177,92 @@ void ofApp::processFrame()
 
 		// triangulate using greedy projection
 		recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
-		greedyProjectionMesh(cloud_smoothed, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
+		greedyProjectionMesh(cloud_smoothed_, tris, triEdgeLength_, mu_, maxNeighbours_, maxSurfaceAngle_, minAngle_, maxAngle_);
 
 
+		if (cloud_smoothed_->size() > 0)
+		{
+			// pcl texture mapping
+			tmesh_.reset(new pcl::TextureMesh());
+			pcl::toPCLPointCloud2(*cloud_smoothed_, tmesh_->cloud);
+			tmesh_->tex_polygons.push_back(*tris);
 
-		// pcl texture mapping
-		tmesh_.reset(new pcl::TextureMesh());
-		pcl::toPCLPointCloud2(*cloud_smoothed, tmesh_->cloud);
-		tmesh_->tex_polygons.push_back(*tris);
+			cam_vec.clear();
+			for (auto& s : sensors_)
+			{
+				cam_vec.push_back(s->asPclCamera());
+			}
 
-		pcl::texture_mapping::CameraVector cam_vec;
-		for (auto &s : sensors_) {
-			cam_vec.push_back(s->asPclCamera());
+			pcl::TextureMapping<pcl::PointXYZ> tmapping;
+			tmapping.textureMeshwithMultipleCameras(*tmesh_, cam_vec);
 		}
-
-		pcl::TextureMapping<pcl::PointXYZ> tmapping;
-		tmapping.textureMeshwithMultipleCameras(*tmesh_, cam_vec);
 	}
 }
 
 //--------------------------------------------------------------
-void ofApp::processFrameTriggerInt(int & value)
+void ofApp::processFrameTriggerInt(int& value)
 {
 	processFrame();
 }
 
 //--------------------------------------------------------------
-void ofApp::processFrameTriggerFloat(float & value)
+void ofApp::processFrameTriggerFloat(float& value)
 {
 	processFrame();
 }
 
 //--------------------------------------------------------------
-void ofApp::update() {
-
-	//if (reconstructAllTgl_)
+void ofApp::update()
+{
+	//for(auto &img : image_)
 	//{
-	//	saveCurrentFrame();
-	//	++globalFrameNumber_;
-	//	if (globalFrameNumber_ >= maxFrames_ - 1)
-	//	{
-	//		globalFrameNumber_ = 0;
-	//		reconstructAllTgl_ = false;
-	//	}
-	//	//processFrame();
+	//	img.second->update();
 	//}
+
+	if (reconstructFrame_)
+	{
+		processFrame();
+		reconstructFrame_ = false;
+	}
+
+	if (reconstructAllTgl_)
+	{
+		saveCurrentFrame();
+		++globalFrameNumber_;
+		if (globalFrameNumber_ >= maxFrames_ - 1)
+		{
+			globalFrameNumber_ = 0;
+			reconstructAllTgl_ = false;
+		}
+		processFrame();
+	}
 
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
-	createOfMeshFromPclTextureMesh(tmesh_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
-
-	for(auto &s : sensors_)
+	if (tmesh_ != nullptr)
 	{
-		// create ofMesh for displaying
-		ofMesh m;
-		createOfMeshFromPointsWNormals(cloud_transformed_[s->getId()], m);
-		mesh_[s->getId()] = m;
+		createOfMeshFromPclTextureMesh(tmesh_, cloud_smoothed_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
+	}
+
+	for (auto& s : sensors_)
+	{
+		if (cloud_transformed_[s->getId()] != nullptr)
+		{
+			// create ofMesh for displaying
+			ofMesh m;
+			createOfMeshFromPointsWNormals(cloud_transformed_[s->getId()], m);
+			mesh_[s->getId()] = m;
+		}
 	}
 }
 
 //--------------------------------------------------------------
-void ofApp::draw() {
+void ofApp::draw()
+{
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
+
 	ofBackground(background_);
 	ofEnableDepthTest();
 
@@ -259,11 +271,13 @@ void ofApp::draw() {
 	// combine textures
 	combinedTexture_.begin();
 	ofClear(64, 64, 64, 128);
-	for (auto &s : sensors_) {
+	for (auto& s : sensors_)
+	{
 		ofPushMatrix();
 		//ofTranslate(combinedTexture_.getWidth(), 0);
 		//ofScale(-1, 1, 1);
-		if (image_[s->getId()]->isAllocated()) {
+		if (image_[s->getId()]->isAllocated())
+		{
 			image_[s->getId()]->getTexture().draw(imageLayout_[s->getId()]);
 		}
 		ofPopMatrix();
@@ -274,15 +288,18 @@ void ofApp::draw() {
 	ofDrawAxis(10);
 
 	// per sensor rendering
-	for (auto &s : sensors_) {
+	for (auto& s : sensors_)
+	{
 		fpsString.append(std::string("[") +
 			std::to_string(frameNumber_[s->getId()]) +
 			std::string("/") +
 			std::to_string(player_[s->getId()]->getNumberFrames()) +
 			std::string("]  : "));
-		if (showSingle_) {
+		if (showSingle_)
+		{
 			ofPushMatrix();
-			if (fillWireFrameTgl_) {
+			if (fillWireFrameTgl_)
+			{
 				if (perPixelColor_)
 				{
 					image_[s->getId()]->getTexture().bind();
@@ -291,7 +308,8 @@ void ofApp::draw() {
 					mesh_[s->getId()].draw();
 					image_[s->getId()]->getTexture().unbind();
 				}
-				else {
+				else
+				{
 					mesh_[s->getId()].enableColors();
 					mesh_[s->getId()].disableTextures();
 					mesh_[s->getId()].draw();
@@ -303,7 +321,7 @@ void ofApp::draw() {
 				mesh_[s->getId()].disableTextures();
 				mesh_[s->getId()].drawWireframe();
 			}
-			if(showNormals_)
+			if (showNormals_)
 			{
 				drawNormals(mesh_[s->getId()], 10, false);
 			}
@@ -313,8 +331,10 @@ void ofApp::draw() {
 			drawCameraFrustum(s);
 	}
 
-	if (showCombined_) {
-		if (fillWireFrameTgl_) {
+	if (showCombined_)
+	{
+		if (fillWireFrameTgl_)
+		{
 			if (perPixelColor_)
 			{
 				combinedMesh_.enableTextures();
@@ -323,12 +343,14 @@ void ofApp::draw() {
 				combinedMesh_.draw();
 				combinedTexture_.getTexture().unbind();
 			}
-			else {
+			else
+			{
 				combinedMesh_.disableTextures();
 				combinedMesh_.enableColors();
 				combinedMesh_.draw();
 			}
-		}else
+		}
+		else
 		{
 			combinedMesh_.drawWireframe();
 		}
@@ -353,67 +375,67 @@ void ofApp::draw() {
 }
 
 //--------------------------------------------------------------
-void ofApp::keyPressed(int key) {
-
+void ofApp::keyPressed(int key)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::keyReleased(int key) {
-
+void ofApp::keyReleased(int key)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y) {
-
+void ofApp::mouseMoved(int x, int y)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button) {
-
+void ofApp::mouseDragged(int x, int y, int button)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button) {
-
+void ofApp::mousePressed(int x, int y, int button)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button) {
-
+void ofApp::mouseReleased(int x, int y, int button)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseEntered(int x, int y) {
-
+void ofApp::mouseEntered(int x, int y)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseExited(int x, int y) {
-
+void ofApp::mouseExited(int x, int y)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::windowResized(int w, int h) {
-
+void ofApp::windowResized(int w, int h)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg) {
-
+void ofApp::gotMessage(ofMessage msg)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo) {
-
+void ofApp::dragEvent(ofDragInfo dragInfo)
+{
 }
 
 //--------------------------------------------------------------
-void ofApp::play(bool &play)
+void ofApp::play(bool& play)
 {
 	if (play)
 	{
 		std::cout << "Play " << play << std::endl;
-		for (auto &s : sensors_)
+		for (auto& s : sensors_)
 		{
 			player_[s->getId()]->start();
 		}
@@ -421,7 +443,7 @@ void ofApp::play(bool &play)
 	else
 	{
 		std::cout << "Play " << play << std::endl;
-		for (auto &s : sensors_)
+		for (auto& s : sensors_)
 		{
 			player_[s->getId()]->stop();
 		}
@@ -439,7 +461,7 @@ void ofApp::stop()
 void ofApp::back()
 {
 	std::cout << "Back" << std::endl;
-	for (auto &p : player_)
+	for (auto& p : player_)
 	{
 		p.second->setFrameNumber(0);
 	}
@@ -498,7 +520,6 @@ void ofApp::loadCalibrationFromFile()
 
 		//sensor_extrinsics_[s->getId()] = m;
 	}
-	processFrame();
 }
 
 //--------------------------------------------------------------
@@ -511,9 +532,10 @@ void ofApp::cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr clou
 }
 
 //--------------------------------------------------------------
-void ofApp::updateFps(int &fps)
+void ofApp::updateFps(int& fps)
 {
-	for (auto &s : sensors_) {
+	for (auto& s : sensors_)
+	{
 		player_[s->getId()]->setFramesPerSecond(fps);
 	}
 }
@@ -521,9 +543,10 @@ void ofApp::updateFps(int &fps)
 //--------------------------------------------------------------
 
 
-void ofApp::drawNormals(ofMesh &mesh, float length, bool bFaceNormals) {
-
-	if (mesh.usingNormals()) {
+void ofApp::drawNormals(ofMesh& mesh, float length, bool bFaceNormals)
+{
+	if (mesh.usingNormals())
+	{
 		const vector<ofVec3f>& normals = mesh.getNormals();
 		const vector<ofVec3f>& vertices = mesh.getVertices();
 		ofVec3f normal;
@@ -532,15 +555,20 @@ void ofApp::drawNormals(ofMesh &mesh, float length, bool bFaceNormals) {
 		normalsMesh.setMode(OF_PRIMITIVE_LINES);
 		normalsMesh.getVertices().resize(normals.size() * 2);
 
-		if (bFaceNormals) {
-			for (int i = 0; i < (int)normals.size(); i++) {
-				if (i % 3 == 0) {
+		if (bFaceNormals)
+		{
+			for (int i = 0; i < (int)normals.size(); i++)
+			{
+				if (i % 3 == 0)
+				{
 					vert = (vertices[i] + vertices[i + 1] + vertices[i + 2]) / 3;
 				}
-				else if (i % 3 == 1) {
+				else if (i % 3 == 1)
+				{
 					vert = (vertices[i - 1] + vertices[i] + vertices[i + 1]) / 3;
 				}
-				else if (i % 3 == 2) {
+				else if (i % 3 == 2)
+				{
 					vert = (vertices[i - 2] + vertices[i - 1] + vertices[i]) / 3;
 				}
 				normalsMesh.setVertex(i * 2, vert);
@@ -549,8 +577,10 @@ void ofApp::drawNormals(ofMesh &mesh, float length, bool bFaceNormals) {
 				normalsMesh.setVertex(i * 2 + 1, normal + vert);
 			}
 		}
-		else {
-			for (int i = 0; i < (int)normals.size(); i++) {
+		else
+		{
+			for (int i = 0; i < (int)normals.size(); i++)
+			{
 				vert = vertices[i];
 				normal = normals[i].getNormalized();
 				normalsMesh.setVertex(i * 2, vert);
@@ -566,13 +596,13 @@ void ofApp::drawNormals(ofMesh &mesh, float length, bool bFaceNormals) {
 //--------------------------------------------------------------
 void ofApp::generateTextureCoordinates(recon::NormalCloudPtr pointCloud, vector<ofVec2f>& tex_coords, map<int, boost::shared_ptr<recon::AbstractSensor>>& sensors)
 {
-	for(auto &p : pointCloud->points)
+	for (auto& p : pointCloud->points)
 	{
 		auto normal = ofVec3f(p.normal_x, p.normal_y, p.normal_z);
 		auto cam_id = selectClosestFacingCamera(normal, sensors);
 		auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
 
-		switch(cam_id)
+		switch (cam_id)
 		{
 		case 0:
 			p.r = 255;
@@ -604,7 +634,7 @@ int ofApp::selectClosestFacingCamera(ofVec3f& normal, map<int, boost::shared_ptr
 {
 	auto minAngle = 360.0f;
 	int minAngleSensorId = 0;
-	for(auto &s : sensors)
+	for (auto& s : sensors)
 	{
 		auto inverse_camera_transform = s.second->getDepthExtrinsics()->getTransformation().inverse();
 		auto view_vector = ofVec3f(0, 0, 1) * toOfMatrix4x4(inverse_camera_transform);
@@ -614,7 +644,7 @@ int ofApp::selectClosestFacingCamera(ofVec3f& normal, map<int, boost::shared_ptr
 
 		angle = std::abs(angle - 180);
 
-		if(angle < minAngle)
+		if (angle < minAngle)
 		{
 			minAngle = angle;
 			minAngleSensorId = s.second->getId();
@@ -629,4 +659,3 @@ std::string ofApp::fileNumber(int number)
 	ss << std::setw(5) << std::setfill('0') << number;
 	return ss.str();
 }
-

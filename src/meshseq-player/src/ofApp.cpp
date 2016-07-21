@@ -81,7 +81,7 @@ void ofApp::setup(){
 	take_.push_back("3");
 	take_.push_back("4");
 	speed_.push_back("fast");
-	//speed_.push_back("slow");
+	speed_.push_back("slow");
 	quality_.push_back("hq");
 	quality_.push_back("lq");
 
@@ -108,7 +108,7 @@ void ofApp::setup(){
 
 	invokeLoader();
 	textureReloadNeeded_ = false;
-	ofSetFrameRate(5);
+	ofSetFrameRate(6);
 }
 
 //--------------------------------------------------------------

@@ -1,4 +1,5 @@
 #include "ofApp.h"
+#include "PlaySettings.h"
 #include <boost/regex.hpp>
 
 void ofApp::setupUI()
@@ -14,29 +15,27 @@ void ofApp::setupUI()
 
 void ofApp::loadRandomPlaySettingData()
 {
-
-	Playsettings setting = randomPlaysettings();
 	loading_ = true;
 
-	// if only texmap changed, no file loading necessary
-	if(setting.take == currentSettings_.take &&
-		setting.speed == currentSettings_.speed &&
-		setting.quality == currentSettings_.quality)
+	auto setting = session_.at(settingsIdx_);
+	if(setting.manual_)
 	{
-		currentSettings_ = setting;
-		loading_ = false;
-		return;
+		++settingsIdx_;
+		setting = session_.at(settingsIdx_);
 	}
-	
+
+
+	std::cout << setting.take_ << ":" << setting.speed_ << ":" << setting.quality_ << ":" << setting.texmap_ << std::endl;
+
 	images_.clear();
 	meshes_.clear();
 
 	auto basepath = std::string("reconstructed/") +
-		take_[setting.take] + std::string("/") +
-		speed_[setting.speed] + std::string("/") +
-		quality_[setting.quality];
+		take_[setting.take_] + std::string("/") +
+		speed_[setting.speed_] + std::string("/") +
+		quality_[setting.quality_];
 
-	int framenum = count_files(basepath);
+	auto framenum = count_files(basepath);
 	std::cout << "Path: " << basepath << " " << framenum << std::endl;
 	loadState_ = 0.;
 	for (auto l = 0; l < framenum; ++l)
@@ -57,6 +56,11 @@ void ofApp::loadRandomPlaySettingData()
 	currentSettings_ = setting;
 	updateMaxFrames();
 	loadState_ = 0; 
+
+	if(settingsIdx_ < session_.size() - 1)
+	{
+		++settingsIdx_;
+	}
 	loading_ = false;
 	textureReloadNeeded_ = true;
 }
@@ -64,9 +68,9 @@ void ofApp::loadRandomPlaySettingData()
 void ofApp::updateMaxFrames()
 {
 	auto basepath = std::string("reconstructed/") +
-		take_[currentSettings_.take] + std::string("/") +
-		speed_[currentSettings_.speed] + std::string("/") +
-		quality_[currentSettings_.quality];
+		take_[currentSettings_.take_] + std::string("/") +
+		speed_[currentSettings_.speed_] + std::string("/") +
+		quality_[currentSettings_.quality_];
 
 	maxFrames_ = count_files(basepath);
 }
@@ -74,7 +78,9 @@ void ofApp::updateMaxFrames()
 //--------------------------------------------------------------
 void ofApp::setup(){
 	font.load("verdana.ttf", 36);
-	
+	smallfont.load("verdana.ttf", 24);
+	hugefont.load("verdana.ttf", 56);
+
 	take_.push_back("0");
 	take_.push_back("1");
 	take_.push_back("2");
@@ -85,26 +91,34 @@ void ofApp::setup(){
 	quality_.push_back("hq");
 	quality_.push_back("lq");
 
-	for(int i = 0; i < 5; i++)
+	//take
+	for(auto i = 0; i < 5; i++)
 	{
-		Playsettings p;
-		p.speed = 0;
-		p.quality = 1;
-		p.take = i;
-		p.texmap = false;
-		availablePlaysettings_.push_back(p);
-		auto p2 = p;
-		p2.texmap = true;
-		availablePlaysettings_.push_back(p2);
+		//speed
+		for (auto j = 0; j < 2; j++) {
+			//quality
+			for (auto k = 0; k < 2; k++) {
+				//texmap
+				for (auto l = 0; l < 2; l++) {
+					PlaySettings p(i, j, k, (l == 0) ? false : true);
+					PlaySettings::availablePlaysettings_.push_back(p);
+				}
+			}
+		}
 	}
-	std::cout << "Play setting available: " << availablePlaysettings_.size() << std::endl;
+	std::cout << "Play setting available: " << PlaySettings::availablePlaysettings_.size() << std::endl;
+
+	session_ = PlaySettings::generateTestSequence();
+	std::cout << "Session size: " << session_.size() << std::endl;
+
 	setupUI();
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
 	cam_.setDistance(3000);
 
-
+	settingsIdx_ = 0;
 	frameNum_ = 0;
+	testDone_ = false;
 
 	invokeLoader();
 	textureReloadNeeded_ = false;
@@ -150,56 +164,77 @@ void ofApp::update(){
 	}
 }
 
+std::string ofApp::settingsString(PlaySettings &set)
+{
+	return std::to_string(set.take_) + std::to_string(set.speed_) + std::to_string(set.quality_) + std::to_string(set.texmap_);
+}
+
 //--------------------------------------------------------------
 void ofApp::draw(){
 	cam_.enableMouseInput();
 	cam_.disableMouseMiddleButton();
 
 	ofBackground(127);
-	
-	auto text = std::to_string(currentSettings_.take) + std::to_string(currentSettings_.speed) + std::to_string(currentSettings_.quality) + std::to_string(currentSettings_.texmap);
+	if (!testDone_) {
+		auto text = settingsString(currentSettings_);
 
-	font.drawString(text, ofGetWidth() - 140, 50);
-	if (!loading_ && images_[frameNum_].isAllocated()) {
-		images_[frameNum_].draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
-	}
-	
+		ofSetColor(255, 255, 255);
+		font.drawString(text, ofGetWidth() - 140, 50);
 
-	ofEnableDepthTest();
+		for (auto i = 0; i < session_.size(); i++)
+		{
+			auto t = settingsString(session_.at(i));
+			if (session_.at(i).manual_)
+			{
+				ofSetColor(255, 0, 0);
+			}
+			else
+			{
+				ofSetColor(255, 255, 255);
+			}
+			smallfont.drawString(t, ofGetWidth() - 120, 200 + i * 28);
+		}
 
-	if (loadState_ > 0)
-	{
-		ofPath p;
-		p.arc(ofGetWidth() - 80, 120, 40, 40, 0, loadState_ * 360);
-		p.draw();
-		ofNoFill();
-		ofDrawCircle(ofGetWidth() - 80, 120, 0, 40);
-	}
+
+		ofEnableDepthTest();
+
+		if (loadState_ > 0)
+		{
+			ofPath p;
+			ofSetColor(255, 255, 255);
+			p.arc(ofGetWidth() - 80, 120, 40, 40, 0, loadState_ * 360);
+			p.draw();
+			ofNoFill();
+			ofDrawCircle(ofGetWidth() - 80, 120, 0, 40);
+		}
 
 
-	cam_.begin();
-	
-	ofDrawAxis(1000);
-	
-	if (!loading_) {
-		if (currentSettings_.texmap) {
-			if (images_[frameNum_].isAllocated()) {
-				images_[frameNum_].getTexture().bind();
-				meshes_[frameNum_].disableColors();
-				meshes_[frameNum_].enableTextures();
+		cam_.begin();
+
+		ofDrawAxis(300);
+
+		if (!loading_) {
+			if (currentSettings_.texmap_) {
+				if (images_[frameNum_].isAllocated()) {
+					images_[frameNum_].getTexture().bind();
+					meshes_[frameNum_].disableColors();
+					meshes_[frameNum_].enableTextures();
+					meshes_[frameNum_].draw();
+					images_[frameNum_].getTexture().unbind();
+				}
+			}
+			else
+			{
+				meshes_[frameNum_].enableColors();
+				meshes_[frameNum_].disableTextures();
 				meshes_[frameNum_].draw();
-				images_[frameNum_].getTexture().unbind();
 			}
 		}
-		else
-		{
-			meshes_[frameNum_].enableColors();
-			meshes_[frameNum_].disableTextures();
-			meshes_[frameNum_].draw();
-		}
+		cam_.end();
+	} else
+	{
+		hugefont.drawString("Vielen Dank!", ofGetWidth() / 2 - 250, ofGetHeight() / 2 - 28);
 	}
-	cam_.end();
-
 	ofDisableDepthTest();
 	ui_.draw();
 
@@ -268,6 +303,12 @@ std::string ofApp::fileNumber(int number) {
 
 void ofApp::invokeLoader()
 {
+	if(settingsIdx_ >= session_.size() - 1)
+	{
+		images_.clear();
+		meshes_.clear();
+		testDone_ = true;
+	}
 	if (!loading_) {
 		loaderthread_ = new std::thread(&ofApp::loadRandomPlaySettingData, this);
 		loaderthread_->detach();
@@ -306,11 +347,4 @@ int ofApp::count_files(std::string basepath)
 	return std::min(numberPlyFiles, numberPngFiles);
 }
 
-ofApp::Playsettings ofApp::randomPlaysettings()
-{
-	std::srand(std::time(nullptr));
-	int i = std::rand() % availablePlaysettings_.size();
-	auto s = availablePlaysettings_.at(i);
-	std::cout << s.take << ":" << s.speed << ":" << s.quality << ":" << s.texmap << std::endl;
-	return  s;
-}
+

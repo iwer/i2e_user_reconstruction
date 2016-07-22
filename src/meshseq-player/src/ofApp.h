@@ -2,22 +2,15 @@
 
 #include "ofMain.h"
 #include <ofxGui.h>
+#include "PlaySettings.h"
 
 class ofApp : public ofBaseApp{
 
 	public:
-		struct Playsettings
-		{
-			int take;
-			int speed;
-			int quality;
-			bool texmap;
-		};
-
 		void setupUI();
 		void setup();
 		void update();
-		void draw();
+	void draw();
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -46,12 +39,13 @@ class ofApp : public ofBaseApp{
 		
 		void loadRandomPlaySettingData();
 		void updateMaxFrames();
+		std::string settingsString(PlaySettings &set);
 
 		float loadState_;
 
-		Playsettings randomPlaysettings();
-		Playsettings currentSettings_;
-		std::vector<Playsettings> availablePlaysettings_;
+		std::vector<PlaySettings> session_;
+		PlaySettings currentSettings_;
+		int settingsIdx_;
 
 		ofMesh mesh_;
 		ofImage image_;
@@ -75,6 +69,8 @@ class ofApp : public ofBaseApp{
 		std::map<int, ofImage> images_;
 
 		ofTrueTypeFont font;
+		ofTrueTypeFont smallfont;
+		ofTrueTypeFont hugefont;
 
 		// UI
 		ofxPanel ui_;
@@ -82,4 +78,5 @@ class ofApp : public ofBaseApp{
 		ofxToggle play_;
 
 		ofPath loadingCircle_;
+		bool testDone_;
 };

@@ -21,7 +21,15 @@ void ofApp::loadRandomPlaySettingData()
 	if(setting.manual_)
 	{
 		++settingsIdx_;
-		setting = session_.at(settingsIdx_);
+		//std::cout << "Pre inc: " << settingsIdx_ << std::endl;
+		
+		if (settingsIdx_ < session_.size()) {
+			setting = session_.at(settingsIdx_);
+		} else
+		{
+			testDone_ = true;
+			return;
+		}
 	}
 
 
@@ -49,17 +57,18 @@ void ofApp::loadRandomPlaySettingData()
 		images_[l].load(basepath + std::string("/frame_") + fileNumber(l) + std::string(".png"));
 		//ofLoadImage(pixelData_[l], basepath + std::string("/frame_") + fileNumber(l) + std::string(".png"));
 		loadState_ = (l + 1) * 1.0 / framenum;
-		std::cout << "Loading  " << loadState_ * 100 << "%" << std::endl;
-		std::flush(std::cout);
+		//std::cout << "Loading  " << loadState_ * 100 << "%" << std::endl;
+		//std::flush(std::cout);
 	}
 
 	currentSettings_ = setting;
 	updateMaxFrames();
 	loadState_ = 0; 
 
-	if(settingsIdx_ < session_.size() - 1)
+	if(settingsIdx_ < session_.size())
 	{
 		++settingsIdx_;
+		//std::cout << "Post inc: " << settingsIdx_ << std::endl;
 	}
 	loading_ = false;
 	textureReloadNeeded_ = true;
@@ -197,6 +206,7 @@ void ofApp::draw(){
 
 
 		ofEnableDepthTest();
+		ofSetColor(255, 255, 255);
 
 		if (loadState_ > 0)
 		{
@@ -309,9 +319,11 @@ void ofApp::invokeLoader()
 		meshes_.clear();
 		testDone_ = true;
 	}
-	if (!loading_) {
-		loaderthread_ = new std::thread(&ofApp::loadRandomPlaySettingData, this);
-		loaderthread_->detach();
+	else {
+		if (!loading_) {
+			loaderthread_ = new std::thread(&ofApp::loadRandomPlaySettingData, this);
+			loaderthread_->detach();
+		}
 	}
 }
 

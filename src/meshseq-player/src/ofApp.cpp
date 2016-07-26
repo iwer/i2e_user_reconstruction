@@ -20,10 +20,9 @@ void ofApp::loadRandomPlaySettingData()
 	auto setting = session_.at(settingsIdx_);
 	if(setting.manual_)
 	{
-		++settingsIdx_;
-		//std::cout << "Pre inc: " << settingsIdx_ << std::endl;
-		
-		if (settingsIdx_ < session_.size()) {
+		if (settingsIdx_ < session_.size() - 1) {
+			++settingsIdx_;
+			std::cout << "Pre inc: " << settingsIdx_ << std::endl;
 			setting = session_.at(settingsIdx_);
 		} else
 		{
@@ -68,7 +67,7 @@ void ofApp::loadRandomPlaySettingData()
 	if(settingsIdx_ < session_.size())
 	{
 		++settingsIdx_;
-		//std::cout << "Post inc: " << settingsIdx_ << std::endl;
+		std::cout << "Post inc: " << settingsIdx_ << std::endl;
 	}
 	loading_ = false;
 	textureReloadNeeded_ = true;

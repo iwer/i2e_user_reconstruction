@@ -312,7 +312,7 @@ std::string ofApp::fileNumber(int number) {
 
 void ofApp::invokeLoader()
 {
-	if(settingsIdx_ >= session_.size() - 1)
+	if(settingsIdx_ > session_.size() - 1)
 	{
 		images_.clear();
 		meshes_.clear();

@@ -7,6 +7,10 @@
 #include <pcl/surface/texture_mapping.h>
 #include <pcl/common/time.h>
 
+#define COMB_MODE_DOWNSAMPLE 0
+#define COMB_MODE_SMOOTHING 1
+
+
 void ofApp::setupUi()
 {
 	backgroundRemovalPrms_.setName("Backgroundremoval");
@@ -39,11 +43,18 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
+	resetCalibrationBtn_.addListener(this, &ofApp::resetCalibration);
+	showDownsampledBtn_.addListener(this, &ofApp::showDownsampled);
+	showSmoothedBtn_.addListener(this, &ofApp::showSmoothed);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
 	ui_.add(loadCalibrationBtn_.setup("Load Calibration"));
+	ui_.add(resetCalibrationBtn_.setup("Reset Calibration"));
+	ui_.add(showDownsampledBtn_.setup("Show downsampled"));
+	ui_.add(showSmoothedBtn_.setup("Show smoothed"));
 	ui_.add(saveCurrentFrame_.setup("Save current Mesh"));
+	ui_.add(onlyPointsTgl_.setup("Only Points", true));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
 	ui_.add(camColorTgl_.setup("Color tris per-camera", false));
@@ -113,7 +124,7 @@ void ofApp::setup()
 
 
 	globalFrameNumber_ = 0;
-
+	combined_mode_ = COMB_MODE_DOWNSAMPLE;
 	combinedTexture_.allocate(iWidth2, iHeight2);
 
 	cam_.setFarClip(100000);
@@ -164,12 +175,12 @@ void ofApp::processFrame()
 	if (combinedCloud_->size() > 0)
 	{
 		// Downsample combined cloud
-		recon::NormalCloudPtr cloud_downsampled(new recon::NormalCloud());
-		downsample(combinedCloud_, cloud_downsampled, resolution_);
+		cloud_downsampled_.reset(new recon::NormalCloud());
+		downsample(combinedCloud_, cloud_downsampled_, resolution_);
 
 		// smoothing
 		cloud_smoothed_.reset(new recon::NormalCloud());
-		movingLeastSquaresSmoothing(cloud_downsampled, cloud_smoothed_, smoothRadius_, resolution_);
+		movingLeastSquaresSmoothing(cloud_downsampled_, cloud_smoothed_, smoothRadius_, resolution_);
 
 		// generate texture coordinate wrt the closest visible camera, this does not work very well...
 		//std::vector<ofVec2f> tex_coords;
@@ -211,6 +222,16 @@ void ofApp::processFrameTriggerFloat(float& value)
 	processFrame();
 }
 
+void ofApp::showDownsampled()
+{
+	combined_mode_ = COMB_MODE_DOWNSAMPLE;
+}
+
+void ofApp::showSmoothed()
+{
+	combined_mode_ = COMB_MODE_SMOOTHING;
+}
+
 //--------------------------------------------------------------
 void ofApp::update()
 {
@@ -242,7 +263,12 @@ void ofApp::update()
 
 	if (tmesh_ != nullptr)
 	{
-		createOfMeshFromPclTextureMesh(tmesh_, cloud_smoothed_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
+		if (combined_mode_ == COMB_MODE_SMOOTHING) {
+			createOfMeshFromPclTextureMesh(tmesh_, cloud_smoothed_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
+		}
+		else if(combined_mode_ == COMB_MODE_DOWNSAMPLE) {
+			createOfMeshFromPclTextureMesh(tmesh_, cloud_downsampled_, imageLayout_, sensorMap_, image_, combinedMesh_, camColorTgl_);
+		}
 	}
 
 	for (auto& s : sensors_)
@@ -298,28 +324,35 @@ void ofApp::draw()
 		if (showSingle_)
 		{
 			ofPushMatrix();
-			if (fillWireFrameTgl_)
-			{
-				if (perPixelColor_)
+			if (onlyPointsTgl_) {
+				mesh_[s->getId()].enableColors();
+				mesh_[s->getId()].disableTextures();
+				mesh_[s->getId()].drawVertices();
+			}
+			else {
+				if (fillWireFrameTgl_)
 				{
-					image_[s->getId()]->getTexture().bind();
-					mesh_[s->getId()].disableColors();
-					mesh_[s->getId()].enableTextures();
-					mesh_[s->getId()].draw();
-					image_[s->getId()]->getTexture().unbind();
+					if (perPixelColor_)
+					{
+						image_[s->getId()]->getTexture().bind();
+						mesh_[s->getId()].disableColors();
+						mesh_[s->getId()].enableTextures();
+						mesh_[s->getId()].draw();
+						image_[s->getId()]->getTexture().unbind();
+					}
+					else
+					{
+						mesh_[s->getId()].enableColors();
+						mesh_[s->getId()].disableTextures();
+						mesh_[s->getId()].draw();
+					}
 				}
 				else
 				{
 					mesh_[s->getId()].enableColors();
 					mesh_[s->getId()].disableTextures();
-					mesh_[s->getId()].draw();
+					mesh_[s->getId()].drawWireframe();
 				}
-			}
-			else
-			{
-				mesh_[s->getId()].enableColors();
-				mesh_[s->getId()].disableTextures();
-				mesh_[s->getId()].drawWireframe();
 			}
 			if (showNormals_)
 			{
@@ -333,26 +366,33 @@ void ofApp::draw()
 
 	if (showCombined_)
 	{
-		if (fillWireFrameTgl_)
-		{
-			if (perPixelColor_)
+		if (onlyPointsTgl_) {
+			combinedMesh_.enableColors();
+			combinedMesh_.disableTextures();
+			combinedMesh_.drawVertices();
+		}
+		else {
+			if (fillWireFrameTgl_)
 			{
-				combinedMesh_.enableTextures();
-				combinedMesh_.disableColors();
-				combinedTexture_.getTexture().bind();
-				combinedMesh_.draw();
-				combinedTexture_.getTexture().unbind();
+				if (perPixelColor_)
+				{
+					combinedMesh_.enableTextures();
+					combinedMesh_.disableColors();
+					combinedTexture_.getTexture().bind();
+					combinedMesh_.draw();
+					combinedTexture_.getTexture().unbind();
+				}
+				else
+				{
+					combinedMesh_.disableTextures();
+					combinedMesh_.enableColors();
+					combinedMesh_.draw();
+				}
 			}
 			else
 			{
-				combinedMesh_.disableTextures();
-				combinedMesh_.enableColors();
-				combinedMesh_.draw();
+				combinedMesh_.drawWireframe();
 			}
-		}
-		else
-		{
-			combinedMesh_.drawWireframe();
 		}
 		if (showNormals_)
 		{
@@ -522,6 +562,14 @@ void ofApp::loadCalibrationFromFile()
 	}
 }
 
+void ofApp::resetCalibration()
+{
+	for (auto& s : sensors_)
+	{
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics());
+		s->setDepthExtrinsics(ext);
+	}
+}
 //--------------------------------------------------------------
 void ofApp::cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image)
 {
@@ -588,7 +636,10 @@ void ofApp::drawNormals(ofMesh& mesh, float length, bool bFaceNormals)
 				normalsMesh.setVertex(i * 2 + 1, normal + vert);
 			}
 		}
+		ofPushStyle();
+		ofSetColor(200, 0, 0);
 		normalsMesh.draw();
+		ofPopStyle();
 	}
 }
 

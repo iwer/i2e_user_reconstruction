@@ -389,7 +389,9 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 			{
 				auto p = cloud->at(pointindex);
 				auto ofp = ofVec3f(p.x * 1000, p.y * 1000, p.z * 1000);
+				auto normal = ofVec3f(p.normal_x, p.normal_y, p.normal_z);
 				targetMesh.addVertex(ofp);
+				targetMesh.addNormal(normal);
 				if(sub_mesh_idx < sensors.size()){
 					auto sensor = sensors[sub_mesh_idx];
 					auto local_texcoord = calculateTextureCoordinate(ofp, texturelayout[sub_mesh_idx].getWidth(), texturelayout[sub_mesh_idx].getHeight(), sensor, false);

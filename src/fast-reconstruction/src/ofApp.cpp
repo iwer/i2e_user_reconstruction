@@ -30,11 +30,14 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
+	resetCalibrationBtn_.addListener(this, &ofApp::resetCalibration);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
 	ui_.add(loadCalibrationBtn_.setup("Load Calibration"));
+	ui_.add(resetCalibrationBtn_.setup("Reset Calibration"));
 	ui_.add(saveCurrentFrame_.setup("Save current Mesh"));
+	ui_.add(onlyPointsTgl_.setup("Only Points", true));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
 	ui_.add(showFrustum_.setup("Show Frustum", false)); 
@@ -216,26 +219,36 @@ void ofApp::draw(){
 			rotation.getRotate(qangle, qaxis);
 			ofTranslate(translation);
 			ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-			if (fillWireFrameTgl_) {
-				if (perPixelColor_)
-				{
-					image_[s->getId()]->getTexture().bind();
-					mesh_[s->getId()].disableColors();
-					mesh_[s->getId()].enableTextures();
-					mesh_[s->getId()].draw();
-					image_[s->getId()]->getTexture().unbind();
-				}
-				else {
-					mesh_[s->getId()].enableColors();
-					mesh_[s->getId()].disableTextures();
-					mesh_[s->getId()].draw();
-				}
-			}
-			else
+			
+			if (onlyPointsTgl_)
 			{
 				mesh_[s->getId()].enableColors();
 				mesh_[s->getId()].disableTextures();
-				mesh_[s->getId()].drawWireframe();
+				mesh_[s->getId()].drawVertices();
+			}
+			else
+			{
+				if (fillWireFrameTgl_) {
+					if (perPixelColor_)
+					{
+						image_[s->getId()]->getTexture().bind();
+						mesh_[s->getId()].disableColors();
+						mesh_[s->getId()].enableTextures();
+						mesh_[s->getId()].draw();
+						image_[s->getId()]->getTexture().unbind();
+					}
+					else {
+						mesh_[s->getId()].enableColors();
+						mesh_[s->getId()].disableTextures();
+						mesh_[s->getId()].draw();
+					}
+				}
+				else
+				{
+					mesh_[s->getId()].enableColors();
+					mesh_[s->getId()].disableTextures();
+					mesh_[s->getId()].drawWireframe();
+				}
 			}
 			ofPopMatrix();
 		}
@@ -419,6 +432,15 @@ void ofApp::loadCalibrationFromFile()
 		m.rotate(q);
 
 		//sensor_extrinsics_[s->getId()] = m;
+	}
+}
+
+void ofApp::resetCalibration()
+{
+	for (auto& s : sensors_)
+	{
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics());
+		s->setDepthExtrinsics(ext);
 	}
 }
 

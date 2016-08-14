@@ -48,6 +48,7 @@ public:
 	void gotMessage(ofMessage msg);
 
 	void loadCalibrationFromFile();
+	void resetCalibration();
 	void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image);
 	void updateFps(int &fps);
 	void play(bool &play);
@@ -62,6 +63,9 @@ public:
 	void processFrame();
 	void processFrameTriggerInt(int &value);
 	void processFrameTriggerFloat(float &value);
+
+	void showDownsampled();
+	void showSmoothed();
 
 	std::string fileNumber(int number);
 	int writeIndex_;
@@ -84,8 +88,12 @@ public:
 
 	pcl::texture_mapping::CameraVector cam_vec;
 
+
+	int combined_mode_;
+
 	ofImage dummyTex_;
 	recon::NormalCloudPtr combinedCloud_;
+	recon::NormalCloudPtr cloud_downsampled_;
 	recon::NormalCloudPtr cloud_smoothed_;
 	pcl::TextureMesh::Ptr tmesh_;
 	ofMesh combinedMesh_;
@@ -99,6 +107,10 @@ public:
 
 	ofxIntSlider backgroundSl_;
 	ofxButton loadCalibrationBtn_;
+	ofxButton resetCalibrationBtn_;
+
+	ofxButton showDownsampledBtn_;
+	ofxButton showSmoothedBtn_;
 
 	ofxToggle perPixelColor_;
 	ofxToggle camColorTgl_;
@@ -107,6 +119,7 @@ public:
 	ofxToggle showCombined_;
 	ofxToggle showNormals_;
 	ofxToggle fillWireFrameTgl_;
+	ofxToggle onlyPointsTgl_;
 
 	ofxIntSlider fpsSlider_;
 	ofxButton backBtn_;
@@ -148,6 +161,5 @@ public:
 	ofParameter<float> maxSurfaceAngle_;
 	ofParameter<float> minAngle_;
 	ofParameter<float> maxAngle_;
-
 
 };

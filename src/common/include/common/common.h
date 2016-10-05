@@ -73,7 +73,8 @@ void organizedFastMesh(
 void movingLeastSquaresSmoothing(
 	recon::NormalCloudPtr src,
 	recon::NormalCloudPtr trgt,
-	float smoothRadius
+	float smoothRadius, 
+	float resolution
 	);
 
 /**
@@ -134,7 +135,8 @@ void createOfMeshWithCombinedTexCoords(
 
 
 void createOfMeshFromPclTextureMesh(
-	pcl::TextureMeshPtr mesh, 
+	pcl::TextureMeshPtr mesh,
+	recon::NormalCloudPtr cloud,
 	std::vector<ofRectangle>& texturelayout, 
 	std::map<int, recon::AbstractSensor::Ptr> sensors, 
 	std::map<int, std::shared_ptr<ofImage>> &texture,

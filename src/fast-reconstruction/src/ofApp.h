@@ -40,6 +40,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 		void loadCalibrationFromFile();
+		void resetCalibration(); 
 		void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image);
 		void updateFps(int &fps);
 		void play(bool &play);
@@ -48,7 +49,6 @@ class ofApp : public ofBaseApp{
 		void nextFrame();
 		void prevFrame();
 		void saveCurrentFrame();
-		void reconstructAll();
 
 		void processFrame();
 		void processFrameTriggerInt(int &value);
@@ -72,7 +72,6 @@ class ofApp : public ofBaseApp{
 		ofMesh combinedMesh_;
 
 		std::vector<ofRectangle> imageLayout_;
-
 		std::string fileNumber(int number);
 		int writeIndex_;
 		
@@ -83,12 +82,14 @@ class ofApp : public ofBaseApp{
 
 		ofxIntSlider backgroundSl_;
 		ofxButton loadCalibrationBtn_;
+		ofxButton resetCalibrationBtn_;
 
 		ofxToggle perPixelColor_;
 		ofxToggle showFrustum_;
 		ofxToggle showSingle_;
 		ofxToggle showCombined_;
 		ofxToggle fillWireFrameTgl_;
+		ofxToggle onlyPointsTgl_;
 		
 		ofxIntSlider fpsSlider_;
 		ofxButton backBtn_;
@@ -96,7 +97,7 @@ class ofApp : public ofBaseApp{
 		ofxButton prevFrameBtn_;
 		ofxButton nextFrameBtn_;
 		ofxButton stopBtn_;
-		ofxButton reconstructAllBtn_;
+		ofxToggle reconstructAllTgl_;
 
 		ofxButton saveCurrentFrame_;
 

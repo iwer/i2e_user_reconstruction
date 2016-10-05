@@ -6,6 +6,7 @@
 #include <pcl/io/image_rgb24.h>
 #include <pcl/io/lzf_image_io.h>
 #include <set>
+#include <regex>
 
 PointCloudPlayer::PointCloudPlayer()
 	: running_(false)
@@ -85,8 +86,8 @@ void PointCloudPlayer::setFramesPerSecond(int fps)
 int PointCloudPlayer::getNumberSensors(std::string path)
 {
 	boost::filesystem::path Path(path);
-	boost::regex e1(std::string("capture_s") + std::string("(\\d+)_[0-9]{5}.pcd"));
-	boost::match_results<std::string::const_iterator> what;
+	std::regex e1(std::string("capture_s") + std::string("(\\d+)_[0-9]{5}.pcd"));
+	std::match_results<std::string::const_iterator> what;
 	boost::filesystem::directory_iterator end_iter; // Default constructor for an iterator is the end iterator
 	
 	std::set<std::string> sensorIndizes;
@@ -98,10 +99,12 @@ int PointCloudPlayer::getNumberSensors(std::string path)
 
 			if (boost::filesystem::is_regular_file(*it)) {
 
-				if (boost::regex_search(it->path().filename().string(), what, e1, boost::match_default))
+				auto filestr = it->path().filename().string();
+				//std::cout << filestr << std::endl;
+				if (std::regex_search(filestr, what, e1))
 				{
 					std::string res = what[1];
-					//std::cout << res << std::endl;
+					//std::cout << "Match: " << res << std::endl;
 					sensorIndizes.insert(res);
 				}
 

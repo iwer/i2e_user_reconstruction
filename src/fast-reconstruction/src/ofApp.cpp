@@ -4,6 +4,7 @@
 #include <recon/SensorFactory.h>
 #include <common/common.h>
 #include <pcl/common/transforms.h>
+#include <pcl/common/time.h>
 
 void ofApp::setupUi()
 {
@@ -29,18 +30,20 @@ void ofApp::setupUi()
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
 	saveCurrentFrame_.addListener(this, &ofApp::saveCurrentFrame);
-	reconstructAllBtn_.addListener(this, &ofApp::reconstructAll);
+	resetCalibrationBtn_.addListener(this, &ofApp::resetCalibration);
 
 	ui_.setup();
 	ui_.add(backgroundSl_.setup(background_));
 	ui_.add(loadCalibrationBtn_.setup("Load Calibration"));
+	ui_.add(resetCalibrationBtn_.setup("Reset Calibration"));
 	ui_.add(saveCurrentFrame_.setup("Save current Mesh"));
+	ui_.add(onlyPointsTgl_.setup("Only Points", true));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
 	ui_.add(showFrustum_.setup("Show Frustum", false)); 
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
-	ui_.add(reconstructAllBtn_.setup("Reconstruct all"));
+	ui_.add(reconstructAllTgl_.setup("Reconstruct all", false));
 	ui_.add(fpsSlider_.setup(fps_));
 	ui_.add(backBtn_.setup("Rewind"));
 	ui_.add(playTgl_.setup(playing_));
@@ -107,8 +110,7 @@ void ofApp::setup(){
 
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
-	cam_.enableMouseInput();
-	cam_.disableMouseMiddleButton();
+
 
 	writeIndex_ = 0;
 }
@@ -116,6 +118,8 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::processFrame()
 {
+	pcl::ScopeTime t("Frame Processing");
+
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
@@ -150,15 +154,31 @@ void ofApp::processFrame()
 			}
 		}
 	}
+	if (!reconstructAllTgl_) {
+		t.reset();
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+	if (reconstructAllTgl_)
+	{
+		saveCurrentFrame();
+		++globalFrameNumber_;
+		if(globalFrameNumber_ >= maxFrames_ - 1)
+		{
+			globalFrameNumber_ = 0;
+			reconstructAllTgl_ = false;
+		}
+	}
 	processFrame();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	cam_.enableMouseInput();
+	cam_.disableMouseMiddleButton();
+
 	ofBackground(background_);
 	ofEnableDepthTest();
 
@@ -199,26 +219,36 @@ void ofApp::draw(){
 			rotation.getRotate(qangle, qaxis);
 			ofTranslate(translation);
 			ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-			if (fillWireFrameTgl_) {
-				if (perPixelColor_)
-				{
-					image_[s->getId()]->getTexture().bind();
-					mesh_[s->getId()].disableColors();
-					mesh_[s->getId()].enableTextures();
-					mesh_[s->getId()].draw();
-					image_[s->getId()]->getTexture().unbind();
-				}
-				else {
-					mesh_[s->getId()].enableColors();
-					mesh_[s->getId()].disableTextures();
-					mesh_[s->getId()].draw();
-				}
-			}
-			else
+			
+			if (onlyPointsTgl_)
 			{
 				mesh_[s->getId()].enableColors();
 				mesh_[s->getId()].disableTextures();
-				mesh_[s->getId()].drawWireframe();
+				mesh_[s->getId()].drawVertices();
+			}
+			else
+			{
+				if (fillWireFrameTgl_) {
+					if (perPixelColor_)
+					{
+						image_[s->getId()]->getTexture().bind();
+						mesh_[s->getId()].disableColors();
+						mesh_[s->getId()].enableTextures();
+						mesh_[s->getId()].draw();
+						image_[s->getId()]->getTexture().unbind();
+					}
+					else {
+						mesh_[s->getId()].enableColors();
+						mesh_[s->getId()].disableTextures();
+						mesh_[s->getId()].draw();
+					}
+				}
+				else
+				{
+					mesh_[s->getId()].enableColors();
+					mesh_[s->getId()].disableTextures();
+					mesh_[s->getId()].drawWireframe();
+				}
 			}
 			ofPopMatrix();
 		}
@@ -384,19 +414,6 @@ void ofApp::saveCurrentFrame()
 	++writeIndex_;
 }
 
-void ofApp::reconstructAll()
-{
-	if(!playing_)
-	{
-		globalFrameNumber_ = 0;
-		while(globalFrameNumber_ < maxFrames_)
-		{
-			processFrame();
-			saveCurrentFrame();
-		}
-	}
-}
-
 //--------------------------------------------------------------
 void ofApp::loadCalibrationFromFile()
 {
@@ -415,6 +432,15 @@ void ofApp::loadCalibrationFromFile()
 		m.rotate(q);
 
 		//sensor_extrinsics_[s->getId()] = m;
+	}
+}
+
+void ofApp::resetCalibration()
+{
+	for (auto& s : sensors_)
+	{
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics());
+		s->setDepthExtrinsics(ext);
 	}
 }
 

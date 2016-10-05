@@ -24,6 +24,7 @@ include(TargetsPCLStatic)
 	
 # openFrameworks gets added as project
 find_package(openFrameworks REQUIRED)
+export(TARGETS openFrameworks FILE openFrameworksConfig.cmake)
 
 include(${openFrameworks_DIR}/addons/ofxGui/ofxGui.cmake)
 include(${openFrameworks_DIR}/addons/ofxXmlSettings/ofxXmlSettings.cmake)
@@ -32,6 +33,8 @@ include(${openFrameworks_DIR}/addons/ofxSplashScreen/ofxSplashScreen.cmake)
 add_library(ofAddons ${ADDONS_SOURCES})
 set_property(TARGET ofAddons PROPERTY
 	INTERFACE_INCLUDE_DIRECTORIES ${ADDONS_INCLUDE_DIRS})
+export(TARGETS ofAddons FILE ofAddonsConfig.cmake)
+
 target_link_libraries(ofAddons openFrameworks)	
 
 # External 3rd party libs that we include

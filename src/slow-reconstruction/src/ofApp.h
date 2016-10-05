@@ -13,18 +13,18 @@ public:
 		: background_("Backgroundcolor", 127, 0, 255)
 		, fps_("FPS", 1, 0, 30)
 		, passMin_("Z Min", .01, .01, 8)
-		, passMax_("Z Max", 2.5, .01, 8)
+		, passMax_("Z Max", 2.2, .01, 8)
 		, playing_("Play", false)
-		, resolution_("Resolution", 0.03, 0.001, 0.2)
+		, resolution_("Resolution", 0.01, 0.01, 0.2)
 		, normalKNeighbours_("K Neighbours", 20, 3, 500)
-		, triEdgeLength_("Triangle Edge Length", 0.03, 0.001, 0.2)
-		, searchRadius_("Search radius", 0.035, 0.004, 0.8)
-		, mu_("Radius Multiplier", 2.5, 0.1, 10)
+		, triEdgeLength_("Triangle Edge Length", 0.70, 0.01, 0.2)
+		, searchRadius_("Search radius", 0.035, 0.03, 0.8)
+		, mu_("Radius Multiplier", 3, 0.1, 10)
 		, maxNeighbours_("Max Neighbours", 100, 10, 500)
-		, maxSurfaceAngle_("Max Surface Angle", 45, 0, 360)
-		, minAngle_("Min Triangle Angle", 10, 1, 60)
-		, maxAngle_("Max Triangle Angle", 120, 60, 179)
-		, smoothRadius_("Search Radius", 0.03, 0.001, 0.2)
+		, maxSurfaceAngle_("Max Surface Angle", 90, 0, 360)
+		, minAngle_("Min Triangle Angle", 7, 1, 60)
+		, maxAngle_("Max Triangle Angle", 170, 60, 179)
+		, smoothRadius_("Search Radius", 0.04, 0.01, 0.2)
 	{}
 
 	void setupUi();
@@ -48,6 +48,7 @@ public:
 	void gotMessage(ofMessage msg);
 
 	void loadCalibrationFromFile();
+	void resetCalibration();
 	void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image);
 	void updateFps(int &fps);
 	void play(bool &play);
@@ -56,13 +57,15 @@ public:
 	void nextFrame();
 	void prevFrame();
 	void saveCurrentFrame();
-	void reconstructAll();
 
 	void drawNormals(ofMesh &mesh, float length, bool bFaceNormals);
 
 	void processFrame();
 	void processFrameTriggerInt(int &value);
 	void processFrameTriggerFloat(float &value);
+
+	void showDownsampled();
+	void showSmoothed();
 
 	std::string fileNumber(int number);
 	int writeIndex_;
@@ -83,8 +86,15 @@ public:
 	std::map<int, ofMesh> mesh_;
 	std::map<int, std::shared_ptr<ofImage>> image_;
 
+	pcl::texture_mapping::CameraVector cam_vec;
+
+
+	int combined_mode_;
+
 	ofImage dummyTex_;
 	recon::NormalCloudPtr combinedCloud_;
+	recon::NormalCloudPtr cloud_downsampled_;
+	recon::NormalCloudPtr cloud_smoothed_;
 	pcl::TextureMesh::Ptr tmesh_;
 	ofMesh combinedMesh_;
 
@@ -97,6 +107,10 @@ public:
 
 	ofxIntSlider backgroundSl_;
 	ofxButton loadCalibrationBtn_;
+	ofxButton resetCalibrationBtn_;
+
+	ofxButton showDownsampledBtn_;
+	ofxButton showSmoothedBtn_;
 
 	ofxToggle perPixelColor_;
 	ofxToggle camColorTgl_;
@@ -105,6 +119,7 @@ public:
 	ofxToggle showCombined_;
 	ofxToggle showNormals_;
 	ofxToggle fillWireFrameTgl_;
+	ofxToggle onlyPointsTgl_;
 
 	ofxIntSlider fpsSlider_;
 	ofxButton backBtn_;
@@ -112,7 +127,8 @@ public:
 	ofxButton prevFrameBtn_;
 	ofxButton nextFrameBtn_;
 	ofxButton stopBtn_;
-	ofxButton reconstructAllBtn_;
+	ofxToggle reconstructFrame_;
+	ofxToggle reconstructAllTgl_;
 
 	ofxButton saveCurrentFrame_;
 
@@ -145,6 +161,5 @@ public:
 	ofParameter<float> maxSurfaceAngle_;
 	ofParameter<float> minAngle_;
 	ofParameter<float> maxAngle_;
-
 
 };

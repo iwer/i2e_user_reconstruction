@@ -2,16 +2,15 @@
 
 #include "ofMain.h"
 #include <ofxGui.h>
+#include "PlaySettings.h"
 
 class ofApp : public ofBaseApp{
 
 	public:
 		void setupUI();
-		void loadData();
-	void updateMaxFrames();
-	void setup();
+		void setup();
 		void update();
-		void draw();
+	void draw();
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -26,7 +25,7 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
 		
 		std::string fileNumber(int number);
-
+	
 		// Button Listeners
 		void nextTake();
 		void prevTake();
@@ -34,19 +33,19 @@ class ofApp : public ofBaseApp{
 		void prevSpeed();
 		void nextQuality();
 		void prevQuality();
-		void randomSetting();
+		void invokeLoader();
 		
 		int count_files(std::string basepath);
 		
-		struct Playsettings
-		{
-			int take;
-			int speed;
-			int quality;
-			bool texmap;
-		};
+		void loadRandomPlaySettingData();
+		void updateMaxFrames();
+		std::string settingsString(PlaySettings &set);
 
-		Playsettings randomPlaysettings();
+		float loadState_;
+
+		std::vector<PlaySettings> session_;
+		PlaySettings currentSettings_;
+		int settingsIdx_;
 
 		ofMesh mesh_;
 		ofImage image_;
@@ -56,35 +55,28 @@ class ofApp : public ofBaseApp{
 		int frameNum_;
 		int maxFrames_;
 
-		int takeIdx_;
+		std::mutex ressourceLoaderMtx_;
+		std::thread * loaderthread_;
+		std::atomic<bool> loading_;
+		std::atomic<bool> textureReloadNeeded_;
+
 		std::vector<std::string> take_;
-		int speedIdx_;
 		std::vector<std::string> speed_;
-		int qualityIdx_;
 		std::vector<std::string> quality_;
 
 		// meshes_[takeIdx_][speedIdx_][qualityIdx_][frameNum_]
-		std::map<int, std::map<int, std::map<int, std::map<int,ofMesh>>>> meshes_;
-		std::map<int, std::map<int, std::map<int, std::map<int,ofImage>>>> images_;
+		std::map<int, ofMesh> meshes_;
+		std::map<int, ofImage> images_;
 
 		ofTrueTypeFont font;
+		ofTrueTypeFont smallfont;
+		ofTrueTypeFont hugefont;
 
 		// UI
 		ofxPanel ui_;
 		ofxButton randomRecordingBtn_;
+		ofxToggle play_;
 
-		ofxLabel takeLbl_;
-		ofxButton nextTakeBtn_;
-		ofxButton prevTakeBtn_;
-
-		ofxLabel speedLbl_;
-		ofxButton nextSpeedBtn_;
-		ofxButton prevSpeedBtn_;
-
-		ofxLabel qualityLbl_;
-		ofxButton nextQualityBtn_;
-		ofxButton prevQualityBtn_;
-
-		ofxToggle texmapTgl_;
-
+		ofPath loadingCircle_;
+		bool testDone_;
 };

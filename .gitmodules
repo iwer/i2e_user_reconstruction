@@ -1,17 +1,18 @@
 [submodule "tools/share/cmake"]
 	path = tools/share/cmake
-	url = git@code.feldschmiederei.de:iwer/CMakeHelpers.git
+	url = git@github.com:iwer/CMakeHelpers.git
 [submodule "src/librecon"]
 	path = src/librecon
-	url = git@code.feldschmiederei.de:Research/librecon.git
+	url = git@github.com:iwer/librecon.git
 	branch = develop
 [submodule "src/of-pcl-bridge"]
 	path = src/of-pcl-bridge
-	url = git@code.feldschmiederei.de:openFrameworks/of-pcl-bridge.git
-	branch = master
+	url = git@github.com:iwer/of-pcl-bridge.git
+	branch = develop
 [submodule "src/autocalibrator"]
 	path = src/autocalibrator
-	url = git@code.feldschmiederei.de:I2E/KinectAutoCalibration.git
+	url = git@github.com:iwer/autocalibrator.git
 [submodule "src/netkinect/Bachelor2017"]
 	path = src/netkinect/Bachelor2017
 	url = https://github.com/Cherden/Bachelor2017.git
+	branch = dev

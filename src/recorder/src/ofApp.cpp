@@ -31,7 +31,8 @@ void ofApp::setup(){
 
 	ui_.setup();
 	ui_.add(record_.setup("Record", false));
-	writer_.setBaseFileName(std::string("data/recorder/capture"));
+	auto path = std::string("data/recorder/capture");
+	writer_.setBaseFileName(path);
 	writer_.start();
 }
 

@@ -690,7 +690,7 @@ int ofApp::selectClosestFacingCamera(ofVec3f& normal, map<int, boost::shared_ptr
 		auto inverse_camera_transform = s.second->getDepthExtrinsics()->getTransformation().inverse();
 		auto view_vector = ofVec3f(0, 0, 1) * toOfMatrix4x4(inverse_camera_transform);
 
-		auto norm_n = normal.normalized();
+		auto norm_n = normal.getNormalized();
 		auto angle = norm_n.angle(view_vector);
 
 		angle = std::abs(angle - 180);

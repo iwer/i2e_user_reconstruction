@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include <ofxGui.h>
+#include <atomic>
 #include "PlaySettings.h"
 
 class ofApp : public ofBaseApp{

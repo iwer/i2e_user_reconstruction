@@ -1,25 +1,18 @@
 # At LEAST 2.8 but newer is better
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
-project(i2e-user-reconstruction VERSION 0.1.0 LANGUAGES CXX)
+project(i2e-user-reconstruction VERSION 0.1.0 LANGUAGES C CXX)
 
-SET (CMAKE_VERBOSE_MAKEFILE 1)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}/../tools/share/cmake")
-set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/../bin")
-set(CMAKE_EXE_LINKER_FLAGS "/NODEFAULTLIB:PocoFoundationd.lib /NODEFAULTLIB:atlthunk.lib /NODEFAULTLIB:LIBC.lib /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:MSVCRT" ${CMAKE_EXE_LINKER_FLAGS} )
+SET (CMAKE_VERBOSE_MAKEFILE OFF)
+set(CMAKE_CUSTOM_MODULE_PATH "${CMAKE_SOURCE_DIR}/../tools/share/cmake")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CUSTOM_MODULE_PATH})
+set(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/../bin")
+if (MSVC)
+	set(CMAKE_EXE_LINKER_FLAGS "/NODEFAULTLIB:PocoFoundationd.lib /NODEFAULTLIB:atlthunk.lib /NODEFAULTLIB:LIBC.lib /NODEFAULTLIB:LIBCMT /NODEFAULTLIB:MSVCRT" ${CMAKE_EXE_LINKER_FLAGS} )
+endif (MSVC)
 
 # Include third party libraries as targets
 include(TargetsBoostStatic)
-
-find_package(UnitTestPlusPlus REQUIRED)
-add_library(unittestpp STATIC IMPORTED)
-set_property(TARGET unittestpp PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${UnitTestPlusPlus_INCLUDE_DIRS})
-set_property(TARGET unittestpp PROPERTY 
-	IMPORTED_LOCATION_RELEASE ${UnitTestPlusPlus_LIBRARY})
-set_property(TARGET unittestpp PROPERTY 
-	IMPORTED_LOCATION_DEBUG ${UnitTestPlusPlus_LIBRARY_DEBUG})
-
+include(TargetsUnitTestPlusPlus)
 include(TargetsPCLStatic)
 	
 # openFrameworks gets added as project
@@ -40,7 +33,7 @@ target_link_libraries(ofAddons openFrameworks)
 # External 3rd party libs that we include
 #add_subdirectory(libs/extlib EXCLUDE_FROM_ALL)
  
-add_definitions(-DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT )
+#add_definitions(EIGEN_DONT_VECTORIZE EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT )
 
 # Targets that we develop
 enable_testing()

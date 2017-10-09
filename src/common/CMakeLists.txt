@@ -28,6 +28,7 @@ target_include_directories(common PUBLIC
 # here
 target_compile_features(common
     PUBLIC cxx_auto_type
+	PUBLIC cxx_generic_lambdas
     PRIVATE cxx_variadic_templates)
 
 # Depend on a library that we defined in the top-level file

@@ -1,6 +1,9 @@
+#undef Success
+#include <Eigen/Core>
 #include "common/ModelWriter.h"
+#include <chrono>
 
-
+using namespace std::chrono_literals;
 
 ModelWriter::ModelWriter()
 	: running_(false)

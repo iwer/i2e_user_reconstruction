@@ -256,7 +256,9 @@ void ofApp::saveExtrinsicsToCurrentSensor()
 		auto m = sensor_extrinsics_[sensorIds_[selected_sensor_id_]];
 		auto t = m.getTranslation();
 		auto q = m.getRotate();
-		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(toEigenVector4f(t), toEigenQuaternionf(q)));
+		auto eigen_t = toEigenVector4f(t);
+		auto eigen_q = toEigenQuaternionf(q);
+		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(eigen_t, eigen_q));
 		sensor_list_[sensorIds_[selected_sensor_id_]]->setDepthExtrinsics(ext);
 }
 
@@ -334,8 +336,10 @@ void ofApp::saveCalibrationToFile()
 		combined_matrix.rotate(180, 0, 1, 0);
 		combined_matrix.rotate(rangle, raxis.x, raxis.y, raxis.z);
 
-		auto combined_translation = toEigenVector4f(combined_matrix.getTranslation());
-		auto combined_rotation = toEigenQuaternionf(combined_matrix.getRotate());
+        auto ofTransl = combined_matrix.getTranslation();
+        auto ofRot = combined_matrix.getRotate();
+		auto combined_translation = toEigenVector4f(ofTransl);
+		auto combined_rotation = toEigenQuaternionf(ofRot);
 		
 		recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(combined_translation, combined_rotation));
 		sensor_list_[sensorIds_[s.second->getId()]]->setDepthExtrinsics(ext);

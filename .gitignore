@@ -1,6 +1,6 @@
 bin-master/*
 *.vpp~*
-
+src/cmake-build-debug
 
 
 # Created by http://www.gitignore.io

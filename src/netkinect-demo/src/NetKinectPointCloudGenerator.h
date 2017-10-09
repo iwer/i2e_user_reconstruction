@@ -7,7 +7,7 @@
 
 #include <recon/typedefs.h>
 #include <recon/AbstractPointCloudGenerator.h>
-#include <ServerAPI.h>
+#include <Client.h>
 
 class NetKinectPointCloudGenerator : public recon::AbstractPointCloudGenerator{
 public:

@@ -224,3 +224,5 @@ sftp-config.json
 
 libdynrecon/lib/libdynrecon.lib
 
+
+src/\.idea/

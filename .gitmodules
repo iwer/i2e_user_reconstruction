@@ -12,3 +12,6 @@
 [submodule "src/autocalibrator"]
 	path = src/autocalibrator
 	url = git@code.feldschmiederei.de:I2E/KinectAutoCalibration.git
+[submodule "src/netkinect/Bachelor2017"]
+	path = src/netkinect/Bachelor2017
+	url = https://github.com/Cherden/Bachelor2017.git

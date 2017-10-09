@@ -14,6 +14,16 @@ endif (MSVC)
 include(TargetsBoostStatic)
 include(TargetsUnitTestPlusPlus)
 include(TargetsPCLStatic)
+
+#find libprotobuf
+find_package(Protobuf REQUIRED)
+add_library(libprotobuf STATIC IMPORTED)
+set_property(TARGET libprotobuf PROPERTY
+		INTERFACE_INCLUDE_DIRECTORIES ${PROTOBUF_INCLUDE_DIRS})
+set_property(TARGET libprotobuf PROPERTY
+		IMPORTED_LOCATION_RELEASE ${PROTOBUF_LIBRARY})
+set_property(TARGET libprotobuf PROPERTY
+		IMPORTED_LOCATION_DEBUG ${PROTOBUF_LIBRARY_DEBUG})
 	
 # openFrameworks gets added as project
 find_package(openFrameworks REQUIRED)
@@ -51,3 +61,7 @@ add_subdirectory(autocalibrator)
 add_subdirectory(fast-reconstruction)
 add_subdirectory(slow-reconstruction)
 add_subdirectory(meshseq-player)
+if(UNIX)
+add_subdirectory(netkinect)
+add_subdirectory(netkinect-demo)
+endif(UNIX)

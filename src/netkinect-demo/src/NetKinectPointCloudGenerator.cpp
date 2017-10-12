@@ -24,40 +24,43 @@ void NetKinectPointCloudGenerator::aquireFrame()
 }
 
 recon::CloudConstPtr NetKinectPointCloudGenerator::getOutputCloud() {
-    int size = width_ * height_ * 3;
-    float** cloud = (float**)malloc(size*sizeof(float));
-    size = netkinect_client_->getCloud(cloud, size);
+    int size = 0;
+    float** cloud = nullptr;
+    //if(netkinect_client_->isAbleToDeliverData()) {
+	    size = netkinect_client_->getCloud(cloud, size);
 
-    //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
-    recon::CloudPtr newcloud;
-    for (int i = 0; i <= size - 3; i += 3) {
-        recon::PointType p;
-        p.x = *cloud[i];
-        p.y = *cloud[i + 1];
-        p.z = *cloud[i + 2];
+	    //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
+	    recon::CloudPtr newcloud;
+	    for (int i = 0; i <= size - 3; i += 3) {
+		recon::PointType p;
+		p.x = *cloud[i];
+		p.y = *cloud[i + 1];
+		p.z = *cloud[i + 2];
 
-        newcloud->push_back(p);
-    }
-    // save for collection
-    cloud_mutex_.lock();
-    cloud_ = newcloud;
-    cloud_mutex_.unlock();
+		newcloud->push_back(p);
+	    }
+	    // save for collection
+	    cloud_mutex_.lock();
+	    cloud_ = newcloud;
+	    cloud_mutex_.unlock();
+    //}
 
     return recon::AbstractPointCloudGenerator::getOutputCloud();
 }
 
 recon::ImagePtr NetKinectPointCloudGenerator::getOutputImage() {
-    int size = width_ * height_ * 3;
-    char** video = (char**)malloc(size*sizeof(char));
+    int size = 0;
+    char** video = nullptr;
 
-    netkinect_client_->getVideo(video, size);
-    // Encode fvideo_data into pcl::io::Image
-    boost::shared_ptr<NetKinectPointCloudGenerator::ImageMetadata> metadata = boost::shared_ptr<NetKinectPointCloudGenerator::ImageMetadata>(
-            new NetKinectPointCloudGenerator::ImageMetadata((void*)video, size, width_, height_, 1, 0));
-    image_mutex_.lock();
-    image_ = recon::ImagePtr(new pcl::io::ImageRGB24(metadata));
-    image_mutex_.unlock();
-
+    //if(netkinect_client_->isAbleToDeliverData()) {
+	    netkinect_client_->getVideo(video, size);
+	    // Encode fvideo_data into pcl::io::Image
+	    boost::shared_ptr<NetKinectPointCloudGenerator::ImageMetadata> metadata = boost::shared_ptr<NetKinectPointCloudGenerator::ImageMetadata>(
+		    new NetKinectPointCloudGenerator::ImageMetadata((void*)video, size, width_, height_, 1, 0));
+	    image_mutex_.lock();
+	    image_ = recon::ImagePtr(new pcl::io::ImageRGB24(metadata));
+	    image_mutex_.unlock();
+    //}
     return recon::AbstractPointCloudGenerator::getOutputImage();
 }
 

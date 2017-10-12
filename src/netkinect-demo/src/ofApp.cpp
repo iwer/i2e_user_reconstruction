@@ -106,7 +106,7 @@ void ofApp::setup()
 	cam_.enableMouseInput();
 	cam_.disableMouseMiddleButton();
 
-	player_.load("click.mp3");
+	//player_.load("click.mp3");
 }
 
 //--------------------------------------------------------------
@@ -125,12 +125,33 @@ void ofApp::update()
 		sensor_list_.front()->setDepthExtrinsics(ext);
 	}
 
+	if(netkinect_api_.isAbleToDeliverData()) {
+		for (int i = 0; i < netkinect_api_.getClientCount(); i++) {
+			int size = 0;
+    			float* cloud = nullptr;
+			size = netkinect_api_.getClient(i)->getCloud(&cloud, size);
+
+		    //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
+		    recon::CloudPtr newcloud(new recon::Cloud());
+		    for (int i = 0; i <= size - 3; i += 3) {
+			recon::PointType p;
+			p.x = cloud[i];
+			p.y = cloud[i + 1];
+			p.z = 	cloud[i + 2];
+
+			newcloud->push_back(p);
+		    }
+		    // save for collection
+		    cloud_map_[i] = newcloud;
+		}
+	}
 	bool take_snapshot = true;
 	// for each sensor
 	for (auto& sensor : sensor_list_)
 	{
 		// get current point cloud, points are in camera space (x left, y up, z back)
-		auto cloud = sensor->getCloudSource()->getOutputCloud();
+		//auto cloud = sensor->getCloudSource()->getOutputCloud();
+		auto cloud = cloud_map_[sensor->getId()];
 		if (cloud != nullptr)
 		{
 			// downsample cloud for searching sphere
@@ -235,7 +256,7 @@ void ofApp::update()
 				performICPTransformationEstimation();
 			}
 
-			player_.play();
+			//player_.play();
 		}
 	}
 	else

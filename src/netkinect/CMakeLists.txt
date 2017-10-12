@@ -37,7 +37,7 @@ target_compile_features(netkinect
 # Depend on a library that we defined in the top-level file
 target_link_libraries(netkinect
     pthread
-    libprotobuf
+    protobuf
 )
 
 # 'make install' to the correct location

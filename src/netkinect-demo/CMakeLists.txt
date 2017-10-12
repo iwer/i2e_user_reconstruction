@@ -19,4 +19,5 @@ target_link_libraries(netkinect-demo
 	pcl-registration
 	of-pcl-bridge
     netkinect
+	protobuf
 )

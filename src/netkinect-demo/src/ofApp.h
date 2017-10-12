@@ -78,6 +78,7 @@ public:
     // sensor stuff
     ofColor cloudColors[4];
     std::list<recon::AbstractSensor::Ptr> sensor_list_;
+    std::map<int, recon::CloudPtr> cloud_map_;
     std::map<int, ofMesh> mesh_map_;
     std::map<int, ofMesh> inliers_mesh_;
 

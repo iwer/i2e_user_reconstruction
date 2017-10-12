@@ -12,18 +12,18 @@ endif (MSVC)
 
 # Include third party libraries as targets
 include(TargetsBoostStatic)
-include(TargetsUnitTestPlusPlus)
+#include(TargetsUnitTestPlusPlus)
 include(TargetsPCLStatic)
 
 #find libprotobuf
 find_package(Protobuf REQUIRED)
 add_library(libprotobuf STATIC IMPORTED)
 set_property(TARGET libprotobuf PROPERTY
-		INTERFACE_INCLUDE_DIRECTORIES ${PROTOBUF_INCLUDE_DIRS})
+		INTERFACE_INCLUDE_DIRECTORIES ${Protobuf_INCLUDE_DIRS})
 set_property(TARGET libprotobuf PROPERTY
-		IMPORTED_LOCATION_RELEASE ${PROTOBUF_LIBRARY})
+		IMPORTED_LOCATION_RELEASE ${Protobuf_LIBRARY})
 set_property(TARGET libprotobuf PROPERTY
-		IMPORTED_LOCATION_DEBUG ${PROTOBUF_LIBRARY_DEBUG})
+		IMPORTED_LOCATION_DEBUG ${Protobuf_LIBRARY_DEBUG})
 	
 # openFrameworks gets added as project
 find_package(openFrameworks REQUIRED)

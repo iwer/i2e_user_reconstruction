@@ -29,7 +29,7 @@ using namespace std;
 #define LOG_WARNING if (Logger::getLogger().getLogLevel() > WARNING); \
                     else LOG(WARNING)
 #define LOG_ERROR 	LOG(ERROR)
-#undef DEBUG
+
 typedef enum {
 	DEBUG,
 	WARNING,

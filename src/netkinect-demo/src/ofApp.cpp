@@ -135,9 +135,9 @@ void ofApp::update()
 		    recon::CloudPtr newcloud(new recon::Cloud());
 		    for (int i = 0; i <= size - 3; i += 3) {
 			recon::PointType p;
-			p.x = cloud[i];
+			p.z = cloud[i];
 			p.y = cloud[i + 1];
-			p.z = 	cloud[i + 2];
+			p.x = 	cloud[i + 2];
 
 			newcloud->push_back(p);
 		    }
@@ -145,6 +145,7 @@ void ofApp::update()
 		    cloud_map_[i] = newcloud;
 		}
 	}
+
 	bool take_snapshot = true;
 	// for each sensor
 	for (auto& sensor : sensor_list_)

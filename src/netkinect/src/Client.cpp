@@ -105,7 +105,7 @@ int Client::getCloud(float** cloud, int size){
 	int size_new = _sensor_data.fdepth_data().capacity() * 3;
 	LOG_DEBUG << "processing cloud on server, size = " << size_new << endl;
 #endif
-
+	LOG_DEBUG << "testcloud ptr" << endl;
 	if (size != size_new && size > 0 && *cloud != NULL){
 		LOG_DEBUG << "free cloud ptr" << endl;
 		free(*cloud);

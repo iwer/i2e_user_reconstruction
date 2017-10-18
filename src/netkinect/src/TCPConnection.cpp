@@ -39,7 +39,7 @@ int TCPConnection::createConnection(ConnectionType type, int port, string ip){
 		_info.sin_addr.s_addr = INADDR_ANY;
 
 		int one = 1;
-    	if (setsockopt(_socket, SOL_SOCKET, SO_TIMESTAMP, &one, sizeof(one))){
+  	if (setsockopt(_socket, SOL_SOCKET, SO_TIMESTAMP, &one, sizeof(one))){
 			LOG_ERROR << "failed to set timestamp option, strerror : "
 				<< strerror(errno) << endl;
 
@@ -63,7 +63,7 @@ int TCPConnection::createConnection(ConnectionType type, int port, string ip){
 		inet_pton(AF_INET, ip.c_str(), &_info.sin_addr);
 
 		if (connect(_socket, (struct sockaddr*) &_info, sizeof(_info)) != 0){
-			LOG_ERROR << "failed to connect to server, strerror : "
+			LOG_DEBUG << "failed to connect to server, strerror : "
 				<< strerror(errno) << endl;
 
 			closeConnection();

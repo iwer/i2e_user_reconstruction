@@ -40,7 +40,7 @@ public:
 
 		for (int h = 0; h < height; h++){
 			for (int w = 0; w < width; w++, cloud_idx += step){
-				float tmp = depth[depth_idx++];
+				float tmp = depth[depth_idx++] * 0.001f;
 				cloud[cloud_idx] = tmp;
 
 				tmp = tmp * f_inv;

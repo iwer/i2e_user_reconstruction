@@ -88,14 +88,14 @@ int main(){
 			frames++;
 		}
 
-		/*getTime(t);
+		getTime(t);
 		if (t[0] - t_ref[0] >= 1){
 			getTime(t_ref);
 			cout << "\r" << frames << " FPS" << flush;
 			frames = 0;
-		}*/
+		}
 
-		usleep(500000);
+		//usleep(500000);
 	}
 
 	return 0;

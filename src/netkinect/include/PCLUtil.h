@@ -28,7 +28,7 @@ public:
 		}
 	};
 
-	static void convertToXYZPointCloud(float* cloud, uint16_t* depth, int height, int width){
+	static void convertToXYZPointCloud(float* cloud, const char* depth, int height, int width){
 		int step = 3;
 		float center_x = (float) (width >> 1);
 		float center_y = (float) (height >> 1);
@@ -38,14 +38,18 @@ public:
 		int depth_idx = 0; //index for depth data array
 		int cloud_idx = 0; //index for pointcloud
 
+		int cnt = 0;
+
 		for (int h = 0; h < height; h++){
 			for (int w = 0; w < width; w++, cloud_idx += step){
-				float tmp = depth[depth_idx++] * 0.001f;
+				uint16_t depth_value = depth[depth_idx++] | (depth[depth_idx++] << 8);
+				float tmp = depth_value * 0.001f;
 				cloud[cloud_idx] = tmp;
 
 				tmp = tmp * f_inv;
 				cloud[cloud_idx + 1] = (w - center_x) * tmp;
 				cloud[cloud_idx + 2] = (h - center_y) * tmp;
+				cnt++;
 			}
 		}
 	};

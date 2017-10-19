@@ -24,7 +24,7 @@ set_property(TARGET libprotobuf PROPERTY
 		IMPORTED_LOCATION_RELEASE ${Protobuf_LIBRARY})
 set_property(TARGET libprotobuf PROPERTY
 		IMPORTED_LOCATION_DEBUG ${Protobuf_LIBRARY_DEBUG})
-	
+
 # openFrameworks gets added as project
 find_package(openFrameworks REQUIRED)
 export(TARGETS openFrameworks FILE openFrameworksConfig.cmake)
@@ -38,11 +38,11 @@ set_property(TARGET ofAddons PROPERTY
 	INTERFACE_INCLUDE_DIRECTORIES ${ADDONS_INCLUDE_DIRS})
 export(TARGETS ofAddons FILE ofAddonsConfig.cmake)
 
-target_link_libraries(ofAddons openFrameworks)	
+target_link_libraries(ofAddons openFrameworks)
 
 # External 3rd party libs that we include
 #add_subdirectory(libs/extlib EXCLUDE_FROM_ALL)
- 
+
 #add_definitions(EIGEN_DONT_VECTORIZE EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT )
 
 # Targets that we develop
@@ -63,6 +63,6 @@ add_subdirectory(slow-reconstruction)
 add_subdirectory(meshseq-player)
 if(UNIX)
 add_subdirectory(netkinect)
-add_subdirectory(netkinect-demo)
+add_subdirectory(netkinect-calib)
 add_subdirectory(netkinect-reconstruction)
 endif(UNIX)

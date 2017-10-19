@@ -134,15 +134,16 @@ void ofApp::update()
 		    //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
 		    recon::CloudPtr newcloud(new recon::Cloud());
 		    for (int i = 0; i <= size - 3; i += 3) {
-			recon::PointType p;
-			p.z = cloud[i];
-			p.y = cloud[i + 1];
-			p.x = 	cloud[i + 2];
+						recon::PointType p;
+						p.z = cloud[i];
+						p.y = cloud[i + 1];
+						p.x = 	cloud[i + 2];
 
-			newcloud->push_back(p);
+						newcloud->push_back(p);
 		    }
 		    // save for collection
 		    cloud_map_[i] = newcloud;
+				netkinect_api_.getClient(i)->processedData();
 		}
 	}
 
@@ -441,12 +442,12 @@ void ofApp::performICPTransformationEstimation()
 	// perform icp on calib_position pointclouds
 	std::list<recon::AbstractSensor::Ptr>::iterator it;
 	std::list<recon::AbstractSensor::Ptr>::iterator ref = sensor_list_.begin();
-	
+
 	// transform points of first sensor to global position
 	auto sensor1 = *ref;
 	auto refCloud = calib_positions_[sensor1->getId()];
 	pcl::PointCloud<pcl::PointXYZ>::Ptr refCloudGlobalTransformed(new pcl::PointCloud<pcl::PointXYZ>());
-	
+
 
 	// this point cloud is in of space, so translation has to be scaled up
 	auto trnsrfrm = sensor1->getDepthExtrinsics()->getTransformation();

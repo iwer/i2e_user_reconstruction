@@ -1,5 +1,5 @@
 #include "ofApp.h"
-#include "../../netkinect-demo/src/NetKinectPointCloudGenerator.h"
+#include "NetKinectSensor.h"
 #include <of-pcl-bridge/of-pcl-bridge.h>
 #include <common/SensorCalibrationSettings.h>
 #include <recon/SensorFactory.h>
@@ -27,7 +27,7 @@ void ofApp::setupUi()
 	loadCalibrationBtn_.addListener(this, &ofApp::loadCalibrationFromFile);
 	fps_.addListener(this, &ofApp::updateFps);
 	backBtn_.addListener(this, &ofApp::back);
-	playing_.addListener(this, &ofApp::play); 
+	playing_.addListener(this, &ofApp::play);
 	stopBtn_.addListener(this, &ofApp::stop);
 	nextFrameBtn_.addListener(this, &ofApp::nextFrame);
 	prevFrameBtn_.addListener(this, &ofApp::prevFrame);
@@ -42,7 +42,7 @@ void ofApp::setupUi()
 	ui_.add(onlyPointsTgl_.setup("Only Points", true));
 	ui_.add(fillWireFrameTgl_.setup("Fill Wireframe", true));
 	ui_.add(perPixelColor_.setup("Per-Pixel Color", false));
-	ui_.add(showFrustum_.setup("Show Frustum", false)); 
+	ui_.add(showFrustum_.setup("Show Frustum", false));
 	ui_.add(showSingle_.setup("Show Single Meshes", true));
 	ui_.add(showCombined_.setup("Show Combined Mesh", false));
 	ui_.add(reconstructAllTgl_.setup("Reconstruct all", false));
@@ -73,10 +73,10 @@ void ofApp::setup(){
 	maxFrames_ = 1000000000;
 	for (auto i = 0; i < sensorCount; i++)
 	{
-		auto s = sensorFac.createDummySensor();
+		auto s = boost::shared_ptr<recon::AbstractSensor>(new NetKinectSensor(netkinect_api_.getClient(i), i));
 		sensors_.push_back(s);
-		sensorMap_[s->getId()] = s;
-        image_[s->getId()] = std::make_shared<ofImage>();
+		sensorMap_[i] = s;
+        image_[i] = std::make_shared<ofImage>();
 	}
 
 
@@ -104,7 +104,7 @@ void ofApp::setup(){
 	// TODO: Fix Texture bug to get rid of dummy Texture
 	dummyTex_.load("uv_test.png");
 	globalFrameNumber_ = 0;
-	
+
 	combinedTexture_.allocate(iWidth2, iHeight2);
 
 	cam_.setFarClip(100000);
@@ -123,7 +123,7 @@ void ofApp::processFrame()
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
 
 	for (auto &s : sensors_) {
-		if (cloud_[s->getId()]) {
+		//if (cloud_[s->getId()]) {
 			if (cloud_[s->getId()] != nullptr && image_[s->getId()] != nullptr)
 			{
 				// remove back- and foreground
@@ -133,7 +133,7 @@ void ofApp::processFrame()
 				// fast triangulation
 				recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
 				organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
-
+				std::cout << tris->size() << std::endl;
 
 				ofMesh m;
 				createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
@@ -144,12 +144,17 @@ void ofApp::processFrame()
 				ofMesh points;
 				createOfMeshWithCombinedTexCoords(cloud_transformed, tris, image_[s->getId()]->getTexture(), imageLayout_[s->getId()], sensorMap_[s->getId()], points);
 				combinedMesh_.append(points);
+			} else {
+				std::cerr << "Cloud or image null" << std::endl;
 			}
-		}
+
+		//} else {
+		//	std::cerr << "No cloud" << std::endl;
+		//}
 	}
-	if (!reconstructAllTgl_) {
-		t.reset();
-	}
+	//if (!reconstructAllTgl_) {
+	//	t.reset();
+	//}
 }
 
 //--------------------------------------------------------------
@@ -167,12 +172,16 @@ void ofApp::update(){
                 recon::PointType p;
                 p.z = cloud[i];
                 p.y = cloud[i + 1];
-                p.x = 	cloud[i + 2];
+                p.x = cloud[i + 2];
+
+								if(i < 25010 && i > 25000) {
+									std::cout << cloud[i] << " " << cloud[i+1] << " " << cloud[i+2] <<std::endl;
+								}
 
                 newcloud->push_back(p);
             }
             // save for collection
-            cloud_map_[i] = newcloud;
+            cloud_[i] = newcloud;
 
             size=0;
             char* imagedata = nullptr;
@@ -181,20 +190,22 @@ void ofApp::update(){
             void* dataptr = (void*) imagedata;
             image_[i] = std::shared_ptr<ofImage>(new ofImage());
             image_[i]->setFromPixels(static_cast<const unsigned char *>(dataptr), 640, 480, OF_IMAGE_COLOR);
+
+						netkinect_api_.getClient(i)->processedData();
         }
     }
 
 
-	if (reconstructAllTgl_)
-	{
-		saveCurrentFrame();
-		++globalFrameNumber_;
-		if(globalFrameNumber_ >= maxFrames_ - 1)
-		{
-			globalFrameNumber_ = 0;
-			reconstructAllTgl_ = false;
-		}
-	}
+//	if (reconstructAllTgl_)
+//	{
+//		saveCurrentFrame();
+//		++globalFrameNumber_;
+//		if(globalFrameNumber_ >= maxFrames_ - 1)
+//		{
+//			globalFrameNumber_ = 0;
+//			reconstructAllTgl_ = false;
+//		}
+//	}
 	processFrame();
 }
 
@@ -243,7 +254,7 @@ void ofApp::draw(){
 			rotation.getRotate(qangle, qaxis);
 			ofTranslate(translation);
 			ofRotate(qangle, qaxis.x, qaxis.y, qaxis.z);
-			
+
 			if (onlyPointsTgl_)
 			{
 				mesh_[s->getId()].enableColors();
@@ -294,7 +305,7 @@ void ofApp::draw(){
 			combinedMesh_.enableColors();
 			combinedMesh_.draw();
 		}
-	
+
 	}
 
 	cam_.end();
@@ -362,7 +373,7 @@ void ofApp::gotMessage(ofMessage msg){
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
+void ofApp::dragEvent(ofDragInfo dragInfo){
 
 }
 

@@ -23,7 +23,7 @@ class ofApp : public ofBaseApp{
 		{}
 
 		void setupUi();
-		
+
 		void setup();
 		void update();
 		void draw();
@@ -39,9 +39,9 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-		
+
 		void loadCalibrationFromFile();
-		void resetCalibration(); 
+		void resetCalibration();
 		void cloudCallback(int frameNumber, int sensorIndex, recon::CloudPtr cloud, std::shared_ptr<ofImage> image);
 		void updateFps(int &fps);
 		void play(bool &play);
@@ -70,7 +70,6 @@ class ofApp : public ofBaseApp{
 		std::map<int, std::shared_ptr<ofImage>> image_;
 		std::list<recon::AbstractSensor::Ptr> sensors_;
 		std::map<int, recon::AbstractSensor::Ptr> sensorMap_;
-        std::map<int, recon::CloudPtr> cloud_map_;
 
 		ofImage dummyTex_;
 		ofMesh combinedMesh_;
@@ -78,7 +77,7 @@ class ofApp : public ofBaseApp{
 		std::vector<ofRectangle> imageLayout_;
 		std::string fileNumber(int number);
 		int writeIndex_;
-		
+
 		ofEasyCam cam_;
 
 		// UI stuff
@@ -94,7 +93,7 @@ class ofApp : public ofBaseApp{
 		ofxToggle showCombined_;
 		ofxToggle fillWireFrameTgl_;
 		ofxToggle onlyPointsTgl_;
-		
+
 		ofxIntSlider fpsSlider_;
 		ofxButton backBtn_;
 		ofxToggle playTgl_;
@@ -110,7 +109,7 @@ class ofApp : public ofBaseApp{
 		ofxIntSlider triEdgeLengthSl_;
 		ofxFloatSlider angleToleranceSl_;
 		ofxFloatSlider distanceToleranceSl_;
-		
+
 		ofParameter<int> background_;
 		ofParameter<int> fps_;
 		ofParameter<bool> playing_;
@@ -118,10 +117,10 @@ class ofApp : public ofBaseApp{
 		ofParameterGroup backgroundRemovalPrms_;
 		ofParameter<float> passMin_;
 		ofParameter<float> passMax_;
-		
+
 		ofParameterGroup triangulationPrms_;
 		ofParameter<int> triEdgeLength_;
 		ofParameter<float> angleTolerance_;
 		ofParameter<float> distanceTolerance_;
-		
+
 };

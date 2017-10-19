@@ -1,5 +1,5 @@
 # Define an executable
-add_executable(netkinect-demo
+add_executable(netkinect-calib
     src/ofApp.cpp
     src/main.cpp
         # Headers
@@ -7,9 +7,9 @@ add_executable(netkinect-demo
 		src/NetKinectPointCloudGenerator.cpp src/NetKinectPointCloudGenerator.h src/NetKinectSensor.cpp src/NetKinectSensor.h)
 
 # Define the libraries this project depends upon
-target_link_libraries(netkinect-demo 
-    openFrameworks 
-	ofAddons 
+target_link_libraries(netkinect-calib 
+    openFrameworks
+	ofAddons
 	librecon
 	common
 	pcl-common

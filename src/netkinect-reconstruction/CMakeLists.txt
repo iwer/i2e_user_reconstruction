@@ -4,13 +4,14 @@ add_executable(netkinect-reconstruction
     src/main.cpp
 	# Headers
 	src/ofApp.h
+  src/NetKinectPointCloudGenerator.cpp src/NetKinectPointCloudGenerator.h src/NetKinectSensor.cpp src/NetKinectSensor.h
 	)
 
 # Define the libraries this project depends upon
 target_link_libraries(netkinect-reconstruction
-    openFrameworks 
-	ofAddons 
-	librecon 
+    openFrameworks
+	ofAddons
+	librecon
 	common
 	pcl-common
 	pcl-io

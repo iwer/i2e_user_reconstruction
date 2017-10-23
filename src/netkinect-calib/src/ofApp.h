@@ -71,6 +71,9 @@ public:
 
     void saveCalibrationToFile();
 
+    std::map<int,int> cloudsize;
+		std::map<int, float*> clouddata;
+
     ofSoundPlayer player_;
 
     ofEasyCam cam_;

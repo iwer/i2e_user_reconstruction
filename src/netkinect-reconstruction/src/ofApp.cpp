@@ -63,9 +63,10 @@ void ofApp::setup(){
 	// KINECT SERVER ########
 	std::cout << "Waiting for networked Kinect servers to connect" << std::endl;
 	while(!netkinect_api_.isAbleToDeliverData()) {
-		std::cout << ".";
+		//std::cout << ".";
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
+
 	std::cout << std::endl << "Done. " << netkinect_api_.getClientCount() << " networked Kinects connected." << std::endl;
 	auto sensorCount = netkinect_api_.getClientCount();
 
@@ -101,8 +102,7 @@ void ofApp::setup(){
 	{
 		std::cout << r << std::endl;
 	}
-	// TODO: Fix Texture bug to get rid of dummy Texture
-	dummyTex_.load("uv_test.png");
+
 	globalFrameNumber_ = 0;
 
 	combinedTexture_.allocate(iWidth2, iHeight2);
@@ -133,7 +133,7 @@ void ofApp::processFrame()
 				// fast triangulation
 				recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
 				organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
-				std::cout << tris->size() << std::endl;
+				//std::cout << tris->size() << std::endl;
 
 				ofMesh m;
 				createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
@@ -162,32 +162,28 @@ void ofApp::update(){
     // get cloud and image data from ServerAPI
     if(netkinect_api_.isAbleToDeliverData()) {
         for (int i = 0; i < netkinect_api_.getClientCount(); i++) {
-            int size = 0;
-            float* cloud = nullptr;
-            size = netkinect_api_.getClient(i)->getCloud(&cloud, size);
+            cloudsize[i] = netkinect_api_.getClient(i)->getCloud(&clouddata[i], cloudsize[i]);
 
             //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
             recon::CloudPtr newcloud(new recon::Cloud());
-            for (int i = 0; i <= size - 3; i += 3) {
+            for (int j = 0; j <= cloudsize[i] - 3; j += 3) {
                 recon::PointType p;
-                p.z = cloud[i];
-                p.y = cloud[i + 1];
-                p.x = cloud[i + 2];
+                p.z = clouddata[i][j];
+                p.x = clouddata[i][j + 1];
+                p.y = -clouddata[i][j + 2];
 
-								if(i < 25010 && i > 25000) {
-									std::cout << cloud[i] << " " << cloud[i+1] << " " << cloud[i+2] <<std::endl;
-								}
+								//if(p.x != 0 || p.y != 0 || p.z != 0) {
+								//	std::cout << p.x << " " << p.y << " " << p.z <<std::endl;
+								//}
 
                 newcloud->push_back(p);
             }
             // save for collection
             cloud_[i] = newcloud;
 
-            size=0;
-            char* imagedata = nullptr;
-            size = netkinect_api_.getClient(i)->getVideo(&imagedata, size);
+            imagesize[i] = netkinect_api_.getClient(i)->getVideo(&imagedata[i], imagesize[i]);
 
-            void* dataptr = (void*) imagedata;
+            void* dataptr = (void*) imagedata[i];
             image_[i] = std::shared_ptr<ofImage>(new ofImage());
             image_[i]->setFromPixels(static_cast<const unsigned char *>(dataptr), 640, 480, OF_IMAGE_COLOR);
 

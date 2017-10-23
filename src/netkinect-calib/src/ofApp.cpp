@@ -127,19 +127,21 @@ void ofApp::update()
 
 	if(netkinect_api_.isAbleToDeliverData()) {
 		for (int i = 0; i < netkinect_api_.getClientCount(); i++) {
-			int size = 0;
-    			float* cloud = nullptr;
-			size = netkinect_api_.getClient(i)->getCloud(&cloud, size);
+			  cloudsize[i] = netkinect_api_.getClient(i)->getCloud(&clouddata[i], cloudsize[i]);
 
 		    //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
 		    recon::CloudPtr newcloud(new recon::Cloud());
-		    for (int i = 0; i <= size - 3; i += 3) {
+		    for (int j = 0; j <= cloudsize[i] - 3; j += 3) {
 						recon::PointType p;
-						p.z = cloud[i];
-						p.y = cloud[i + 1];
-						p.x = 	cloud[i + 2];
+						p.z = clouddata[i][j];
+						p.x = clouddata[i][j + 1];
+						p.y = -clouddata[i][j + 2];
 
-						newcloud->push_back(p);
+						//if(p.x != 0 || p.y != 0 || p.z != 0) {
+						//	std::cout << p.x << " " << p.y << " " << p.z <<std::endl;
+						//}
+
+  					newcloud->push_back(p);
 		    }
 		    // save for collection
 		    cloud_map_[i] = newcloud;

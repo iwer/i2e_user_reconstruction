@@ -59,6 +59,12 @@ class ofApp : public ofBaseApp{
 		int globalFrameNumber_;
 		int maxFrames_;
 
+		std::map<int,int> cloudsize;
+		std::map<int, float*> clouddata;
+
+		std::map<int,int> imagesize;
+		std::map<int,char*> imagedata;
+
 		ofFbo combinedTexture_;
 
 		// NetKinect

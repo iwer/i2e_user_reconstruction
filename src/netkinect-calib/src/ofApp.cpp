@@ -40,7 +40,9 @@ void ofApp::setup()
         sensor_list_.push_back(sensor);
 
         detected_sphere_[sensor_list_.back()->getId()].setResolution(6);
-		calib_positions_[sensor_list_.back()->getId()] = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>(pcl::PointCloud<pcl::PointXYZ>());
+				calib_positions_[sensor_list_.back()->getId()] = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>(pcl::PointCloud<pcl::PointXYZ>());
+				recon::CloudPtr newcloud(new recon::Cloud());
+				cloud_map_[sensor_list_.back()->getId()] = newcloud;
 	}
 
 	// UI ############
@@ -127,24 +129,30 @@ void ofApp::update()
 
 	if(netkinect_api_.isAbleToDeliverData()) {
 		for (int i = 0; i < netkinect_api_.getClientCount(); i++) {
-			  cloudsize[i] = netkinect_api_.getClient(i)->getCloud(&clouddata[i], cloudsize[i]);
+			    cloudsize[i] = netkinect_api_.getClient(i)->getCloud(&clouddata[i], cloudsize[i], cloud_map_[i]);
 
 		    //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
+				/*
 		    recon::CloudPtr newcloud(new recon::Cloud());
-		    for (int j = 0; j <= cloudsize[i] - 3; j += 3) {
-						recon::PointType p;
-						p.z = clouddata[i][j];
-						p.x = clouddata[i][j + 1];
-						p.y = -clouddata[i][j + 2];
+				newcloud->resize(cloudsize[i]/3);
+				{
+					pcl::ScopeTime loop("Loop");
+					recon::PointType p;
 
-						//if(p.x != 0 || p.y != 0 || p.z != 0) {
-						//	std::cout << p.x << " " << p.y << " " << p.z <<std::endl;
-						//}
+			    for (int j = 0; j <= cloudsize[i] - 3; j += 3) {
+							p.z = clouddata[i][j];
+							p.x = clouddata[i][j + 1];
+							p.y = -clouddata[i][j + 2];
 
-  					newcloud->push_back(p);
-		    }
+							//if(p.x != 0 || p.y != 0 || p.z != 0) {
+							//	std::cout << p.x << " " << p.y << " " << p.z <<std::endl;
+							//}
+
+							newcloud->push_back(p);
+			    }
+			  }
 		    // save for collection
-		    cloud_map_[i] = newcloud;
+		    cloud_map_[i] = newcloud; */
 				netkinect_api_.getClient(i)->processedData();
 		}
 	}

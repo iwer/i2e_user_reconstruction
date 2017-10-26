@@ -7,6 +7,7 @@
 #include <pcl/common/transforms.h>
 #include <pcl/common/time.h>
 #include <pcl/io/image_rgb24.h>
+#include <recon/CameraIntrinsics.h>
 
 void ofApp::setupUi()
 {
@@ -75,9 +76,28 @@ void ofApp::setup(){
 	for (auto i = 0; i < sensorCount; i++)
 	{
 		auto s = boost::shared_ptr<recon::AbstractSensor>(new NetKinectSensor(netkinect_api_.getClient(i), i));
+
+		double depth_focal_length_x, depth_focal_length_y, depth_principal_point_x, depth_principal_point_y;
+		// this does not return anything!!!
+		//grabber_->getDepthCameraIntrinsics(depth_focal_length_x, depth_focal_length_y, depth_principal_point_x, depth_principal_point_y);
+
+		auto x_res = 640;
+		auto y_res = 480;
+		// default values
+		depth_principal_point_x =  x_res / 2 - 0.5;
+		depth_principal_point_y =  y_res / 2 - 0.5;
+
+		depth_focal_length_x = 517.4;
+		depth_focal_length_y = 517.4;
+
+		recon::CameraIntrinsics intrinsics(depth_focal_length_x, depth_focal_length_y, depth_principal_point_x, depth_principal_point_y, x_res, y_res);
+
+		s->setDepthIntrinsics(boost::make_shared<recon::CameraIntrinsics>(intrinsics));
 		sensors_.push_back(s);
 		sensorMap_[i] = s;
         image_[i] = std::make_shared<ofImage>();
+				recon::CloudPtr newcloud(new recon::Cloud());
+				cloud_[i] = newcloud;
 	}
 
 
@@ -117,7 +137,7 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::processFrame()
 {
-	pcl::ScopeTime t("Frame Processing");
+	//pcl::ScopeTime t("Frame Processing");
 
 	combinedMesh_.clear();
 	combinedMesh_.setMode(OF_PRIMITIVE_TRIANGLES);
@@ -130,13 +150,18 @@ void ofApp::processFrame()
 				recon::CloudPtr cloud_wo_back(new recon::Cloud());
 				removeBackground(cloud_[s->getId()], cloud_wo_back, passMin_, passMax_, true);
 
+				//std::cout << cloud_[s->getId()]->at(0) << " " << cloud_[s->getId()]->at(1) << std::endl;
+
 				// fast triangulation
+				cloud_wo_back->width=640;
+				cloud_wo_back->height=480;
 				recon::TrianglesPtr tris(new std::vector<pcl::Vertices>());
 				organizedFastMesh(cloud_wo_back, tris, triEdgeLength_, angleTolerance_, distanceTolerance_);
 				//std::cout << tris->size() << std::endl;
 
 				ofMesh m;
 				createOfMeshWithTexCoords(cloud_wo_back, tris, image_[s->getId()]->getTexture(), sensorMap_[s->getId()], m);
+				//createOfMeshFromPoints(cloud_wo_back, m);
 				mesh_[s->getId()] = m;
 
 				recon::CloudPtr cloud_transformed(new recon::Cloud());
@@ -159,35 +184,39 @@ void ofApp::processFrame()
 
 //--------------------------------------------------------------
 void ofApp::update(){
+		//pcl::ScopeTime t("update()");
     // get cloud and image data from ServerAPI
     if(netkinect_api_.isAbleToDeliverData()) {
         for (int i = 0; i < netkinect_api_.getClientCount(); i++) {
-            cloudsize[i] = netkinect_api_.getClient(i)->getCloud(&clouddata[i], cloudsize[i]);
+  					//recon::CloudPtr newcloud(new recon::Cloud());
+
+						cloudsize[i] = netkinect_api_.getClient(i)->getCloud(&clouddata[i], cloudsize[i], cloud_[i]);
 
             //Encode cloud into pcl::PointCloud<pcl::PointXYZ>
-            recon::CloudPtr newcloud(new recon::Cloud());
-            for (int j = 0; j <= cloudsize[i] - 3; j += 3) {
-                recon::PointType p;
-                p.z = clouddata[i][j];
-                p.x = clouddata[i][j + 1];
-                p.y = -clouddata[i][j + 2];
+	          /*  for (int j = 0; j <= cloudsize[i] - 3; j += 3) {
+	                recon::PointType p;
+	                p.z = clouddata[i][j];
+	                p.x = clouddata[i][j + 1];
+	                p.y = -clouddata[i][j + 2];
 
-								//if(p.x != 0 || p.y != 0 || p.z != 0) {
-								//	std::cout << p.x << " " << p.y << " " << p.z <<std::endl;
-								//}
+									//if(p.x != 0 || p.y != 0 || p.z != 0) {
+									//	std::cout << p.x << " " << p.y << " " << p.z <<std::endl;
+									//}
 
-                newcloud->push_back(p);
-            }
-            // save for collection
-            cloud_[i] = newcloud;
+	                newcloud->push_back(p);
+	            } */
 
-            imagesize[i] = netkinect_api_.getClient(i)->getVideo(&imagedata[i], imagesize[i]);
+		            // save for collection
+		            //cloud_[i] = newcloud;
 
-            void* dataptr = (void*) imagedata[i];
-            image_[i] = std::shared_ptr<ofImage>(new ofImage());
-            image_[i]->setFromPixels(static_cast<const unsigned char *>(dataptr), 640, 480, OF_IMAGE_COLOR);
+		            imagesize[i] = netkinect_api_.getClient(i)->getVideo(&imagedata[i], imagesize[i]);
 
-						netkinect_api_.getClient(i)->processedData();
+		            void* dataptr = (void*) imagedata[i];
+		            image_[i] = std::shared_ptr<ofImage>(new ofImage());
+		            image_[i]->setFromPixels(static_cast<const unsigned char *>(dataptr), 640, 480, OF_IMAGE_COLOR);
+
+								netkinect_api_.getClient(i)->processedData();
+
         }
     }
 
@@ -314,7 +343,7 @@ void ofApp::draw(){
 	ofPopMatrix();
 
 	ofDisableDepthTest();
-	ofDrawBitmapString(fpsString, ofGetWidth() - 200, 10);
+	//ofDrawBitmapString(fpsString, ofGetWidth() - 200, 10);
 	ui_.draw();
 }
 

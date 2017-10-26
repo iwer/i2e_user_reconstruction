@@ -14,11 +14,11 @@ class ofApp : public ofBaseApp{
 		ofApp()
 			: background_("Backgroundcolor", 127, 0, 255)
 			, fps_("FPS", 1, 0, 30)
-			, passMin_("Z Min", .01, .01, 8)
-			, passMax_("Z Max", 2.5, .01, 8)
-			, triEdgeLength_("Triangle Edge Length", 50, 1, 50)
+			, passMin_("Z Min", .01, .01, 80)
+			, passMax_("Z Max", 3, .01, 80)
+			, triEdgeLength_("Triangle Edge Length", 25, 1, 50)
 			, angleTolerance_("Angle Tolerance", 15, 1, 270)
-			, distanceTolerance_("Distance Tolerance", .2, .001, 1.5)
+			, distanceTolerance_("Distance Tolerance", .2, .001, 10)
 			, playing_("Play", false)
 		{}
 

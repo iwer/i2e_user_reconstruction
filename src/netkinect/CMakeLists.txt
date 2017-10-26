@@ -38,6 +38,7 @@ target_compile_features(netkinect
 target_link_libraries(netkinect
     pthread
     protobuf
+    librecon  
 )
 
 # 'make install' to the correct location
@@ -49,5 +50,3 @@ install(DIRECTORY include/ DESTINATION include)
 
 # This makes the project importable from the build directory
 export(TARGETS netkinect FILE NetKinectConfig.cmake)
-
-

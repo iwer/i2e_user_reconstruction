@@ -11,6 +11,8 @@
 
 #include "../gen/KinectFrameMessage.pb.h"
 
+#include "recon/typedefs.h"
+
 using namespace std;
 
 class Client{
@@ -23,6 +25,7 @@ public:
 	int getVideo(char** video, int size);
 	int getDepth(char** depth, int size);
 	int getCloud(float** cloud, int size);
+	int getCloud(float** cloud, int size, recon::CloudPtr pc);
 
 	void processedData() { _data_available = 0; };
 

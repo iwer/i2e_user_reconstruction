@@ -111,7 +111,7 @@ void movingLeastSquaresSmoothing(recon::NormalCloudPtr src, recon::NormalCloudPt
 
 	// Init object (second point type is for the normals, even if unused)
 	pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType> mls;
-	
+
 	recon::CloudPtr normalRemovedCloud(new recon::Cloud);
 	pcl::copyPointCloud<pcl::PointXYZRGBNormal, recon::PointType>(*src, *normalRemovedCloud);
 	std::cout << "WO Normals: " << normalRemovedCloud->size() << std::endl;
@@ -126,7 +126,7 @@ void movingLeastSquaresSmoothing(recon::NormalCloudPtr src, recon::NormalCloudPt
 	mls.setDilationVoxelSize(resolution);
 	mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::VOXEL_GRID_DILATION);
 
-	// still quite noisy	
+	// still quite noisy
 	//mls.setPointDensity(10);
 	//mls.setUpsamplingMethod(pcl::MovingLeastSquares<recon::PointType, recon::PointNormalType>::RANDOM_UNIFORM_DENSITY);
 
@@ -384,7 +384,7 @@ void createOfMeshFromPclTextureMesh(pcl::TextureMeshPtr mesh,
 		unsigned tri_mesh_idx = 0;
 
 		for (auto &t : sub_mesh) {
-			
+
 			for (auto &pointindex : t.vertices)
 			{
 				auto p = cloud->at(pointindex);

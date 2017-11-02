@@ -129,7 +129,9 @@ void ofApp::setup(){
 
 	cam_.setFarClip(100000);
 	cam_.rotate(180, 0, 1, 0);
-
+	angleH = roll = 0.0f;
+	distance = 1500.f;
+	ui_enabled_ = true;
 
 	writeIndex_ = 0;
 }
@@ -232,6 +234,10 @@ void ofApp::update(){
 //		}
 //	}
 	processFrame();
+	if(!ui_enabled_) {
+		angleH += 8;
+	}
+	cam_.orbit(angleH, 0, distance);
 }
 
 //--------------------------------------------------------------
@@ -339,17 +345,22 @@ void ofApp::draw(){
 	ofPushMatrix();
 	ofTranslate(ofGetWidth(), 0);
 	ofScale(-1, 1, 1);
-	combinedTexture_.draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
+	if(ui_enabled_)
+		combinedTexture_.draw(ofGetWidth() / 4 * 3, ofGetHeight() / 4 * 3, ofGetWidth() / 4, ofGetHeight() / 4);
 	ofPopMatrix();
 
 	ofDisableDepthTest();
 	//ofDrawBitmapString(fpsString, ofGetWidth() - 200, 10);
-	ui_.draw();
+	if(ui_enabled_){
+		ui_.draw();
+  }
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	if(key=='m') {
+		ui_enabled_ = !ui_enabled_;
+	}
 }
 
 //--------------------------------------------------------------

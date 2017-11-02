@@ -458,6 +458,8 @@ void ofApp::performICPTransformationEstimation()
 	auto refCloud = calib_positions_[sensor1->getId()];
 	pcl::PointCloud<pcl::PointXYZ>::Ptr refCloudGlobalTransformed(new pcl::PointCloud<pcl::PointXYZ>());
 
+	recon::CameraIntrinsics::Ptr intr(new recon::CameraIntrinsics(517.4f, 640, 480));
+	sensor1->setDepthIntrinsics(intr);
 
 	// this point cloud is in of space, so translation has to be scaled up
 	auto trnsrfrm = sensor1->getDepthExtrinsics()->getTransformation();
@@ -514,8 +516,8 @@ void ofApp::performICPTransformationEstimation()
 				Eigen::Vector4f t(transformation.translation().x() / 1000, transformation.translation().y() / 1000, transformation.translation().z() / 1000, 0);
 				auto r = Eigen::Quaternionf(transformation.rotation());
 				recon::CameraExtrinsics::Ptr ext(new recon::CameraExtrinsics(t, r));
-
 				sensor2->setDepthExtrinsics(ext);
+				sensor2->setDepthIntrinsics(intr);
 			}
 		}
 	}

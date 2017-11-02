@@ -85,8 +85,10 @@ class ofApp : public ofBaseApp{
 		int writeIndex_;
 
 		ofEasyCam cam_;
+		float angleH, roll, distance;
 
 		// UI stuff
+		bool ui_enabled_;
 		ofxPanel ui_;
 
 		ofxIntSlider backgroundSl_;
